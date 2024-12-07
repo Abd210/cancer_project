@@ -1,0 +1,33 @@
+{
+  "name": "hospital_can",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "helmet": "^8.0.0",
+    "hospital_can": "file:",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.11.0",
+    "mongoose": "^8.8.3",
+    "nodemailer": "^6.9.16",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
+    "twilio": "^5.3.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
