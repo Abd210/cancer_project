@@ -8,7 +8,6 @@ This is the Express.js server used for the Acuranics Cloud Solution
 3. [Setup and Run](#setup-and-run)
 4. [Running the Server](#running-the-server)
 5. [Project Structure](#project-structure)
-6. [License](#license)
 
 ---
 
