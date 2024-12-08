@@ -1,6 +1,6 @@
 # Acuranics Breast Cancer API
 
-This is an Express.js server that you can use as a starting point for your web applications or APIs. It includes all necessary configuration and dependencies to get you up and running quickly.
+This is the Express.js server used for the Acuranics Cloud Solution
 
 ## Table of Contents
 1. [Prerequisites](#prerequisites)
