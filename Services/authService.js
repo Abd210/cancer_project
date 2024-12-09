@@ -135,6 +135,7 @@ class AuthService {
     return { message: "User registered successfully" };
   }
 
+  //Login any type of user
   static async login({ role, identifier, password }) {
     let user;
 
@@ -197,6 +198,42 @@ class AuthService {
     );
 
     return { token, message: "Login successful" };
+  }
+
+  //If the user forgets their password, send an email or SMS to reset it
+  static async forgotPassword({ role, email, mobile_number }) {
+    //Logic for sending an email or SMS to reset the password
+  }
+
+  //Reset the user's password provided the token is valid
+  static async resetPassword({ role, email, new_password }) {
+    let user;
+
+    switch (role) {
+      case "patient":
+        user = await Patient.findOne({ email: email });
+        break;
+      case "doctor":
+        user = await Doctor.findOne({ email: email });
+        break;
+      case "admin":
+        user = await Admin.findOne({ email: email });
+        break;
+      case "superadmin":
+        user = await SuperAdmin.findOne({ email: email });
+        break;
+      default:
+        throw new Error("authService-Reset Pass: Invalid role");
+    }
+    if (!user) {
+      throw new Error("authService-Reset Pass: User not found");
+    }
+
+    // Update the password
+    user.password = new_password;
+    await user.save();
+
+    return { message: "Password reset successful" };
   }
 }
 
