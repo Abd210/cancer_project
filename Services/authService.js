@@ -101,32 +101,32 @@ class AuthService {
         newUser = new Device(userRegistrationData);
         break;
       default:
-        throw new Error("Invalid role");
+        throw new Error("authService-Register: Invalid role");
     }
 
     // Check if email is already registered
     if (existingEmail) {
-      throw new Error("Email already registered");
+      throw new Error("authService-Register: Email already registered");
     }
     // Check if mobile number is already registered
     if (existingMobileNumber) {
-      throw new Error("Mobile number already registered");
+      throw new Error("authService-Register: Mobile number already registered");
     }
     // Check if name is already registered
     if (existingName) {
-      throw new Error("Name already registered");
+      throw new Error("authService-Register: Name already registered");
     }
     // Check if pers_id is already registered
     if (existingPersId) {
-      throw new Error("Personal ID already registered");
+      throw new Error("authService-Register: Personal ID already registered");
     }
     // Check if license is already registered
     if (existingLicense) {
-      throw new Error("License already registered");
+      throw new Error("authService-Register: License already registered");
     }
     // Check if device_id is already registered
     if (existingDeviceId) {
-      throw new Error("Device ID already registered");
+      throw new Error("authService-Register: Device ID already registered");
     }
 
     // Hash the password before saving (this is handled within the user model pre-save)
@@ -135,27 +135,68 @@ class AuthService {
     return { message: "User registered successfully" };
   }
 
-  static async login({ username, password }) {
-    // Check if user exists
-    const user = await User.findOne({ username });
-    if (!user) {
-      throw new Error("User not found");
+  static async login({ role, identifier, password }) {
+    let user;
+
+    // Fetch the user based on role
+    switch (role) {
+      case "patient":
+        user =
+          (await Patient.findOne({ email: identifier })) ||
+          (await Patient.findOne({ mobile_number: identifier })) ||
+          (await Patient.findOne({ pers_id: identifier })) ||
+          (await Patient.findOne({ name: identifier }));
+
+        break;
+      case "doctor":
+        user =
+          (await Doctor.findOne({ email: identifier })) ||
+          (await Doctor.findOne({ mobile_number: identifier })) ||
+          (await Doctor.findOne({ pers_id: identifier })) ||
+          (await Doctor.findOne({ name: identifier }));
+        break;
+      case "admin":
+        user =
+          (await Admin.findOne({ email: identifier })) ||
+          (await Admin.findOne({ mobile_number: identifier })) ||
+          (await Admin.findOne({ pers_id: identifier })) ||
+          (await Admin.findOne({ name: identifier }));
+        break;
+      case "superadmin":
+        user =
+          (await SuperAdmin.findOne({ email: identifier })) ||
+          (await SuperAdmin.findOne({ mobile_number: identifier })) ||
+          (await SuperAdmin.findOne({ pers_id: identifier })) ||
+          (await SuperAdmin.findOne({ name: identifier }));
+        break;
+      case "device":
+        user = await Device.findOne({ device_id: identifier });
+
+        // Devices might not use password-based authentication
+        return { message: "Device authenticated successfully" };
+      default:
+        throw new Error("authService-Login: Invalid role");
     }
 
-    // Check password
-    const isMatch = await user.comparePassword(password);
+    // Check if user exists
+    if (!user) {
+      throw new Error(`authService-Login: ${role} not found`);
+    }
+
+    // Verify password
+    const isMatch = await user.comparePassword(password); // Ensure the model has a `comparePassword` method
     if (!isMatch) {
-      throw new Error("Invalid credentials");
+      throw new Error("authService-Login: Invalid password");
     }
 
     // Generate JWT
     const token = jwt.sign(
-      { id: user._id, username: user.username },
+      { id: user._id, role, username: user.name || user.email },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    return { token };
+    return { token, message: "Login successful" };
   }
 }
 

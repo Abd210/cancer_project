@@ -64,13 +64,14 @@ class PatientController {
 
   static async login(req, res) {
     try {
-      const { pers_id, name, phone_number, email, password } = req.body;
+      const { pers_id, name, phone_number, email, device_id, password } =
+        req.body;
 
       // Determine the login identifier
-      const loginIdentifier = pers_id || email || name || phone_number;
+      const identifier = pers_id || email || name || phone_number || device_id;
 
       // Check for required fields for login
-      if (!loginIdentifier | !password) {
+      if (!identifier | !password) {
         return res.status(400).json({
           error: `Missing required fields: ${!pers_id ? "ID, " : ""}${
             !email ? "email, " : ""
@@ -82,7 +83,7 @@ class PatientController {
 
       // Authenticate the patient
       const result = await AuthService.login({
-        loginIdentifier,
+        identifier,
         password,
         role: "patient",
       });
