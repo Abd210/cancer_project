@@ -1,7 +1,7 @@
 // controllers/patientController.js
 const AuthService = require("../../Services/authService");
 
-class PatientController {
+class PatientAuthController {
   static async register(req, res) {
     try {
       const {
@@ -14,6 +14,7 @@ class PatientController {
         problem,
         dateOfBirth,
         medicalHistory,
+        hospital_id,
       } = req.body;
 
       // Check for required fields for Patient
@@ -26,18 +27,19 @@ class PatientController {
         !status ||
         !problem ||
         !dateOfBirth ||
-        !medicalHistory
+        !medicalHistory ||
+        !hospital_id
       ) {
         return res.status(400).json({
-          error: `Missing required fields: ${!pers_id ? "ID, " : ""}${
+          error: `Missing required fields: ${!pers_id ? "pers. id, " : ""}${
             !name ? "name, " : ""
           }${!password ? "password, " : ""}${
-            !mobile_number ? "mobile_number, " : ""
+            !mobile_number ? "mobile number, " : ""
           }${!email ? "email, " : ""}${!status ? "status, " : ""}${
             !problem ? "problem, " : ""
-          }${!dateOfBirth ? "dateOfBirth, " : ""}${
-            !medicalHistory ? "medicalHistory, " : ""
-          }`.slice(0, -2),
+          }${!dateOfBirth ? "date of birth, " : ""}${
+            !medicalHistory ? "medical history, " : ""
+          }${!hospital_id ? "hospital id" : ""}`.slice(0, -2),
         });
       }
 
@@ -53,6 +55,7 @@ class PatientController {
         problem,
         dateOfBirth,
         medicalHistory,
+        hospital_id,
       });
       res.status(201).json(result);
     } catch (error) {
@@ -98,4 +101,4 @@ class PatientController {
   }
 }
 
-module.exports = PatientController;
+module.exports = PatientAuthController;

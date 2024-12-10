@@ -14,16 +14,21 @@ const patientSchema = new mongoose.Schema(
 
     // Patient-specific fields
     name: { type: String, required: true },
-    mobile_number: { type: String, required: true },
-    email: { type: String, required: true },
+    mobile_number: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
     status: {
       type: String,
       enum: ["recovering", "recovered", "active", "inactive"],
       default: "active",
     },
-    problem: { type: String }, // Medical problem/issue faced by the patient
+    diagnosis: { type: String }, // Medical problem/issue faced by the patient
     dateOfBirth: { type: Date, required: true }, // Patient's date of birth
     medicalHistory: [{ type: String }], // Array of medical history strings
+    hospital: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hospital",
+      required: true,
+    }, // Reference to the hospital the doctor is affiliated with
   },
   { timestamps: true }
 );

@@ -1,6 +1,6 @@
 // services/patientService.js
 const Patient = require("../models/Patient");
-const Diagnosis = require("../Models/Diagnosis");
+const Diagnosis = require("../Models/ResultInterpretation");
 const Appointment = require("../Models/Appointment");
 const Test = require("../Models/Test");
 const Ticket = require("../Models/Ticket");
