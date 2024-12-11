@@ -28,7 +28,6 @@ class PatientController {
   static async getDiagnosis(req, res) {
     try {
       const { _id, user, role } = req.headers;
-      console.log(req.headers);
       if (!_id) {
         return res.status(400).json({
           error: "PatientController- Get Patient Diagnosis: Missing pers_id",

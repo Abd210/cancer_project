@@ -46,28 +46,32 @@ class AppointmentService {
   }
 
   static async cancelAppointment(appointment_id) {
-    const appointmentExists = await AppointmentService.findAppointment(
-      appointment_id
-    );
-    if (!appointmentExists) {
-      throw new Error(
-        "appointmentService-cancel appointment: Appointment not found"
+    try {
+      const appointmentExists = await AppointmentService.findAppointment(
+        appointment_id
       );
-    }
+      if (!appointmentExists) {
+        throw new Error(
+          "appointmentService-cancel appointment: Appointment not found"
+        );
+      }
 
-    const appointment = await Appointment.findByIdAndUpdate(
-      appointment_id,
-      { status: "cancelled" },
-      { new: true }
-    );
-
-    if (!appointment) {
-      throw new Error(
-        "appointmentService-cancel appointment: Appointment not found"
+      const appointment = await Appointment.findByIdAndUpdate(
+        appointment_id,
+        { status: "cancelled" },
+        { new: true }
       );
-    }
 
-    return appointment;
+      if (!appointment) {
+        throw new Error(
+          "appointmentService-cancel appointment: Appointment not found"
+        );
+      }
+
+      return appointment;
+    } catch (cancelAppointmentError) {
+      return { error: cancelAppointmentError.message };
+    }
   }
 
   static async createAppointment({
@@ -94,21 +98,28 @@ class AppointmentService {
       }
 
       appointment.save();
+      return {
+        message: "Appointment created successfully",
+        new_appointment: appointment,
+      };
     } catch (saveAppointmentError) {
-      throw new Error(
-        `appointmentService-create appointment: ${saveAppointmentError.message}`
-      );
+      return {
+        error: saveAppointmentError.message,
+      };
     }
   }
 
   static async findAppointment(appointment_id) {
-    if (!mongoose.isValidObjectId(appointment_id)) {
-      throw new Error(
-        "appointmentService-appointment exists: Invalid appointment_id"
-      );
+    try {
+      if (!mongoose.isValidObjectId(appointment_id)) {
+        throw new Error(
+          "appointmentService-appointment exists: Invalid appointment_id"
+        );
+      }
+      return await Appointment.findOne({ _id: appointment_id });
+    } catch (findAppointmentError) {
+      return { error: findAppointmentError.message };
     }
-
-    return await Appointment.findOne({ _id: appointment_id });
   }
 }
 

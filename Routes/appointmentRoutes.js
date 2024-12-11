@@ -9,21 +9,21 @@ router.get(
   "/appointment/history",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  appointmentService.getAppointmentHistory
+  appointmentController.getUpcomingAppointments
 );
 
 router.get(
   "/appointment/upcoming",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  appointmentService.getUpcomingAppointments
+  appointmentController.getUpcomingAppointments
 );
 
 router.post(
   "/appointment/cancel",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  appointmentService.cancelAppointment
+  appointmentController.cancelAppointment
 );
 
 router.post(

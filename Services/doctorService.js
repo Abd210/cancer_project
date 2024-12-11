@@ -2,7 +2,7 @@ const Doctor = require("../Models/Doctor");
 const mongoose = require("mongoose");
 
 class DoctorService {
-  static async getPublicData({ _id }) {
+  static async getPublicData(_id) {
     try {
       // Find the doctor and exclude sensitive fields
       const doctor = await Doctor.findOne(
