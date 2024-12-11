@@ -9,7 +9,7 @@ router.get(
   "/doctor/public-data",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  doctorService.getPublicData
+  doctorController.getPublicData
 );
 
 module.exports = router;

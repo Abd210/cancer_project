@@ -22,7 +22,7 @@ const patientSchema = new mongoose.Schema(
       default: "active",
     },
     diagnosis: { type: String, default: "Not Diagnosed" }, // Medical problem/issue faced by the patient
-    dateOfBirth: { type: Date, required: true }, // Patient's date of birth
+    birth_date: { type: Date, required: true }, // Patient's date of birth
     medicalHistory: [{ type: String }], // Array of medical history strings
     hospital: {
       type: mongoose.Schema.Types.ObjectId,

@@ -11,7 +11,7 @@ class PatientAuthController {
         email,
         status,
         problem,
-        dateOfBirth,
+        birth_date,
         medicalHistory,
         hospital_id,
       } = req.body;
@@ -25,7 +25,7 @@ class PatientAuthController {
         !email ||
         !status ||
         !problem ||
-        !dateOfBirth ||
+        !birth_date ||
         !medicalHistory ||
         !hospital_id
       ) {
@@ -36,7 +36,7 @@ class PatientAuthController {
             !mobile_number ? "mobile number, " : ""
           }${!email ? "email, " : ""}${!status ? "status, " : ""}${
             !problem ? "problem, " : ""
-          }${!dateOfBirth ? "date of birth, " : ""}${
+          }${!birth_date ? "date of birth, " : ""}${
             !medicalHistory ? "medical history, " : ""
           }${!hospital_id ? "hospital id" : ""}`.slice(0, -2),
         });
@@ -52,9 +52,9 @@ class PatientAuthController {
         email,
         status,
         problem,
-        dateOfBirth,
+        birth_date,
         medicalHistory,
-        hospital_id,
+        hospital: hospital_id,
       });
       res.status(201).json(result);
     } catch (error) {
