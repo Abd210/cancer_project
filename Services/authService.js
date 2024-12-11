@@ -1,9 +1,9 @@
 // services/authService.js
-const Patient = require("../models/Patient");
-const Doctor = require("../models/Doctor");
-const Admin = require("../models/Admin");
-const SuperAdmin = require("../models/SuperAdmin");
-const Device = require("../models/Device");
+const Patient = require("../Models/Patient");
+const Doctor = require("../Models/Doctor");
+const Admin = require("../Models/Admin");
+const SuperAdmin = require("../Models/SuperAdmin");
+const Device = require("../Models/Device");
 
 const jwt = require("jsonwebtoken");
 
@@ -16,7 +16,6 @@ class AuthService {
     try {
       let existingEmail = false;
       let existingMobileNumber = false;
-      let existingLicense = false;
       let existingPersId = false;
       let existingDeviceId = false;
 
@@ -49,10 +48,6 @@ class AuthService {
 
           existingPersId = await Doctor.findOne({
             pers_id: userRegistrationData.pers_id,
-          });
-
-          existingLicense = await Doctor.findOne({
-            license: userRegistrationData.license,
           });
 
           newUser = new Doctor(userRegistrationData);
@@ -111,10 +106,7 @@ class AuthService {
       if (existingPersId) {
         throw new Error("authService-Register: Personal ID already registered");
       }
-      // Check if license is already registered
-      if (existingLicense) {
-        throw new Error("authService-Register: License already registered");
-      }
+
       // Check if device_id is already registered
       if (existingDeviceId) {
         throw new Error("authService-Register: Device ID already registered");
@@ -123,8 +115,8 @@ class AuthService {
       // Hash the password before saving (this is handled within the user model pre-save)
       await newUser.save();
       msg = "Registration successful";
-    } catch (err) {
-      msg = err.message;
+    } catch (registrationError) {
+      msg = registrationError.message;
     }
 
     return { message: msg };

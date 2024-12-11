@@ -2,22 +2,21 @@
 const mongoose = require("mongoose");
 
 const testSchema = new mongoose.Schema({
-  patient_id: {
+  patient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Patient",
     required: true,
   },
-  doctor_id: {
+  doctor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Doctor",
-    required: true,
   },
-  device_id: {
+  device: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Device",
     required: true,
   },
-  test_result_date: {
+  result_date: {
     type: Date,
     required: true,
   },
@@ -26,11 +25,11 @@ const testSchema = new mongoose.Schema({
     enum: ["reviewed", "pending"],
     default: "pending",
   },
-  test_purpose: {
+  purpose: {
     type: String,
     required: true,
   },
-  test_review: {
+  review: {
     type: String,
   },
 });

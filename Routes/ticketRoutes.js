@@ -1,7 +1,9 @@
 // routes/patientRoutes.js
 const express = require("express");
 const router = express.Router();
-const ticketController = require("../Controllers/General Roles Controllers/ticketController");
+const ticketController = require("../Controllers/Objects Controllers/ticketController");
+const ticketService = require("../Services/ticketService");
+
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
 
 router.post(
@@ -15,7 +17,7 @@ router.get(
   "/ticket/review",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  ticketController.getTicketReview
+  ticketService.getTicketReview
 );
 
 module.exports = router;

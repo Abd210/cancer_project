@@ -1,28 +1,29 @@
 // routes/patientRoutes.js
 const express = require("express");
 const router = express.Router();
-const appointmentController = require("../Controllers/General Roles Controllers/appointmentController");
+const appointmentController = require("../Controllers/Objects Controllers/appointmentController");
+const appointmentService = require("../Services/appointmentService");
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
 
 router.get(
   "/appointment/history",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  appointmentController.getAppointmentHistory
+  appointmentService.getAppointmentHistory
 );
 
 router.get(
   "/appointment/upcoming",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  appointmentController.getUpcomingAppointments
+  appointmentService.getUpcomingAppointments
 );
 
 router.post(
   "/appointment/cancel",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  appointmentController.cancelAppointment
+  appointmentService.cancelAppointment
 );
 
 router.post(

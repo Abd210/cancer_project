@@ -20,15 +20,23 @@ const ticketSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  solvedAt: {
+    type: Date,
+    default: null, // Optional field
+  },
   review: {
     type: String,
-    trim: true,
     default: null, // Optional review field
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     refPath: "role",
     required: true,
+  },
+  visibleTo: {
+    type: [String],
+    enum: ["patient", "doctor", "admin", "superadmin"],
+    default: ["patient, doctor, admin", "superadmin"], // Optional field
   },
 });
 

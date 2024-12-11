@@ -21,7 +21,7 @@ const patientSchema = new mongoose.Schema(
       enum: ["recovering", "recovered", "active", "inactive"],
       default: "active",
     },
-    diagnosis: { type: String }, // Medical problem/issue faced by the patient
+    diagnosis: { type: String, default: "Not Diagnosed" }, // Medical problem/issue faced by the patient
     dateOfBirth: { type: Date, required: true }, // Patient's date of birth
     medicalHistory: [{ type: String }], // Array of medical history strings
     hospital: {

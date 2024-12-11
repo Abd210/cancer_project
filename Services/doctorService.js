@@ -1,0 +1,31 @@
+const Doctor = require("../models/Doctor");
+const mongoose = require("mongoose");
+
+class DoctorService {
+  static async getPublicData({ pers_id }) {
+    if (!pers_id) {
+      throw new Error("DoctorService-getDoctorPublicData: Missing pers_id");
+    }
+
+    // Find the doctor and exclude sensitive fields
+    const doctor = await Doctor.findOne(
+      { pers_id, role: "doctor" },
+      {
+        _id: 0, // Exclude the MongoDB _id
+        pers_id: 0, // Exclude the personal ID
+        password: 0, // Exclude the password
+        role: 0, // Exclude the role field
+        createdAt: 0, // Exclude the createdAt field
+        updatedAt: 0, // Exclude the updatedAt field
+      }
+    );
+
+    if (!doctor) {
+      throw new Error("Doctor not found");
+    }
+
+    return doctor; // Returns the public data of the doctor
+  }
+}
+
+module.exports = DoctorService;

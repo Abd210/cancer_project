@@ -1,4 +1,3 @@
-// controllers/patientController.js
 const AuthService = require("../../Services/authService");
 
 class PatientAuthController {

@@ -1,7 +1,7 @@
 const PatientAuthController = require("./Roles Auth Controllers/patientAuthController");
 const DoctorAuthController = require("./Roles Auth Controllers/doctorAuthController"); // Assuming you have similar controllers for doctors
 const AdminAuthController = require("./Roles Auth Controllers/adminAuthController"); // Similarly for admins
-const SuperAuthAdminController = require("./Roles Auth Controllers/superAdminAuthController"); // Similarly for superadmins
+const SuperAdminAuthController = require("./Roles Auth Controllers/superadminAuthController"); // Similarly for superadmins
 const DeviceAuthController = require("./Roles Auth Controllers/deviceAuthController"); // Similarly for devices
 const AuthService = require("../Services/authService");
 class RedirectAuthController {
