@@ -53,7 +53,7 @@ class RedirectAuthController {
       case "admin":
         return AdminAuthController.login(req, res);
       case "superadmin":
-        return SuperAuthAdminController.login(req, res);
+        return SuperAdminAuthController.login(req, res);
 
       case "device":
         return DeviceAuthController.login(req, res);

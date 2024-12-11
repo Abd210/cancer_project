@@ -4,21 +4,22 @@ const AuthService = require("../../Services/authService");
 class SuperAdminAuthController {
   static async register(req, res) {
     try {
-      const { name, password, mobile_number, email } = req.body;
+      const { pers_id, name, password, mobile_number, email } = req.body;
 
       // Check for required fields for SuperAdmin
-      if (!name || !password || !mobile_number || !email) {
+      if (!pers_id || !name || !password || !mobile_number || !email) {
         return res.status(400).json({
-          error: `Missing required fields: ${!name ? "name, " : ""}${
-            !password ? "password, " : ""
-          }${!mobile_number ? "mobile number, " : ""}${
-            !email ? "email" : ""
-          }`.slice(0, -2),
+          error: `Missing required fields: ${!pers_id ? "personal id, " : ""}${
+            !name ? "name, " : ""
+          }${!password ? "password, " : ""}${
+            !mobile_number ? "mobile number, " : ""
+          }${!email ? "email" : ""}`,
         });
       }
 
       // Register the SuperAdmin
       const result = await AuthService.register({
+        pers_id,
         name,
         password,
         role: "superadmin",
@@ -35,17 +36,20 @@ class SuperAdminAuthController {
 
   static async login(req, res) {
     try {
-      const { email, mobile_number, password } = req.body;
+      const { pers_id, email, mobile_number, password } = req.body;
 
       // Determine the login identifier
-      const identifier = email || mobile_number;
+      const identifier = pers_id || email || mobile_number;
 
       // Check for required fields for login
       if (!identifier || !password) {
         return res.status(400).json({
-          error: `Missing required fields: ${!email ? "email, " : ""}${
-            !mobile_number ? "mobile number, " : ""
-          }${!password ? "password" : ""}`.slice(0, -2),
+          error:
+            `SuperAdminAuthController - Login SuperAdmin: Missing required fields:${
+              !pers_id ? "personal id, " : ""
+            }${!email ? "email, " : ""}${
+              !mobile_number ? "mobile number, " : ""
+            }${!password ? "password, " : ""}`.split(0, -2),
         });
       }
 

@@ -16,6 +16,18 @@ class HospitalService {
         emails,
       });
 
+      // Check if there's any other hospital with the same name and address
+      const existingHospital = await Hospital.findOne({
+        hospital_name,
+        hospital_address,
+      });
+
+      if (existingHospital) {
+        throw new Error(
+          "HospitalService-Register: A hospital with the same name and address already exists."
+        );
+      }
+
       // Validate the data against the schema
       const validationError = hospital.validateSync();
       if (validationError) {
@@ -32,3 +44,4 @@ class HospitalService {
     }
   }
 }
+module.exports = HospitalService;

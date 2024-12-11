@@ -13,13 +13,12 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 class AuthService {
   //Register any type of user
   static async register(userRegistrationData) {
+    let newUser, msg;
     try {
       let existingEmail = false;
       let existingMobileNumber = false;
       let existingPersId = false;
       let existingDeviceId = false;
-
-      let newUser, msg;
 
       // Create the user based on role
       const { role } = userRegistrationData;
@@ -180,11 +179,10 @@ class AuthService {
       }
 
       // Generate JWT
-      const token = jwt.sign(
-        { id: user._id, role, username: user.name || user.email },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
-      );
+
+      const token = jwt.sign({ id: user._id, role }, JWT_SECRET, {
+        expiresIn: JWT_EXPIRES_IN,
+      });
       return { token, message: "Login successful" };
     } catch (err) {
       return { message: err.message };

@@ -10,7 +10,7 @@ router.get(
   "/patient/personal-data",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  patientService.getPatient
+  patientService.findPatient
 );
 
 router.get(

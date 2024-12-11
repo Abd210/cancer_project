@@ -17,18 +17,18 @@ const collections = {
 };
 
 const authenticate = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
+  const { token } = req.body;
   if (!token)
-    return res.status(401).json({ error: "Access denied. No token provided." });
+    return res.status(401).json({
+      error: "jwtAuth - Authenticate: Access denied. No token provided.",
+    });
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(400).json({ error: "Invalid token." });
+    res.status(400).json({ error: "jwtAuth - Authenticate: Invalid token." });
   }
 };
 
@@ -41,23 +41,31 @@ const authorize = (roles = []) => {
     try {
       // Check if user is authenticated and role is allowed
       if (!req.user || !roles.includes(req.user.role)) {
-        return res.status(403).json({ error: "Forbidden" });
+        return res
+          .status(403)
+          .json({ error: "jwtAuth - Authorize: Forbidden" });
       }
       // Validate user ID against the corresponding collection
       const Model = collections[req.user.role];
       if (!Model) {
-        return res.status(403).json({ error: "Forbidden" });
+        return res
+          .status(403)
+          .json({ error: "jwtAuth - Authorize: Forbidden" });
       }
       // Check if the _id exists in the respective collection
-      const exists = await Model.exists({ _id: req.user._id });
+      const exists = await Model.exists({ _id: req.user.id });
       if (!exists) {
-        return res.status(403).json({ error: "Unauthorized" });
+        return res
+          .status(403)
+          .json({ error: "jwtAuth - Authorize: Unauthorized" });
       }
 
       next();
     } catch (error) {
       console.error("Authorization error:", error);
-      return res.status(500).json({ error: "Internal Server Error" });
+      return res
+        .status(500)
+        .json({ error: "jwtAuth - Authorize: Internal Server Error" });
     }
   };
 };

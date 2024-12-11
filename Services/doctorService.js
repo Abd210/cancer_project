@@ -1,4 +1,4 @@
-const Doctor = require("../models/Doctor");
+const Doctor = require("../Models/Doctor");
 const mongoose = require("mongoose");
 
 class DoctorService {
