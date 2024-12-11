@@ -1,4 +1,4 @@
-# Acuranics Breast Cancer API
+# Acuranics API
 
 This is the Express.js server used for the Acuranics Cloud Solution
 
