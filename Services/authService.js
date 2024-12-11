@@ -180,7 +180,7 @@ class AuthService {
 
       // Generate JWT
 
-      const token = jwt.sign({ id: user._id, role }, JWT_SECRET, {
+      const token = jwt.sign({ _id: user._id, role }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
       });
       return { token, message: "Login successful" };

@@ -2,13 +2,12 @@ const Doctor = require("../Models/Doctor");
 const mongoose = require("mongoose");
 
 class DoctorService {
-  static async getPublicData({ pers_id }) {
+  static async getPublicData({ _id }) {
     try {
       // Find the doctor and exclude sensitive fields
       const doctor = await Doctor.findOne(
-        { pers_id, role: "doctor" },
+        { _id, role: "doctor" },
         {
-          _id: 0, // Exclude the MongoDB _id
           pers_id: 0, // Exclude the personal ID
           password: 0, // Exclude the password
           role: 0, // Exclude the role field

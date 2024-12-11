@@ -10,14 +10,14 @@ router.get(
   "/patient/personal-data",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  patientService.findPatient
+  patientController.getData
 );
 
 router.get(
   "/patient/diagnosis",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  patientService.getDiagnosis
+  patientController.getDiagnosis
 );
 
 module.exports = router;

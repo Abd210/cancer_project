@@ -17,15 +17,19 @@ const collections = {
 };
 
 const authenticate = (req, res, next) => {
-  const { token } = req.body;
-  if (!token)
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
       error: "jwtAuth - Authenticate: Access denied. No token provided.",
     });
+  }
+
+  const token = authHeader.split(" ")[1]; // Extract the token after "Bearer"
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    req.headers.user = decoded; // Attach the decoded user info to the request object
     next();
   } catch (error) {
     res.status(400).json({ error: "jwtAuth - Authenticate: Invalid token." });
@@ -40,20 +44,22 @@ const authorize = (roles = []) => {
   return async (req, res, next) => {
     try {
       // Check if user is authenticated and role is allowed
-      if (!req.user || !roles.includes(req.user.role)) {
+      if (!req.headers.user || !roles.includes(req.headers.user.role)) {
         return res
           .status(403)
           .json({ error: "jwtAuth - Authorize: Forbidden" });
       }
+
       // Validate user ID against the corresponding collection
-      const Model = collections[req.user.role];
+      const Model = collections[req.headers.user.role];
       if (!Model) {
         return res
           .status(403)
           .json({ error: "jwtAuth - Authorize: Forbidden" });
       }
+
       // Check if the _id exists in the respective collection
-      const exists = await Model.exists({ _id: req.user.id });
+      const exists = await Model.exists({ _id: req.headers.user._id });
       if (!exists) {
         return res
           .status(403)

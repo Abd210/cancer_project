@@ -5,14 +5,14 @@ const TestController = require("../Controllers/Objects Controllers/testControlle
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
 const TestService = require("../Services/testService");
 
-router.get(
+router.post(
   "/test/results",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
   TestService.getTestResults
 );
 
-router.get(
+router.post(
   "/test/review",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),

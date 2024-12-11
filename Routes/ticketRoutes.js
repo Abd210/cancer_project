@@ -13,7 +13,7 @@ router.post(
   ticketController.createTicket
 );
 
-router.get(
+router.post(
   "/ticket/review",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
