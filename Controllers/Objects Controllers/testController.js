@@ -10,19 +10,17 @@ class TestController {
         });
       }
 
-      if (user.role === "patient" || user.role === "doctor") {
-        if (_id !== user._id) {
+      const test = await TestService.findTest(_id);
+
+      if (user.role === "patient") {
+        if (test.patient._id !== user._id) {
           return res.status(403).json({
             error: "TestController- Get Test Review: Unauthorized",
           });
         }
       }
 
-      const test_review = await TestService.getTestReview({
-        test_id: _id,
-        role,
-      });
-      res.status(200).json(test_review);
+      res.status(200).json(test.review);
     } catch (fetchTestReviewError) {
       res.status(500).json({ error: fetchTestReviewError.message });
     }
@@ -37,19 +35,17 @@ class TestController {
         });
       }
 
-      if (user.role === "patient" || user.role === "doctor") {
-        if (_id !== user._id) {
+      const test = await TestService.findTest(_id);
+
+      if (user.role === "patient") {
+        if (test.patient._id !== user._id) {
           return res.status(403).json({
             error: "TestController- Get Test Review: Unauthorized",
           });
         }
       }
 
-      const test_results = await TestService.getTestResults({
-        test_id: _id,
-        role,
-      });
-      res.status(200).json(test_results);
+      res.status(200).json(test.results);
     } catch (fetchTestReviewError) {
       res.status(500).json({ error: fetchTestReviewError.message });
     }
@@ -70,23 +66,14 @@ class TestController {
       const { user } = req.headers;
 
       // Validate required fields
-      if (!patient_id || !test_date || !purpose || !device_id) {
+      if (!patient_id || !doctor_id || !purpose) {
         return res.status(400).json({
           error: `Missing required fields: ${
             !patient_id ? "patient_id, " : ""
-          }${!test_date ? "result_date, " : ""}${
+          }${!doctor_id ? "doctor_id, " : ""}${
             !purpose ? "purpose" : ""
           }`.slice(0, -2),
         });
-      }
-
-      // Check if the user is authorized to create the test
-      if (user.role === "doctor") {
-        if (doctor_id !== user._id) {
-          return res.status(403).json({
-            error: "TestController- Create Test: Unauthorized",
-          });
-        }
       }
 
       if (status && !["pending", "reviewed"].includes(status)) {
@@ -95,11 +82,6 @@ class TestController {
           .json({ error: "TestController-Create: Invalid Status" });
       }
 
-      if (new Date(result_date) < new Date()) {
-        return res.status(400).json({
-          error: "TestController-Create: Invalid Result Date",
-        });
-      }
       // Call the TestService to create the test
       const test = await TestService.createTest({
         patient_id,

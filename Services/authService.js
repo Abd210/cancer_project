@@ -133,30 +133,26 @@ class AuthService {
           user =
             (await Patient.findOne({ email: identifier })) ||
             (await Patient.findOne({ mobile_number: identifier })) ||
-            (await Patient.findOne({ pers_id: identifier })) ||
-            (await Patient.findOne({ name: identifier }));
+            (await Patient.findOne({ pers_id: identifier }));
 
           break;
         case "doctor":
           user =
             (await Doctor.findOne({ email: identifier })) ||
             (await Doctor.findOne({ mobile_number: identifier })) ||
-            (await Doctor.findOne({ pers_id: identifier })) ||
-            (await Doctor.findOne({ name: identifier }));
+            (await Doctor.findOne({ pers_id: identifier }));
           break;
         case "admin":
           user =
             (await Admin.findOne({ email: identifier })) ||
             (await Admin.findOne({ mobile_number: identifier })) ||
-            (await Admin.findOne({ pers_id: identifier })) ||
-            (await Admin.findOne({ name: identifier }));
+            (await Admin.findOne({ pers_id: identifier }));
           break;
         case "superadmin":
           user =
             (await SuperAdmin.findOne({ email: identifier })) ||
             (await SuperAdmin.findOne({ mobile_number: identifier })) ||
-            (await SuperAdmin.findOne({ pers_id: identifier })) ||
-            (await SuperAdmin.findOne({ name: identifier }));
+            (await SuperAdmin.findOne({ pers_id: identifier }));
           break;
         case "device":
           user = await Device.findOne({ device_id: identifier });

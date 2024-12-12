@@ -10,19 +10,18 @@ const testSchema = new mongoose.Schema({
   doctor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Doctor",
+    required: true,
   },
   device: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Device",
-    required: true,
   },
   result_date: {
     type: Date,
-    required: true,
   },
   status: {
     type: String,
-    enum: ["reviewed", "pending"],
+    enum: ["reviewed", "in progress", "pending"],
     default: "pending",
   },
   purpose: {

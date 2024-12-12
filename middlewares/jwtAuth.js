@@ -17,7 +17,7 @@ const collections = {
 };
 
 const authenticate = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers.authentication;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
@@ -49,7 +49,6 @@ const authorize = (roles = []) => {
           .status(403)
           .json({ error: "jwtAuth - Authorize: Forbidden" });
       }
-
       // Validate user ID against the corresponding collection
       const Model = collections[req.headers.user.role];
       if (!Model) {

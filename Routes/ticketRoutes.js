@@ -9,14 +9,14 @@ const { authenticate, authorize } = require("../middlewares/jwtAuth");
 router.post(
   "/ticket/new",
   authenticate,
-  authorize("patient", "doctor", "admin", "superadmin"),
+  authorize(["patient", "doctor", "admin", "superadmin"]),
   ticketController.createTicket
 );
 
 router.post(
   "/ticket/review",
   authenticate,
-  authorize("patient", "doctor", "admin", "superadmin"),
+  authorize(["patient", "doctor", "admin", "superadmin"]),
   ticketService.getTicketReview
 );
 

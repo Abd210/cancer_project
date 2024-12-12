@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const doctorSchema = new mongoose.Schema(
   {
@@ -57,5 +58,22 @@ const doctorSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Hash the password before saving the user
+doctorSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Compare given password with the stored hashed password
+doctorSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model("Doctor", doctorSchema);

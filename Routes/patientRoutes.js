@@ -8,14 +8,14 @@ const { authenticate, authorize } = require("../middlewares/jwtAuth");
 router.get(
   "/patient/personal-data",
   authenticate,
-  authorize("patient", "doctor", "admin", "superadmin"),
+  authorize(["patient", "doctor", "admin", "superadmin"]),
   patientController.getData
 );
 
 router.get(
   "/patient/diagnosis",
   authenticate,
-  authorize("patient", "doctor", "admin", "superadmin"),
+  authorize(["patient", "doctor", "admin", "superadmin"]),
   patientController.getDiagnosis
 );
 

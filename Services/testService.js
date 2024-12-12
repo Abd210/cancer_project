@@ -45,7 +45,7 @@ class TestService {
     device_id,
     result_date,
     purpose,
-    status = "scheduled",
+    status = "in progress",
     review,
   }) {
     try {
