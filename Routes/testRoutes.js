@@ -3,26 +3,25 @@ const express = require("express");
 const router = express.Router();
 const TestController = require("../Controllers/Objects Controllers/testController");
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
-const TestService = require("../Services/testService");
 
-router.post(
+router.get(
   "/test/results",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  TestService.getTestResults
+  TestController.getTestResults
 );
 
-router.post(
+router.get(
   "/test/review",
   authenticate,
   authorize("patient", "doctor", "admin", "superadmin"),
-  TestService.getTestReview
+  TestController.getTestReview
 );
 
 router.post(
   "/test/new",
   authenticate,
-  authorize("device", "superadmin"),
+  authorize("device", "doctor", "admin", "superadmin"),
   TestController.createTest
 );
 

@@ -4,21 +4,17 @@ const Test = require("../Models/Test");
 const mongoose = require("mongoose");
 
 class TestService {
-  static async getTestReview({ user_id, role }) {
+  static async getTestReview({ test_id, role }) {
     try {
-      if (!mongoose.isValidObjectId(user_id)) {
-        throw new Error("testService-get test review: Invalid user_id");
+      if (!mongoose.isValidObjectId(test_id)) {
+        throw new Error("testService-get test review: Invalid test id");
       }
 
       const query =
         role === "doctor" ? { doctor: user_id } : { patient: user_id };
-      const tests = await Test.find({ ...query, status: "reviewed" })
-        .populate("patient", "name email")
-        .populate("doctor", "name email")
-        .populate("device", "name")
-        .sort("result_date");
+      const test = await this.findTest(test_id);
 
-      return tests;
+      return test.review;
     } catch (fetchTestReviewError) {
       throw new Error(
         `testService-get test review: ${fetchTestReviewError.message}`
@@ -27,19 +23,21 @@ class TestService {
   }
 
   static async getTestResults({ user_id, role }) {
-    if (!mongoose.isValidObjectId(user_id)) {
-      throw new Error("testService-get test results: Invalid user_id");
+    try {
+      if (!mongoose.isValidObjectId(test_id)) {
+        throw new Error("testService-get test review: Invalid test id");
+      }
+
+      const query =
+        role === "doctor" ? { doctor: user_id } : { patient: user_id };
+      const test = await this.findTest(test_id);
+
+      return test.results;
+    } catch (fetchTestReviewError) {
+      throw new Error(
+        `testService-get test review: ${fetchTestReviewError.message}`
+      );
     }
-
-    const query =
-      role === "doctor" ? { doctor: user_id } : { patient: user_id };
-    const tests = await Test.find({ ...query })
-      .populate("patient", "name email")
-      .populate("doctor", "name email")
-      .populate("device", "name")
-      .sort("result_date");
-
-    return tests;
   }
   static async createTest({
     patient_id,
@@ -67,6 +65,7 @@ class TestService {
       }
 
       test.save();
+      return { message: "Test created successfully", test };
     } catch (saveAppointmentError) {
       throw new Error(
         `testService-create test: ${saveAppointmentError.message}`
@@ -75,11 +74,15 @@ class TestService {
   }
 
   static async findTest(test_id) {
-    if (!mongoose.isValidObjectId(test_id)) {
-      throw new Error("testService-find test: Invalid test id");
-    }
+    try {
+      if (!mongoose.isValidObjectId(test_id)) {
+        throw new Error("testService-find test: Invalid test id");
+      }
 
-    return await Test.findOne({ _id: test_id });
+      return await Test.findOne({ _id: test_id });
+    } catch (findTestError) {
+      throw new Error(`testService-find test: ${findTestError.message}`);
+    }
   }
 }
 

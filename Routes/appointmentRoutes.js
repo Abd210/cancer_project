@@ -2,7 +2,6 @@
 const express = require("express");
 const router = express.Router();
 const appointmentController = require("../Controllers/Objects Controllers/appointmentController");
-const appointmentService = require("../Services/appointmentService");
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
 
 router.get(

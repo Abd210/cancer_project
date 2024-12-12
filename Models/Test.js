@@ -32,6 +32,11 @@ const testSchema = new mongoose.Schema({
   review: {
     type: String,
   },
+  results: [
+    {
+      type: String,
+    },
+  ],
 });
 
 testSchema.index({ patient_id: 1, test_result_date: 1 }); // For efficient queries

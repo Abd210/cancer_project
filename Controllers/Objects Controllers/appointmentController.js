@@ -33,7 +33,8 @@ class AppointmentController {
       const { _id, user, role } = req.headers;
       if (!_id) {
         return res.status(400).json({
-          error: "PatientController- Get Patient Data: Missing pers_id",
+          error:
+            "PatientController- Get Patient Data: Missing appointment's id",
         });
       }
 
@@ -63,7 +64,7 @@ class AppointmentController {
       const { appointment_id } = req.body;
       if (!appointment_id) {
         return res.status(400).json({
-          error: "AppointmentController-Cancel: Missing appointment_id",
+          error: "AppointmentController-Cancel: Missing appointment's id",
         });
       }
       if (user.role !== "admin" && user.role !== "superadmin") {
@@ -109,6 +110,22 @@ class AppointmentController {
             !purpose ? "purpose" : ""
           }`.slice(0, -2),
         });
+      }
+
+      if (user.role !== "admin" && user.role !== "superadmin") {
+        if (role === "patient") {
+          if (patient !== user._id) {
+            return res.status(403).json({
+              error: "AppointmentController-Cancel: Unauthorized",
+            });
+          }
+        } else if (role === "doctor") {
+          if (doctor !== user._id) {
+            return res.status(403).json({
+              error: "AppointmentController-Cancel: Unauthorized",
+            });
+          }
+        }
       }
 
       if (status && !["scheduled", "cancelled", "completed"].includes(status)) {

@@ -2,7 +2,6 @@
 const express = require("express");
 const router = express.Router();
 const doctorController = require("../Controllers/General Roles Controllers/doctorController");
-const doctorService = require("../Services/doctorService");
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
 
 router.get(
