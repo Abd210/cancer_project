@@ -1,12 +1,43 @@
 // models/Ticket.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const ticketSchema = new mongoose.Schema({
-    patient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    account_type: { type: String, required: true }, 
-    issue: { type: String, required: true },
-    status: { type: String, enum: ['open', 'in_progress', 'resolved'], default: 'open' },
-    createdAt: { type: Date, default: Date.now }
+  role: {
+    type: String,
+    required: true,
+    enum: ["patient", "doctor", "admin", "superadmin"], // Adjust roles as needed
+  },
+  issue: {
+    type: String,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["open", "in_progress", "resolved", "closed"],
+    default: "open",
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  solvedAt: {
+    type: Date,
+    default: null, // Optional field
+  },
+  review: {
+    type: String,
+    default: null, // Optional review field
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    refPath: "role",
+    required: true,
+  },
+  visibleTo: {
+    type: [String],
+    enum: ["patient", "doctor", "admin", "superadmin"],
+    default: ["patient, doctor, admin", "superadmin"], // Optional field
+  },
 });
 
-module.exports = mongoose.model('Ticket', ticketSchema);
+module.exports = mongoose.model("Ticket", ticketSchema);

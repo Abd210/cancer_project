@@ -1,22 +1,23 @@
 // routes/patientRoutes.js
 const express = require("express");
 const router = express.Router();
-const patientController = require("../Controllers/General Roles Controllers/patientController");
+const ticketController = require("../Controllers/Objects Controllers/ticketController");
+const ticketService = require("../Services/ticketService");
+
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
 
-// No need for validating input in GET requests, authorization is enough
-router.get(
-  "/patient/personal-data",
+router.post(
+  "/ticket/new",
   authenticate,
   authorize(["patient", "doctor", "admin", "superadmin"]),
-  patientController.getData
+  ticketController.createTicket
 );
 
-router.get(
-  "/patient/diagnosis",
+router.post(
+  "/ticket/review",
   authenticate,
   authorize(["patient", "doctor", "admin", "superadmin"]),
-  patientController.getDiagnosis
+  ticketService.getTicketReview
 );
 
 module.exports = router;
