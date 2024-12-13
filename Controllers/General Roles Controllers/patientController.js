@@ -38,10 +38,10 @@ class PatientController {
       }
 
       // Call the PatientService to find the patient data based on the _id
-      const public_data = await PatientService.findPatient(_id);
+      const patient_data = await PatientService.findPatient(_id);
 
       // Return the fetched patient data with a 200 status code
-      res.status(200).json(public_data);
+      res.status(200).json(patient_data);
     } catch (fetchPatientDataError) {
       // Catch any errors during the data fetching process and return a 500 status with the error message
       res.status(500).json({ error: fetchPatientDataError.message });
@@ -80,10 +80,10 @@ class PatientController {
       }
 
       // Call the PatientService to find the patient data and return their diagnosis
-      const public_data = await PatientService.findPatient(_id);
+      const patient_data = await PatientService.findPatient(_id);
 
       // Return the patient's diagnosis data with a 200 status code
-      res.status(200).json(public_data.diagnosis);
+      res.status(200).json(patient_data.diagnosis);
     } catch (fetchPatientDiagnosisError) {
       // Catch any errors during the diagnosis data fetching process and return a 500 status with the error message
       res.status(500).json({ error: fetchPatientDiagnosisError.message });
