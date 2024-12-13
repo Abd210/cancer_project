@@ -10,8 +10,22 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 
+/**
+ * AuthService provides functionality related to user authentication and registration.
+ * It includes methods for registering users of various roles (patient, doctor, admin, superadmin, and device),
+ * logging users in, handling password reset, and generating JWT tokens.
+ * The methods validate input data, check for existing records, hash passwords, and issue JWT tokens where necessary.
+ */
 class AuthService {
-  //Register any type of user
+
+   /**
+   * Registers a new user with a given role (patient, doctor, admin, superadmin, device).
+   * It checks for existing records in the database (email, mobile number, personal ID, device ID),
+   * and ensures that the user has unique data before proceeding with registration.
+   *
+   * @param {Object} userRegistrationData - The data required to register a new user.
+   * @returns {Object} Returns a success or error message based on the outcome of the registration.
+   */
   static async register(userRegistrationData) {
     let newUser, msg;
     try {
@@ -20,10 +34,11 @@ class AuthService {
       let existingPersId = false;
       let existingDeviceId = false;
 
-      // Create the user based on role
+      // Switch statement based on user role to handle different registration processes
       const { role } = userRegistrationData;
       switch (role) {
         case "patient":
+          // Check for existing email, mobile number, and personal ID in the Patient collection
           existingEmail = await Patient.findOne({
             email: userRegistrationData.email,
           });
@@ -87,10 +102,10 @@ class AuthService {
           newUser = new Device(userRegistrationData);
           break;
         default:
-          throw new Error("authService-Register: Invalid role");
+          throw new Error("authService-Register: Invalid role"); // Invalid role provided
       }
 
-      // Check if email is already registered
+      // Check for duplicates (email, mobile number, personal ID, device ID)
       if (existingEmail) {
         throw new Error("authService-Register: Email already registered");
       }
@@ -115,19 +130,25 @@ class AuthService {
       await newUser.save();
       msg = "Registration successful";
     } catch (registrationError) {
-      msg = registrationError.message;
+      msg = registrationError.message; // Capture any errors and set the message
     }
 
-    return { message: msg };
+    return { message: msg }; // Return the result message
   }
 
-  //Login any type of user
+   /**
+   * Logs in a user based on their role (patient, doctor, admin, superadmin, device).
+   * It fetches the user based on a unique identifier (email, mobile number, or personal ID),
+   * verifies the password, and generates a JWT token for successful login.
+   *
+   * @param {Object} loginData - The login credentials (role, identifier, and password).
+   * @returns {Object} Returns a JWT token and success message or an error message if login fails.
+   */
   static async login({ role, identifier, password }) {
     let user;
 
     try {
-      // Fetch the user based on role
-
+      // Fetch the user from the appropriate collection based on role
       switch (role) {
         case "patient":
           user =
@@ -164,37 +185,49 @@ class AuthService {
       }
 
       // Check if user exists
+      // If no user is found, return an error
       if (!user) {
         throw new Error(`authService-Login: ${role} not found`);
       }
 
-      // Verify password
+      // Verify the password for the user
       const isMatch = await user.comparePassword(password); // Ensure the model has a `comparePassword` method
       if (!isMatch) {
         throw new Error("authService-Login: Invalid password");
       }
 
-      // Generate JWT
-
+      // Generate a JWT token for the authenticated user
       const token = jwt.sign({ _id: user._id, role }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
       });
       return { token, message: "Login successful" };
     } catch (err) {
-      return { message: err.message };
+      return { message: err.message }; // Return the error message if login fails
     }
   }
 
-  //If the user forgets their password, send an email or SMS to reset it
+  /**
+   * Initiates the process to reset a user's password by sending an email or SMS.
+   * This is useful for scenarios where the user has forgotten their password.
+   * 
+   * @param {Object} resetData - The data required to initiate the password reset (role, email, mobile number).
+   */
   static async forgotPassword({ role, email, mobile_number }) {
     //Logic for sending an email or SMS to reset the password
   }
 
-  //Reset the user's password provided the token is valid
+  /**
+   * Resets the user's password after validating the token.
+   * It updates the user's password in the database.
+   *
+   * @param {Object} resetData - The data required to reset the password (role, email, new password).
+   * @returns {Object} Returns a success or error message based on the outcome of the reset.
+   */
   static async resetPassword({ role, email, new_password }) {
     let user;
 
     try {
+      // Fetch the user based on the role and email
       switch (role) {
         case "patient":
           user = await Patient.findOne({ email: email });
@@ -211,17 +244,19 @@ class AuthService {
         default:
           throw new Error("authService-Reset Pass: Invalid role");
       }
+
+      // Check if user exists
       if (!user) {
         throw new Error("authService-Reset Pass: User not found");
       }
 
-      // Update the password
+      // Update the password and save the changes
       user.password = new_password;
       await user.save();
 
       return { message: "Password reset successful" };
     } catch (error) {
-      return { message: error.message };
+      return { message: error.message }; // Return any error message encountered during the reset
     }
   }
 }

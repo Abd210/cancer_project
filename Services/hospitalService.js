@@ -8,7 +8,7 @@ class HospitalService {
     emails,
   }) {
     try {
-      // Create a new Hospital instance to validate data
+      /**Create a new Hospital instance to validate data*/
       const hospital = new Hospital({
         hospital_name,
         hospital_address,
@@ -16,7 +16,7 @@ class HospitalService {
         emails,
       });
 
-      // Check if there's any other hospital with the same name and address
+      /**Check if there's any other hospital with the same name and address*/
       const existingHospital = await Hospital.findOne({
         hospital_name,
         hospital_address,
@@ -28,7 +28,7 @@ class HospitalService {
         );
       }
 
-      // Validate the data against the schema
+      /**Validate the data against the schema*/
       const validationError = hospital.validateSync();
       if (validationError) {
         throw new Error(
@@ -36,7 +36,7 @@ class HospitalService {
         );
       }
 
-      // Save the hospital to the database
+      /**Save the hospital to the database*/
       const result = await hospital.save();
       return result;
     } catch (saveHospitalError) {
