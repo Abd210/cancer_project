@@ -11,83 +11,42 @@ const TestService = require("../../Services/testService");
 class TestController {
 
   /**
-   * Retrieves the review of a specific test for the authenticated user.
-   * Verifies user role and permissions before fetching the review.
-   * 
+   * Retrieves the details of a specific test for the authenticated user.
+   * Verifies user role and permissions before fetching the test.
+   *
    * @param {Object} req - The HTTP request object containing the test ID and user details in the headers.
-   * @param {Object} res - The HTTP response object used to send back the test review or errors.
-   * 
-   * @returns {Object} Returns a JSON response with the test review or an error message.
+   * @param {Object} res - The HTTP response object used to send back the test details or errors.
+   *
+   * @returns {Object} Returns a JSON response with the test details or an error message.
    */
-  static async getTestReview(req, res) {
+  static async getTestDetails(req, res) {
     try {
-      const { _id, user, role } = req.headers;
+      const { _id, user } = req.headers;
 
       // Check if test ID is provided in the request
       if (!_id) {
         return res.status(400).json({
-          error: "TestController- Get Test Review: Missing test id",
+          error: "TestController-GetTestDetails: Missing test id",
         });
       }
 
       // Fetch the test data from the TestService
       const test = await TestService.findTest(_id);
 
-      // Check if the user is a patient and ensure they are authorized to access the test review
+      // Check if the user is a patient and ensure they are authorized to access the test
       if (user.role === "patient") {
         if (test.patient._id !== user._id) {
           return res.status(403).json({
-            error: "TestController- Get Test Review: Unauthorized",
+            error: "TestController-GetTestDetails: Unauthorized",
           });
         }
       }
 
-      // Return the test review in the response
-      res.status(200).json(test.review);
-    } catch (fetchTestReviewError) {
-      // Handle errors in fetching the test review
-      res.status(500).json({ error: fetchTestReviewError.message });
-    }
-  }
-
-   /**
-   * Retrieves the results of a specific test for the authenticated user.
-   * Verifies user role and permissions before fetching the results.
-   * 
-   * @param {Object} req - The HTTP request object containing the test ID and user details in the headers.
-   * @param {Object} res - The HTTP response object used to send back the test results or errors.
-   * 
-   * @returns {Object} Returns a JSON response with the test results or an error message.
-   */
-
-  static async getTestResults(req, res) {
-    try {
-      const { _id, user, role } = req.headers;
-
-      // Check if test ID is provided in the request
-      if (!_id) {
-        return res.status(400).json({
-          error: "TestController- Get Test Review: Missing test id",
-        });
-      }
-
-      // Fetch the test data from the TestService
-      const test = await TestService.findTest(_id);
-
-      // Check if the user is a patient and ensure they are authorized to access the test results
-      if (user.role === "patient") {
-        if (test.patient._id !== user._id) {
-          return res.status(403).json({
-            error: "TestController- Get Test Review: Unauthorized",
-          });
-        }
-      }
-
-      // Return the test results in the response
-      res.status(200).json(test.results);
-    } catch (fetchTestReviewError) {
-      // Handle errors in fetching the test results
-      res.status(500).json({ error: fetchTestReviewError.message });
+      // Return the entire test object in the response
+      res.status(200).json(test);
+    } catch (fetchTestDetailsError) {
+      // Handle errors in fetching the test details
+      res.status(500).json({ error: fetchTestDetailsError.message });
     }
   }
 
@@ -132,6 +91,16 @@ class TestController {
           .json({ error: "TestController-Create: Invalid Status" });
       }
 
+      if (status === "reviewed" && !review) {
+        return res
+          .status(400)
+          .json({ error: "TestController-Create: Review is required when status is reviewed" });
+      }
+
+      if (review && !status) {
+        req.body.status = "reviewed";
+      }
+
       // Create the test record using the TestService
       const test = await TestService.createTest({
         patient_id,
@@ -148,8 +117,7 @@ class TestController {
     } catch (error) {
       // Handle errors in creating the test
       res
-        .status(500)
-        .json({ error: `TestController-Create: ${error.message}` });
+        .status(500).json({ error:error.message });
     }
   }
 }
