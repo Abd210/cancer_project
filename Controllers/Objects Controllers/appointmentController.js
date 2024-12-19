@@ -161,7 +161,7 @@ class AppointmentController {
 
   /**
    * Creates a new appointment if the necessary fields are valid.
-   * Validates fields like patient, doctor, appointment date, and purpose before creating the appointment.
+   * Validates fields like patient, doctor, appointment date, and purpose before creating the appointment. Status is an optional field.
    * 
    * @param {Object} req - The HTTP request object containing the appointment details in the body.
    * @param {Object} res - The HTTP response object used to send back the created appointment or errors.
@@ -229,9 +229,7 @@ class AppointmentController {
       res.status(201).json(appointment);
     } catch (error) {
       // Handle errors in creating the appointment
-      res
-        .status(500)
-        .json({ error: `AppointmentController-Create: ${error.message}` });
+      res.status(500).json({ error: error.message });
     }
   }
 }
