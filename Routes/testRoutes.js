@@ -5,18 +5,11 @@ const TestController = require("../Controllers/Objects Controllers/testControlle
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
 
 router.get(
-  "/test/results",
+  "/test/details",
   authenticate,
   authorize(["patient", "doctor", "admin", "superadmin"]),
-  TestController.getTestResults
-);
-
-router.get(
-  "/test/review",
-  authenticate,
-  authorize(["patient", "doctor", "admin", "superadmin"]),
-  TestController.getTestReview
-);
+  TestController.getTestDetails
+)
 
 /**
  * Route: POST /test/new
