@@ -1,7 +1,7 @@
 const AppointmentService = require("../../Services/appointmentService");
 
 /**
- * AppointmentController handles operations related to managing appointments in the system.
+ * AppointmentController checks the input in the request to validate it and make sure that the users have the permission to receive this data
  * It includes functionalities for retrieving upcoming appointments, appointment history, 
  * creating new appointments, and canceling existing ones. Each method ensures proper role-based 
  * authorization and validates required fields before performing actions like appointment creation or cancellation.
@@ -72,7 +72,7 @@ class AppointmentController {
       if (!_id) {
         return res.status(400).json({
           error:
-            "PatientController- Get Patient Data: Missing appointment's id",
+            "PatientController- Get Appointment History: Missing User ID",
         });
       }
 
