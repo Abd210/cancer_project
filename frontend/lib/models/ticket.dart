@@ -1,34 +1,18 @@
-// models/ticket.dart
-import 'package:json_annotation/json_annotation.dart';
-
-part 'ticket.g.dart';
-
-@JsonSerializable()
+// lib/models/ticket.dart
 class Ticket {
   final String id;
-  final String role;
-  final String issue;
-  final String status;
-  final DateTime createdAt;
-  final DateTime? solvedAt;
-  final String? review;
-  final String user; // Reference to User ID (Patient, Doctor, etc.)
-  final List<String> visibleTo;
+  String requester;
+  String requestType;
+  String description;
+  DateTime date;
+  bool isApproved;
 
   Ticket({
     required this.id,
-    required this.role,
-    required this.issue,
-    this.status = 'open',
-    required this.createdAt,
-    this.solvedAt,
-    this.review,
-    required this.user,
-    this.visibleTo = const ['patient', 'doctor', 'admin', 'superadmin'],
+    required this.requester,
+    required this.requestType,
+    required this.description,
+    required this.date,
+    this.isApproved = false,
   });
-
-  factory Ticket.fromJson(Map<String, dynamic> json) =>
-      _$TicketFromJson(json);
-
-  Map<String, dynamic> toJson() => _$TicketToJson(this);
 }

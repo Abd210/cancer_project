@@ -1,26 +1,12 @@
-// models/hospital.dart
-import 'package:json_annotation/json_annotation.dart';
-
-part 'hospital.g.dart';
-
-@JsonSerializable()
+// lib/models/hospital.dart
 class Hospital {
   final String id;
-  final String hospitalName;
-  final String hospitalAddress;
-  final List<String> mobileNumbers;
-  final List<String> emails;
+  String name;
+  String address;
 
   Hospital({
     required this.id,
-    required this.hospitalName,
-    required this.hospitalAddress,
-    required this.mobileNumbers,
-    required this.emails,
+    required this.name,
+    required this.address,
   });
-
-  factory Hospital.fromJson(Map<String, dynamic> json) =>
-      _$HospitalFromJson(json);
-
-  Map<String, dynamic> toJson() => _$HospitalToJson(this);
 }

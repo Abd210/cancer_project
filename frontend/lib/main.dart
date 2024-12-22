@@ -1,19 +1,30 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/pages/authentication/log_reg.dart';
+import 'package:provider/provider.dart';
+import 'providers/data_provider.dart';
+import 'pages/authentication/log_reg.dart';
+import 'shared/theme/app_theme.dart';
+
 void main() {
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => DataProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
+  // Root of the application
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Remove debug banner
-      title: 'Hospital App',
-      theme: ThemeData(
-        primarySwatch: Colors.pink,
-      ),
-      home: LogIn(), // Set LogIn as the initial screen
+      title: 'Curanics Super Admin',
+      theme: AppTheme.lightTheme,
+      debugShowCheckedModeBanner: false,
+      home: LogIn(),
     );
   }
 }

@@ -117,7 +117,7 @@ class _LogInState extends State<LogIn> {
                   } else if (username == 'superadmin') {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SuperAdminPage()),
+                      MaterialPageRoute(builder: (context) => SuperAdminDashboard()),
                     );
                   } else {
                     // Show an error if the input doesn't match any known role
