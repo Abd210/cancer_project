@@ -4,59 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8929279c-6ac8-41e0-8cf3-bebdbc4fce1e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/frontend/lib/models/a/appointment.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/models/a/doctor.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/models/a/hospital.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/models/a/patient.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/models/a/ticket.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/models/device.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/authentication/f" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/appointments/appointments_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/devices/devices_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/manage_tickets_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/notifications_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/tickets/tickets_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_doctors/view_doctors_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/view_hospitals_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_patients/view_patients_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/providers/data_provider.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/services/static_data.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/background.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/custom_drawer.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/data_table_widget.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/loading_indicator.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/modal_forms.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/logo.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/sidebar.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/theme.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/theme/app_theme.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/widgets/data_table_widget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/api_error_response.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/api_error_response.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/appointment.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/appointment.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/appointment.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/appointment.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/doctor.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/doctor.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/doctor.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/doctor.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/hospital.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/hospital.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/hospital.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/hospital.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/notification.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/notification.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/notification.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/notification.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/patient.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/patient.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/patient.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/patient.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/ticket.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/ticket.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/ticket.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/ticket.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/ticket_result.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/ticket_result.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/ticket_result.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/ticket_result.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/user.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/user.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/user.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/user.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/models/user_fields.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/models/a/user_fields.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/authentication/log_reg.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/authentication/log_reg.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/superAdmin_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/superAdmin_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.yaml" afterDir="false" />
-    </list>
+    <list default="true" id="8929279c-6ac8-41e0-8cf3-bebdbc4fce1e" name="Changes" comment="added the admin_page" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -122,6 +70,19 @@
       <option name="presentableId" value="Default" />
       <updated>1734617025083</updated>
     </task>
+    <task id="LOCAL-00001" summary="added the admin_page">
+      <option name="closed" value="true" />
+      <created>1734892947339</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1734892947339</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="added the admin_page" />
+    <option name="LAST_COMMIT_MESSAGE" value="added the admin_page" />
   </component>
 </project>
