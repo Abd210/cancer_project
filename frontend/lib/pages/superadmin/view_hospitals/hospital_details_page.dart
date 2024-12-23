@@ -1,5 +1,4 @@
-// lib/pages/superadmin/view_hospitals/hospital_details_page.dart
-
+// lib/pages/superadmin/hospitals/hospital_details_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/data_provider.dart';
@@ -9,7 +8,7 @@ import '../../../models/doctor.dart';
 import '../../../models/appointment.dart';
 import '../../../models/device.dart';
 import 'package:intl/intl.dart';
-import '../../../shared/components/custom_paginated_table.dart'; // Import the new widget
+import 'package:fluttertoast/fluttertoast.dart';
 
 class HospitalDetailsPage extends StatefulWidget {
   final Hospital hospital;
@@ -35,7 +34,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
     _tabController = TabController(length: 4, vsync: this);
   }
 
-  // Patients Section using CustomPaginatedTable
+  // Patients Section
   Widget _buildPatientsSection(DataProvider dataProvider) {
     List<Patient> patients = dataProvider.patients.where((p) {
       if (p.doctorId.isEmpty) return false;
@@ -52,9 +51,17 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
       return doctor.hospitalId == widget.hospital.id;
     }).where((p) => p.name.toLowerCase().contains(_searchQueryPatients.toLowerCase())).toList();
 
-    // Prepare data for CustomPaginatedTable
-    List<String> columns = ['ID', 'Name', 'Age', 'Diagnosis', 'Doctor', 'Device'];
-    List<Map<String, dynamic>> data = patients.map((patient) {
+    // Define DataTable Columns
+    final columns = [
+      DataColumn(label: Text('Name')),
+      DataColumn(label: Text('Age')),
+      DataColumn(label: Text('Diagnosis')),
+      DataColumn(label: Text('Doctor')),
+      DataColumn(label: Text('Device')),
+    ];
+
+    // Define DataTable Rows
+    final rows = patients.map((patient) {
       Doctor doctor = dataProvider.doctors.firstWhere(
             (d) => d.id == patient.doctorId,
         orElse: () => Doctor(
@@ -73,14 +80,22 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         ),
       );
 
-      return {
-        'ID': patient.id,
-        'Name': patient.name,
-        'Age': patient.age,
-        'Diagnosis': patient.diagnosis,
-        'Doctor': doctor.name,
-        'Device': device.type != 'Unassigned' ? device.type : 'Unassigned',
-      };
+      return DataRow(
+        cells: [
+          DataCell(Text(patient.name), onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PatientDetailsPage(patient: patient),
+              ),
+            );
+          }),
+          DataCell(Text(patient.age.toString())),
+          DataCell(Text(patient.diagnosis)),
+          DataCell(Text(doctor.name)),
+          DataCell(Text(device.type != 'Unassigned' ? device.type : 'Unassigned')),
+        ],
+      );
     }).toList();
 
     return Column(
@@ -103,39 +118,28 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         ),
         // Patients DataTable
         Expanded(
-          child: data.isEmpty
+          child: patients.isEmpty
               ? Center(child: Text('No patients found.'))
-              : CustomPaginatedTable(
-            data: data,
-            columns: columns,
-            tableTitle: 'Patients',
-            onRowTap: (Map<String, dynamic> row) {
-              // Navigate to Patient Details Page
-              Patient selectedPatient = dataProvider.patients.firstWhere(
-                    (p) => p.id == row['ID'],
-                orElse: () => Patient(
-                  id: 'unknown',
-                  name: 'Unknown',
-                  age: 0,
-                  diagnosis: 'Unknown',
-                  doctorId: '',
-                  deviceId: '',
-                ),
-              );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PatientDetailsPage(patient: selectedPatient),
-                ),
-              );
-            },
+              : SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: columns,
+                rows: rows,
+                headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                dataRowHeight: 60,
+                columnSpacing: 20,
+                onSelectAll: null,
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  // Doctors Section using CustomPaginatedTable
+  // Doctors Section
   Widget _buildDoctorsSection(DataProvider dataProvider) {
     List<Doctor> doctors = dataProvider.doctors
         .where((d) => d.hospitalId == widget.hospital.id)
@@ -144,14 +148,27 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         d.specialization.toLowerCase().contains(_searchQueryDoctors.toLowerCase()))
         .toList();
 
-    // Prepare data for CustomPaginatedTable
-    List<String> columns = ['ID', 'Name', 'Specialization'];
-    List<Map<String, dynamic>> data = doctors.map((doctor) {
-      return {
-        'ID': doctor.id,
-        'Name': doctor.name,
-        'Specialization': doctor.specialization,
-      };
+    // Define DataTable Columns
+    final columns = [
+      DataColumn(label: Text('Name')),
+      DataColumn(label: Text('Specialization')),
+    ];
+
+    // Define DataTable Rows
+    final rows = doctors.map((doctor) {
+      return DataRow(
+        cells: [
+          DataCell(Text(doctor.name), onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DoctorDetailsPage(doctor: doctor),
+              ),
+            );
+          }),
+          DataCell(Text(doctor.specialization)),
+        ],
+      );
     }).toList();
 
     return Column(
@@ -174,37 +191,28 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         ),
         // Doctors DataTable
         Expanded(
-          child: data.isEmpty
+          child: doctors.isEmpty
               ? Center(child: Text('No doctors found.'))
-              : CustomPaginatedTable(
-            data: data,
-            columns: columns,
-            tableTitle: 'Doctors',
-            onRowTap: (Map<String, dynamic> row) {
-              // Navigate to Doctor Details Page
-              Doctor selectedDoctor = dataProvider.doctors.firstWhere(
-                    (d) => d.id == row['ID'],
-                orElse: () => Doctor(
-                  id: 'unknown',
-                  name: 'Unknown',
-                  specialization: 'Unknown',
-                  hospitalId: 'unknown',
-                ),
-              );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DoctorDetailsPage(doctor: selectedDoctor),
-                ),
-              );
-            },
+              : SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: columns,
+                rows: rows,
+                headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                dataRowHeight: 60,
+                columnSpacing: 20,
+                onSelectAll: null,
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  // Appointments Section using CustomPaginatedTable
+  // Appointments Section
   Widget _buildAppointmentsSection(DataProvider dataProvider) {
     List<Appointment> appointments = dataProvider.appointments.where((a) {
       if (a.doctorId.isEmpty) return false;
@@ -220,9 +228,17 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
       return doctor.hospitalId == widget.hospital.id;
     }).where((a) => a.status.toLowerCase().contains(_searchQueryAppointments.toLowerCase())).toList();
 
-    // Prepare data for CustomPaginatedTable
-    List<String> columns = ['ID', 'Doctor', 'Patient', 'Date', 'Status'];
-    List<Map<String, dynamic>> data = appointments.map((appointment) {
+    // Define DataTable Columns
+    final columns = [
+      DataColumn(label: Text('Appointment ID')),
+      DataColumn(label: Text('Doctor')),
+      DataColumn(label: Text('Patient')),
+      DataColumn(label: Text('Date')),
+      DataColumn(label: Text('Status')),
+    ];
+
+    // Define DataTable Rows
+    final rows = appointments.map((appointment) {
       Doctor doctor = dataProvider.doctors.firstWhere(
             (d) => d.id == appointment.doctorId,
         orElse: () => Doctor(
@@ -244,13 +260,22 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         ),
       );
 
-      return {
-        'ID': appointment.id,
-        'Doctor': doctor.name,
-        'Patient': patient.name,
-        'Date': appointment.dateTime,
-        'Status': appointment.status,
-      };
+      return DataRow(
+        cells: [
+          DataCell(Text(appointment.id), onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AppointmentDetailsPage(appointment: appointment),
+              ),
+            );
+          }),
+          DataCell(Text(doctor.name)),
+          DataCell(Text(patient.name)),
+          DataCell(Text(DateFormat('yyyy-MM-dd').format(appointment.dateTime))),
+          DataCell(Text(appointment.status)),
+        ],
+      );
     }).toList();
 
     return Column(
@@ -273,38 +298,28 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         ),
         // Appointments DataTable
         Expanded(
-          child: data.isEmpty
+          child: appointments.isEmpty
               ? Center(child: Text('No appointments found.'))
-              : CustomPaginatedTable(
-            data: data,
-            columns: columns,
-            tableTitle: 'Appointments',
-            onRowTap: (Map<String, dynamic> row) {
-              // Navigate to Appointment Details Page
-              Appointment selectedAppointment = dataProvider.appointments.firstWhere(
-                    (a) => a.id == row['ID'],
-                orElse: () => Appointment(
-                  id: 'unknown',
-                  doctorId: 'unknown',
-                  patientId: 'unknown',
-                  dateTime: DateTime.now(),
-                  status: 'Unknown',
-                ),
-              );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AppointmentDetailsPage(appointment: selectedAppointment),
-                ),
-              );
-            },
+              : SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: columns,
+                rows: rows,
+                headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                dataRowHeight: 60,
+                columnSpacing: 20,
+                onSelectAll: null,
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  // Devices Section using CustomPaginatedTable
+  // Devices Section
   Widget _buildDevicesSection(DataProvider dataProvider) {
     List<Device> devices = dataProvider.devices.where((d) {
       if (d.patientId.isEmpty) return false;
@@ -332,9 +347,16 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
       return doctor.hospitalId == widget.hospital.id;
     }).where((d) => d.type.toLowerCase().contains(_searchQueryDevices.toLowerCase())).toList();
 
-    // Prepare data for CustomPaginatedTable
-    List<String> columns = ['ID', 'Type', 'Patient', 'Doctor'];
-    List<Map<String, dynamic>> data = devices.map((device) {
+    // Define DataTable Columns
+    final columns = [
+      DataColumn(label: Text('Device ID')),
+      DataColumn(label: Text('Type')),
+      DataColumn(label: Text('Assigned To')),
+      DataColumn(label: Text('Doctor')),
+    ];
+
+    // Define DataTable Rows
+    final rows = devices.map((device) {
       Patient patient = dataProvider.patients.firstWhere(
             (p) => p.id == device.patientId,
         orElse: () => Patient(
@@ -356,12 +378,21 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         ),
       );
 
-      return {
-        'ID': device.id,
-        'Type': device.type,
-        'Patient': patient.name != 'Unknown' ? patient.name : 'Unassigned',
-        'Doctor': doctor.name,
-      };
+      return DataRow(
+        cells: [
+          DataCell(Text(device.id), onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DeviceDetailsPage(device: device),
+              ),
+            );
+          }),
+          DataCell(Text(device.type)),
+          DataCell(Text(patient.name != 'Unknown' ? patient.name : 'Unassigned')),
+          DataCell(Text(doctor.name)),
+        ],
+      );
     }).toList();
 
     return Column(
@@ -384,29 +415,21 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         ),
         // Devices DataTable
         Expanded(
-          child: data.isEmpty
+          child: devices.isEmpty
               ? Center(child: Text('No devices found.'))
-              : CustomPaginatedTable(
-            data: data,
-            columns: columns,
-            tableTitle: 'Devices',
-            onRowTap: (Map<String, dynamic> row) {
-              // Navigate to Device Details Page
-              Device selectedDevice = dataProvider.devices.firstWhere(
-                    (d) => d.id == row['ID'],
-                orElse: () => Device(
-                  id: 'unknown',
-                  type: 'Unassigned',
-                  patientId: '',
-                ),
-              );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DeviceDetailsPage(device: selectedDevice),
-                ),
-              );
-            },
+              : SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: columns,
+                rows: rows,
+                headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                dataRowHeight: 60,
+                columnSpacing: 20,
+                onSelectAll: null,
+              ),
+            ),
           ),
         ),
       ],
@@ -422,7 +445,9 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
             title: Text('${widget.hospital.name} Details'),
             bottom: TabBar(
               controller: _tabController,
+              isScrollable: true,
               tabs: [
+
                 Tab(text: 'Patients'),
                 Tab(text: 'Doctors'),
                 Tab(text: 'Appointments'),
@@ -442,52 +467,6 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         );
       },
     );
-  }
-}
-
-/// Extension methods for models to convert to Map
-extension PatientExtension on Patient {
-  Map<String, dynamic> toMap() {
-    return {
-      'ID': id,
-      'Name': name,
-      'Age': age,
-      'Diagnosis': diagnosis,
-      'Doctor': doctorId,
-      'Device': deviceId,
-    };
-  }
-}
-
-extension DoctorExtension on Doctor {
-  Map<String, dynamic> toMap() {
-    return {
-      'ID': id,
-      'Name': name,
-      'Specialization': specialization,
-    };
-  }
-}
-
-extension AppointmentExtension on Appointment {
-  Map<String, dynamic> toMap() {
-    return {
-      'ID': id,
-      'Doctor': doctorId,
-      'Patient': patientId,
-      'Date': dateTime,
-      'Status': status,
-    };
-  }
-}
-
-extension DeviceExtension on Device {
-  Map<String, dynamic> toMap() {
-    return {
-      'ID': id,
-      'Type': type,
-      'Patient': patientId,
-    };
   }
 }
 
@@ -518,6 +497,43 @@ class PatientDetailsPage extends StatelessWidget {
       ),
     );
     List<Appointment> appointments = dataProvider.appointments.where((a) => a.patientId == patient.id).toList();
+
+    // Define Appointments DataTable Columns
+    final columns = [
+      DataColumn(label: Text('Appointment ID')),
+      DataColumn(label: Text('Doctor')),
+      DataColumn(label: Text('Date')),
+      DataColumn(label: Text('Status')),
+    ];
+
+    // Define Appointments DataTable Rows
+    final rows = appointments.map((appointment) {
+      Doctor apptDoctor = dataProvider.doctors.firstWhere(
+            (d) => d.id == appointment.doctorId,
+        orElse: () => Doctor(
+          id: 'unknown',
+          name: 'Unknown',
+          specialization: 'Unknown',
+          hospitalId: 'unknown',
+        ),
+      );
+
+      return DataRow(
+        cells: [
+          DataCell(Text(appointment.id), onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AppointmentDetailsPage(appointment: appointment),
+              ),
+            );
+          }),
+          DataCell(Text(apptDoctor.name)),
+          DataCell(Text(DateFormat('yyyy-MM-dd').format(appointment.dateTime))),
+          DataCell(Text(appointment.status)),
+        ],
+      );
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -552,48 +568,20 @@ class PatientDetailsPage extends StatelessWidget {
                 children: [
                   Text('Appointments History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10),
-                  Expanded(
-                    child: appointments.isEmpty
-                        ? Center(child: Text('No appointments found.'))
-                        : ListView.builder(
-                      itemCount: appointments.length,
-                      itemBuilder: (context, index) {
-                        final appointment = appointments[index];
-                        Doctor apptDoctor = dataProvider.doctors.firstWhere(
-                              (d) => d.id == appointment.doctorId,
-                          orElse: () => Doctor(
-                            id: 'unknown',
-                            name: 'Unknown',
-                            specialization: 'Unknown',
-                            hospitalId: 'unknown',
-                          ),
-                        );
-
-                        return Card(
-                          elevation: 1,
-                          margin: EdgeInsets.symmetric(vertical: 4, horizontal: 0),
-                          child: ListTile(
-                            title: Text('Appointment ID: ${appointment.id}'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Doctor: ${apptDoctor.name}'),
-                                Text('Date: ${DateFormat('yyyy-MM-dd').format(appointment.dateTime)}'),
-                                Text('Status: ${appointment.status}'),
-                              ],
-                            ),
-                            onTap: () {
-                              // Navigate to Appointment Details Page
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AppointmentDetailsPage(appointment: appointment),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      },
+                  appointments.isEmpty
+                      ? Center(child: Text('No appointments found.'))
+                      : SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: columns,
+                        rows: rows,
+                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                        dataRowHeight: 60,
+                        columnSpacing: 20,
+                        onSelectAll: null,
+                      ),
                     ),
                   ),
                 ],
@@ -617,24 +605,42 @@ class DoctorDetailsPage extends StatelessWidget {
     final dataProvider = Provider.of<DataProvider>(context);
     List<Patient> patients = dataProvider.patients.where((p) => p.doctorId == doctor.id).toList();
     List<Appointment> appointments = dataProvider.appointments.where((a) => a.doctorId == doctor.id).toList();
-    List<Device> devices = dataProvider.devices
-        .where((d) => d.patientId.isNotEmpty && dataProvider.patients.any((p) => p.id == d.patientId && p.doctorId == doctor.id))
-        .toList();
+    List<Device> devices = dataProvider.devices.where((d) => d.patientId.isNotEmpty && dataProvider.patients.any((p) => p.id == d.patientId && p.doctorId == doctor.id)).toList();
 
-    // Prepare data for CustomPaginatedTable
-    List<String> patientColumns = ['ID', 'Name', 'Diagnosis'];
-    List<Map<String, dynamic>> patientData = patients.map((p) {
-      return {
-        'ID': p.id,
-        'Name': p.name,
-        'Diagnosis': p.diagnosis,
-      };
+    // Define Patients DataTable Columns
+    final patientColumns = [
+      DataColumn(label: Text('Name')),
+      DataColumn(label: Text('Diagnosis')),
+    ];
+
+    // Define Patients DataTable Rows
+    final patientRows = patients.map((patient) {
+      return DataRow(
+        cells: [
+          DataCell(Text(patient.name), onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PatientDetailsPage(patient: patient),
+              ),
+            );
+          }),
+          DataCell(Text(patient.diagnosis)),
+        ],
+      );
     }).toList();
 
-    List<String> deviceColumns = ['ID', 'Type', 'Patient'];
-    List<Map<String, dynamic>> deviceData = devices.map((d) {
+    // Define Devices DataTable Columns
+    final deviceColumns = [
+      DataColumn(label: Text('Device ID')),
+      DataColumn(label: Text('Type')),
+      DataColumn(label: Text('Assigned To')),
+    ];
+
+    // Define Devices DataTable Rows
+    final deviceRows = devices.map((device) {
       Patient patient = dataProvider.patients.firstWhere(
-            (p) => p.id == d.patientId,
+            (p) => p.id == device.patientId,
         orElse: () => Patient(
           id: 'unknown',
           name: 'Unassigned',
@@ -644,11 +650,21 @@ class DoctorDetailsPage extends StatelessWidget {
           deviceId: '',
         ),
       );
-      return {
-        'ID': d.id,
-        'Type': d.type,
-        'Patient': patient.name != 'Unknown' ? patient.name : 'Unassigned',
-      };
+
+      return DataRow(
+        cells: [
+          DataCell(Text(device.id), onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DeviceDetailsPage(device: device),
+              ),
+            );
+          }),
+          DataCell(Text(device.type)),
+          DataCell(Text(patient.name)),
+        ],
+      );
     }).toList();
 
     return Scaffold(
@@ -676,33 +692,20 @@ class DoctorDetailsPage extends StatelessWidget {
                 children: [
                   Text('Patients Managed', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10),
-                  Expanded(
-                    child: patients.isEmpty
-                        ? Center(child: Text('No patients found.'))
-                        : CustomPaginatedTable(
-                      data: patientData,
-                      columns: patientColumns,
-                      tableTitle: 'Patients Managed',
-                      onRowTap: (Map<String, dynamic> row) {
-                        // Navigate to Patient Details Page
-                        Patient selectedPatient = dataProvider.patients.firstWhere(
-                              (p) => p.id == row['ID'],
-                          orElse: () => Patient(
-                            id: 'unknown',
-                            name: 'Unknown',
-                            age: 0,
-                            diagnosis: 'Unknown',
-                            doctorId: '',
-                            deviceId: '',
-                          ),
-                        );
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PatientDetailsPage(patient: selectedPatient),
-                          ),
-                        );
-                      },
+                  patients.isEmpty
+                      ? Center(child: Text('No patients found.'))
+                      : SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: patientColumns,
+                        rows: patientRows,
+                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                        dataRowHeight: 60,
+                        columnSpacing: 20,
+                        onSelectAll: null,
+                      ),
                     ),
                   ),
                 ],
@@ -716,30 +719,20 @@ class DoctorDetailsPage extends StatelessWidget {
                 children: [
                   Text('Devices Assigned', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10),
-                  Expanded(
-                    child: devices.isEmpty
-                        ? Center(child: Text('No devices assigned.'))
-                        : CustomPaginatedTable(
-                      data: deviceData,
-                      columns: deviceColumns,
-                      tableTitle: 'Devices Assigned',
-                      onRowTap: (Map<String, dynamic> row) {
-                        // Navigate to Device Details Page
-                        Device selectedDevice = dataProvider.devices.firstWhere(
-                              (d) => d.id == row['ID'],
-                          orElse: () => Device(
-                            id: 'unknown',
-                            type: 'Unassigned',
-                            patientId: '',
-                          ),
-                        );
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DeviceDetailsPage(device: selectedDevice),
-                          ),
-                        );
-                      },
+                  devices.isEmpty
+                      ? Center(child: Text('No devices assigned.'))
+                      : SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: deviceColumns,
+                        rows: deviceRows,
+                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                        dataRowHeight: 60,
+                        columnSpacing: 20,
+                        onSelectAll: null,
+                      ),
                     ),
                   ),
                 ],
@@ -785,14 +778,27 @@ class DeviceDetailsPage extends StatelessWidget {
     // Fetch all patients assigned to this device
     List<Patient> assignedPatients = dataProvider.patients.where((p) => p.deviceId == device.id).toList();
 
-    // Prepare data for CustomPaginatedTable
-    List<String> patientColumns = ['ID', 'Name', 'Diagnosis'];
-    List<Map<String, dynamic>> patientData = assignedPatients.map((p) {
-      return {
-        'ID': p.id,
-        'Name': p.name,
-        'Diagnosis': p.diagnosis,
-      };
+    // Define Assigned Patients DataTable Columns
+    final patientColumns = [
+      DataColumn(label: Text('Name')),
+      DataColumn(label: Text('Diagnosis')),
+    ];
+
+    // Define Assigned Patients DataTable Rows
+    final patientRows = assignedPatients.map((p) {
+      return DataRow(
+        cells: [
+          DataCell(Text(p.name), onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PatientDetailsPage(patient: p),
+              ),
+            );
+          }),
+          DataCell(Text(p.diagnosis)),
+        ],
+      );
     }).toList();
 
     return Scaffold(
@@ -841,33 +847,20 @@ class DeviceDetailsPage extends StatelessWidget {
                 children: [
                   Text('Assigned Patients', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10),
-                  Expanded(
-                    child: assignedPatients.isEmpty
-                        ? Center(child: Text('No patients assigned to this device.'))
-                        : CustomPaginatedTable(
-                      data: patientData,
-                      columns: patientColumns,
-                      tableTitle: 'Assigned Patients',
-                      onRowTap: (Map<String, dynamic> row) {
-                        // Navigate to Patient Details Page
-                        Patient selectedPatient = dataProvider.patients.firstWhere(
-                              (p) => p.id == row['ID'],
-                          orElse: () => Patient(
-                            id: 'unknown',
-                            name: 'Unassigned',
-                            age: 0,
-                            diagnosis: 'Unknown',
-                            doctorId: '',
-                            deviceId: '',
-                          ),
-                        );
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PatientDetailsPage(patient: selectedPatient),
-                          ),
-                        );
-                      },
+                  assignedPatients.isEmpty
+                      ? Center(child: Text('No patients assigned to this device.'))
+                      : SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: patientColumns,
+                        rows: patientRows,
+                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                        dataRowHeight: 60,
+                        columnSpacing: 20,
+                        onSelectAll: null,
+                      ),
                     ),
                   ),
                 ],
