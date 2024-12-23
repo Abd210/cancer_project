@@ -5,6 +5,7 @@ import '../../../providers/data_provider.dart';
 import '../../../models/hospital.dart';
 import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'hospital_details_page.dart';
 
 class HospitalsPage extends StatefulWidget {
   const HospitalsPage({Key? key}) : super(key: key);
@@ -180,22 +181,28 @@ class _HospitalsPageState extends State<HospitalsPage> {
                 ],
               ),
               SizedBox(height: 20),
-              // Hospitals DataTable with Edit and Delete
+              // Hospitals List with Improved UI
               Expanded(
-                child: SingleChildScrollView(
-                  child: DataTable(
-                    columns: [
-                      DataColumn(label: Text('ID')),
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('Address')),
-                      DataColumn(label: Text('Actions')),
-                    ],
-                    rows: hospitals.map((hospital) {
-                      return DataRow(cells: [
-                        DataCell(Text(hospital.id)),
-                        DataCell(Text(hospital.name)),
-                        DataCell(Text(hospital.address)),
-                        DataCell(Row(
+                child: ListView.builder(
+                  itemCount: hospitals.length,
+                  itemBuilder: (context, index) {
+                    final hospital = hospitals[index];
+                    return Card(
+                      elevation: 3,
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.all(16),
+                        title: Text(
+                          hospital.name,
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          hospital.address,
+                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                               icon: Icon(Icons.edit, color: Colors.blue),
@@ -206,10 +213,19 @@ class _HospitalsPageState extends State<HospitalsPage> {
                               onPressed: () => _deleteHospital(context, hospital.id),
                             ),
                           ],
-                        )),
-                      ]);
-                    }).toList(),
-                  ),
+                        ),
+                        onTap: () {
+                          // Navigate to Hospital Details Page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HospitalDetailsPage(hospital: hospital),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

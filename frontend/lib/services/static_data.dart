@@ -21,7 +21,7 @@ class StaticData {
         (index) => Doctor(
       id: 'd$index',
       name: 'Dr. Smith $index',
-      specialization: index % 2 == 0 ? 'Oncologist' : 'Oncologist',
+      specialization: 'Oncologist',
       hospitalId: hospitals[index % hospitals.length].id,
     ),
   );
@@ -31,7 +31,7 @@ class StaticData {
         (index) => Device(
       id: 'dev$index',
       type: 'Breast Cancer Device ${index + 1}',
-      patientId: '',
+      patientId: '', // Initially unassigned
     ),
   );
 
@@ -41,9 +41,9 @@ class StaticData {
       id: 'p$index',
       name: 'Patient ${index + 1}',
       age: 30 + (index % 50),
-      diagnosis: index % 2 == 0 ? 'Breast Cancer' : 'Breast Cancer',
+      diagnosis: 'Breast Cancer',
       doctorId: doctors[index % doctors.length].id,
-      deviceId: devices[index % devices.length].id,
+      deviceId: '', // Initially unassigned
     ),
   );
 
@@ -68,4 +68,12 @@ class StaticData {
       date: DateTime.now().subtract(Duration(days: index)),
     ),
   );
+
+  // Optionally, assign some devices to patients uniquely
+  static void assignDevicesToPatients() {
+    for (int i = 0; i < devices.length && i < patients.length; i++) {
+      devices[i].patientId = patients[i].id;
+      patients[i].deviceId = devices[i].id;
+    }
+  }
 }

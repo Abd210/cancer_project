@@ -28,6 +28,7 @@ class DataProvider with ChangeNotifier {
   }
 
   void deleteHospital(String id) {
+    // Before deleting a hospital, optionally handle related entities
     _hospitals.removeWhere((h) => h.id == id);
     notifyListeners();
   }
@@ -51,6 +52,7 @@ class DataProvider with ChangeNotifier {
   }
 
   void deleteDoctor(String id) {
+    // Optionally handle related patients before deleting
     _doctors.removeWhere((d) => d.id == id);
     notifyListeners();
   }
@@ -74,6 +76,7 @@ class DataProvider with ChangeNotifier {
   }
 
   void deleteDevice(String id) {
+    // Optionally unassign device from patient before deleting
     _devices.removeWhere((d) => d.id == id);
     notifyListeners();
   }
@@ -84,11 +87,26 @@ class DataProvider with ChangeNotifier {
   List<Patient> get patients => _patients;
 
   void addPatient(Patient patient) {
+    // Check if the device is already assigned
+    if (patient.deviceId.isNotEmpty) {
+      bool isDeviceAssigned = _patients.any((p) => p.deviceId == patient.deviceId);
+      if (isDeviceAssigned) {
+        throw Exception('Device is already assigned to another patient.');
+      }
+    }
     _patients.add(patient);
     notifyListeners();
   }
 
   void updatePatient(Patient patient) {
+    // Check if the new device is already assigned to another patient
+    if (patient.deviceId.isNotEmpty) {
+      bool isDeviceAssigned = _patients.any((p) => p.deviceId == patient.deviceId && p.id != patient.id);
+      if (isDeviceAssigned) {
+        throw Exception('Device is already assigned to another patient.');
+      }
+    }
+
     int index = _patients.indexWhere((p) => p.id == patient.id);
     if (index != -1) {
       _patients[index] = patient;
@@ -97,6 +115,13 @@ class DataProvider with ChangeNotifier {
   }
 
   void deletePatient(String id) {
+    // Unassign the device when deleting a patient
+    Patient? patient = _patients.firstWhere((p) => p.id == id, orElse: () => throw Exception('Patient not found'));
+    if (patient.deviceId.isNotEmpty) {
+      Device? device = _devices.firstWhere((d) => d.id == patient.deviceId, orElse: () => throw Exception('Device not found'));
+      device.patientId = '';
+      notifyListeners();
+    }
     _patients.removeWhere((p) => p.id == id);
     notifyListeners();
   }

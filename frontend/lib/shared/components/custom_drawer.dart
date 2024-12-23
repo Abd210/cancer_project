@@ -50,13 +50,18 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _buildDrawerItem(IconData icon, String title, int index) {
+    bool isSelected = selectedIndex == index;
     return ListTile(
-      leading: Icon(icon, color: Colors.white),
+      leading: Icon(icon, color: isSelected ? Colors.white : Colors.white70),
       title: Text(
         title,
-        style: TextStyle(color: Colors.white, fontSize: 16),
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.white70,
+          fontSize: 16,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
       ),
-      selected: selectedIndex == index,
+      selected: isSelected,
       selectedTileColor: AppTheme.accentColor,
       onTap: () {
         onMenuItemClicked(index);

@@ -36,7 +36,8 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primaryColor, textStyle: const TextStyle(fontSize: 14),
+          foregroundColor: primaryColor,
+          textStyle: const TextStyle(fontSize: 14),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -58,6 +59,24 @@ class AppTheme {
         headingTextStyle: TextStyle(fontWeight: FontWeight.bold, color: primaryColor),
         dataRowColor: MaterialStateColor.resolveWith((states) => Colors.white),
         dataTextStyle: TextStyle(color: Colors.black87),
+      ),
+      // Additional theme settings
+      cardTheme: CardTheme(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 3,
+        margin: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+      ),
+      listTileTheme: ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        iconColor: primaryColor,
+        textColor: Colors.black87,
+      ),
+      tabBarTheme: TabBarTheme(
+        labelColor: primaryColor,
+        unselectedLabelColor: Colors.grey[600],
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(color: primaryColor, width: 3),
+        ),
       ),
     );
   }

@@ -5,7 +5,6 @@ import '../../shared/theme/app_theme.dart';
 import 'view_hospitals/view_hospitals_page.dart';
 import 'view_doctors/view_doctors_page.dart';
 import 'view_patients/view_patients_page.dart';
-import '';
 import 'devices/devices_page.dart';
 import 'appointments/appointments_page.dart';
 import 'tickets/tickets_page.dart';

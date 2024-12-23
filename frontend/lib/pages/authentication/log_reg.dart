@@ -1,3 +1,4 @@
+//log_reg.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/pages/hospital/hospital_page.dart';
 import 'package:frontend/pages/patients/patient_page.dart';
