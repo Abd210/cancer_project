@@ -21,26 +21,29 @@ class TestController {
    */
   static async getTestDetails(req, res) {
     try {
-      const { _id, user } = req.headers;
+      const { _id, user, role } = req.headers;
 
       // Check if test ID is provided in the request
       if (!_id) {
         return res.status(400).json({
-          error: "TestController-GetTestDetails: Missing test id",
+          error: "TestController-GetTestDetails: Missing user id",
         });
       }
 
-      // Fetch the test data from the TestService
-      const test = await TestService.findTest(_id);
-
-      // Check if the user is a patient and ensure they are authorized to access the test
+      // Check if the user is a patient and ensure the _id matches the user ID in the request headers
       if (user.role === "patient") {
-        if (test.patient._id !== user._id) {
+        if (_id !== user._id) {
           return res.status(403).json({
             error: "TestController-GetTestDetails: Unauthorized",
           });
         }
       }
+
+      // Fetch the test data from the TestService
+      const test = await TestService.fetchTests({
+        role,
+        user_id: _id,
+      });
 
       // Return the entire test object in the response
       res.status(200).json(test);
