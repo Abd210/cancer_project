@@ -24,7 +24,7 @@ router.get(
   "/appointment/history",
   authenticate,
   authorize(["patient", "doctor", "admin", "superadmin"]),
-  appointmentController.getUpcomingAppointments
+  appointmentController.getAppointmentHistory
 );
 
 /**
