@@ -185,15 +185,15 @@ class AppointmentController {
       }
 
       // Verify the user role and authorization before creating the appointment
-      if (user.role !== "admin" && user.role !== "superadmin") {
-        if (role === "patient") {
-          if (patient !== user._id) {
+      if (req.headers.user.role !== "admin" && req.headers.user.role !== "superadmin") {
+        if (req.headers.user.role === "patient") {
+          if (patient !== req.headers.user._id) {
             return res.status(403).json({
               error: "AppointmentController-Cancel: Unauthorized",
             });
           }
-        } else if (role === "doctor") {
-          if (doctor !== user._id) {
+        } else if (req.headers.user.role === "doctor") {
+          if (doctor !== req.headers.user._id) {
             return res.status(403).json({
               error: "AppointmentController-Cancel: Unauthorized",
             });
