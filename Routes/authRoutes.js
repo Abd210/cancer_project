@@ -58,7 +58,7 @@ router.post("/register", AuthController.register);
  *     - password: The password for the user account.
  *     - role: The role of the user ("superadmin" or "patient").
  *   - For Doctor login:
- *     - pers_id: The personal ID of the doctor.
+ *     - pers_id or email or mobile_number: Either the personal ID of the doctor, the email of the doctor, or the phone number.
  *     - password: The password for the user account.
  *     - role: "doctor".
  * Response:
