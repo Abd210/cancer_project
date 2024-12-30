@@ -51,4 +51,13 @@ router.get(
   patientController.getDiagnosis
 );
 
+
+// Route to update patient data (Superadmin access only)
+router.put(
+  "/patient/personal-data/update", // Endpoint
+  authenticate, // Middleware to ensure the user is authenticated
+  authorize("superadmin"), // Middleware to ensure only superadmins can access this
+  patientController.updatePatientData // Controller function to handle the request
+);
+
 module.exports = router;

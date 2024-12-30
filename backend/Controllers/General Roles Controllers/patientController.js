@@ -112,6 +112,57 @@ class PatientController {
       res.status(500).json({ error: fetchPatientDiagnosisError.message });
     }
   }
+
+
+  static async updatePatientData(req, res) {
+    try {
+      // Destructure role and patientId from the request headers
+      const { user, patientid } = req.headers;
+  
+      // Destructure the fields to update from the request body
+      const updateFields = req.body;
+  
+      // Check if the role is superadmin
+      if (user.role !== "superadmin") {
+        return res.status(403).json({
+          error: "PatientController- Update Patient Data: Access denied",
+        });
+      }
+  
+      // Validate if patientId is provided
+      if (!patientid) {
+        return res.status(400).json({
+          error: "PatientController- Update Patient Data: Missing patientId",
+        });
+      }
+  
+      // Validate if updateFields are provided
+      if (!updateFields || Object.keys(updateFields).length === 0) {
+        return res.status(400).json({
+          error: "PatientController- Update Patient Data: No fields to update",
+        });
+      }
+  
+      //console.log("Updating patient data:", { patientid, updateFields });
+  
+      // Call the PatientService to perform the update
+      const updatedPatient = await PatientService.updatePatient(patientid, updateFields);
+  
+      // Check if the patient was found and updated
+      if (!updatedPatient) {
+        return res.status(404).json({
+          error: "PatientController- Update Patient Data: Patient not found",
+        });
+      }
+  
+      // Return the updated patient data
+      res.status(200).json(updatedPatient);
+    } catch (updatePatientError) {
+      // Handle errors during the update process
+      res.status(500).json({ error: updatePatientError.message });
+    }
+  }
+  
 }
 
 module.exports = PatientController;
