@@ -143,8 +143,6 @@ class PatientController {
         });
       }
   
-      //console.log("Updating patient data:", { patientid, updateFields });
-  
       // Call the PatientService to perform the update
       const updatedPatient = await PatientService.updatePatient(patientid, updateFields);
   

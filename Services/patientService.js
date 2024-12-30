@@ -87,21 +87,6 @@ class PatientService {
         { new: true, runValidators: true } // Return the updated document and run schema validators
       );
 
-      // // Update the fields in the patient document
-      // Object.keys(updateFields).forEach((key) => {
-      //   patient[key] = updateFields[key]; // Assign new values dynamically
-      // });
-
-      // Save the updated patient document
-      //const updatedPatient = await patient.save();
-  
-      // Perform the update
-      // const updatedPatient = await Patient.findByIdAndUpdate(
-      //   patientId,
-      //   { $set: updateFields }, // Set only the fields provided
-      //   { new: true } // Return the updated document
-      // );
-
       if (!updatedPatient) {
         throw new Error("patientService-update patient: Patient not found");
       }
