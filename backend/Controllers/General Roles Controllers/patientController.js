@@ -27,13 +27,6 @@ class PatientController {
         });
       }
 
-      // Check if the `patientId` (filter) is provided for superadmin
-      if (user.role === "superadmin" && !patientid) {
-        return res.status(400).json({
-          error: "PatientController- Get Patient Data: Missing patientId for superadmin",
-        });
-      }
-
       let patient_id = _id;
 
        // If the user's role is "patient", ensure they can only access their own data
@@ -45,8 +38,15 @@ class PatientController {
           });
         }
       } else if (user.role === "superadmin") {
-        // If the user is a superadmin, they can access any patient's data
-        patient_id = patientid;
+        // If the user is a superadmin
+        if (patientid) {
+          patient_id = patientid; // Retrieve specific patient's data
+        } else {
+          // Retrieve all patients' data if no patientid is provided
+          console.log("Superadmin requesting all patient data");
+          const allPatients = await PatientService.findAllPatients();
+          return res.status(200).json(allPatients); // Return all patient data
+        }
       } else {
         // If the role is neither 'patient' nor 'superadmin', deny access
         return res.status(403).json({
