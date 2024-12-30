@@ -66,7 +66,8 @@ class AppointmentController {
 
   static async getAppointmentHistory(req, res) {
     try {
-      const { _id, user, role } = req.headers;
+      const { _id, user, role, filterbyid, filterbyrole } = req.headers;
+      //const { filterById, filterByRole } = req.query; // Assume filters are passed as query parameters
 
       // Check if user ID is provided in the request
       if (!_id) {
@@ -77,7 +78,7 @@ class AppointmentController {
       }
 
       // Verify that the user is either a patient or doctor and that the _id matches the user ID in the request headers
-      if (user.role === "patient" || user.role === "doctor") {
+      if (user.role === "patient" || user.role === "doctor" || user.role === "superadmin") {
         if (_id !== user._id) {
           return res.status(403).json({
             error: "PatientController- Get Patient Data: Unauthorized",
@@ -85,11 +86,20 @@ class AppointmentController {
         }
       }
 
+      // Validate filterByRole if provided
+      if (filterbyrole && !["doctor", "patient"].includes(filterbyrole)) {
+        return res.status(400).json({
+          error: "PatientController- Get Appointment History: Invalid filterByRole",
+        });
+      }
+
       // Fetch appointment history using the AppointmentService
       const appointmentHistory = await AppointmentService.getAppointmentHistory(
         {
           role,
           user_id: _id,
+          filterById: filterbyid || null, // Use filterById from query parameters, default to null
+          filterByRole: filterbyrole || null, // Use filterByRole from query parameters, default to null
         }
       );
 
@@ -209,12 +219,12 @@ class AppointmentController {
       }
 
       // Check if the appointment date is not in the past
-      if (new Date(appointment_date) < new Date()) {
-        return res.status(400).json({
-          error:
-            "AppointmentController-Create: Appointment date cannot be in the past",
-        });
-      }
+      // if (new Date(appointment_date) < new Date()) {
+      //   return res.status(400).json({
+      //     error:
+      //       "AppointmentController-Create: Appointment date cannot be in the past",
+      //   });
+      // }
 
       // Call the AppointmentService to create the appointment
       const appointment = await AppointmentService.createAppointment({

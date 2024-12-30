@@ -57,7 +57,7 @@ class AppointmentService {
    * @returns {Array} Returns an array of past appointments for the user.
    * @throws Throws an error if the user_id is invalid or if no appointments are found.
    */
-  static async getAppointmentHistory({ user_id, role }) {
+  static async getAppointmentHistory({ user_id, role, filterById, filterByRole }) {
     // Validate the user_id for correctness
     if (!mongoose.isValidObjectId(user_id)) {
       throw new Error(
@@ -67,12 +67,34 @@ class AppointmentService {
 
     // Build the query based on the user's role
     let query;
+
     if (role === "doctor") {
-      query = { doctor: user_id };
+      query = { doctor: user_id }; // Doctors can only see their own appointments
     } else if (role === "patient") {
-      query = { patient: user_id };
+      query = { patient: user_id }; // Patients can only see their own appointments
     } else if (role === "superadmin") {
-      query = {}; // Superadmin retrieves all appointments
+      // Superadmin can retrieve all appointments or filter by a specific doctor or patient
+      if (filterById && filterByRole) {
+        // Validate filterById
+        if (!mongoose.isValidObjectId(filterById)) {
+          throw new Error(
+            "appointmentService-get appointment history: Invalid filterById"
+          );
+        }
+
+        // Adjust query based on filterByRole
+        if (filterByRole === "doctor") {
+          query = { doctor: filterById }; // Filter by specific doctor
+        } else if (filterByRole === "patient") {
+          query = { patient: filterById }; // Filter by specific patient
+        } else {
+          throw new Error(
+            "appointmentService-get appointment history: Invalid filterByRole"
+          );
+        }
+      } else {
+        query = {}; // No filter, retrieve all appointments
+      }
     } else {
       throw new Error(
         "appointmentService-get appointment history: Invalid role"
