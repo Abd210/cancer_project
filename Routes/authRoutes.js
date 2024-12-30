@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const AuthController = require("../Controllers/redirectAuthController");
+const { authenticate, authorize } = require("../middlewares/jwtAuth");
 
 /**
  * Route: POST /auth/register
@@ -45,7 +46,12 @@ const AuthController = require("../Controllers/redirectAuthController");
  *   - Conflict (409): If a user with the same identifier already exists.
  *   - Internal Server Error (500): If any unexpected server error occurs.
  */
-router.post("/register", AuthController.register);
+router.post(
+    "/register", 
+    authenticate,
+    authorize("superadmin"),
+    AuthController.register
+);
 
 /**
  * Route: POST /auth/login
