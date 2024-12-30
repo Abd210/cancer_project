@@ -18,7 +18,7 @@ class PatientController {
   static async getData(req, res) {
     try {
       // Destructure _id, user, and role from the request headers
-      const { _id, user, role } = req.headers;
+      const { _id, user, patientid } = req.headers;
 
       // Check if the _id is provided in the headers, return error if missing
       if (!_id) {
@@ -26,6 +26,15 @@ class PatientController {
           error: "PatientController- Get Patient Data: Missing pers_id", // Specific error for missing _id
         });
       }
+
+      // Check if the `patientId` (filter) is provided for superadmin
+      if (user.role === "superadmin" && !patientid) {
+        return res.status(400).json({
+          error: "PatientController- Get Patient Data: Missing patientId for superadmin",
+        });
+      }
+
+      let patient_id = _id;
 
        // If the user's role is "patient", ensure they can only access their own data
       if (user.role === "patient") {
@@ -35,10 +44,24 @@ class PatientController {
             error: "PatientController- Get Patient Data: Unauthorized", // Unauthorized access error
           });
         }
+      } else if (user.role === "superadmin") {
+        // If the user is a superadmin, they can access any patient's data
+        patient_id = patientid;
+      } else {
+        // If the role is neither 'patient' nor 'superadmin', deny access
+        return res.status(403).json({
+          error: "PatientController- Get Patient Data: Access denied", // Access denied error
+        });
       }
 
+      console.log("PatientController- Get Patient Data: Fetching patient data");
       // Call the PatientService to find the patient data based on the _id
-      const patient_data = await PatientService.findPatient(_id);
+      const patient_data = await PatientService.findPatient(patient_id);
+
+      // Check if the patient data exists
+      if (!patient_data) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
 
       // Return the fetched patient data with a 200 status code
       res.status(200).json(patient_data);
