@@ -24,8 +24,24 @@ const { authenticate, authorize } = require("../middlewares/jwtAuth");
 router.get(
   "/doctor/public-data",
   authenticate,
-  authorize("patient", "doctor", "admin", "superadmin"),
+  authorize(["patient", "doctor", "admin", "superadmin"]),
   doctorController.getPublicData
+);
+
+
+router.get(
+  "/doctor/data",
+  authenticate,
+  authorize(["doctor", "superadmin"]),
+  doctorController.getDoctorData
+);
+
+// Route to update doctor data (Superadmin access only)
+router.put(
+  "/doctor/data/update", // Endpoint
+  authenticate, // Middleware to ensure the user is authenticated
+  authorize("superadmin"), // Middleware to ensure only superadmins can access this
+  doctorController.updateDoctorData // Controller function to handle the request
 );
 
 module.exports = router;
