@@ -219,12 +219,12 @@ class AppointmentController {
       }
 
       // Check if the appointment date is not in the past
-      // if (new Date(appointment_date) < new Date()) {
-      //   return res.status(400).json({
-      //     error:
-      //       "AppointmentController-Create: Appointment date cannot be in the past",
-      //   });
-      // }
+      if (new Date(appointment_date) < new Date()) {
+        return res.status(400).json({
+          error:
+            "AppointmentController-Create: Appointment date cannot be in the past",
+        });
+      }
 
       // Call the AppointmentService to create the appointment
       const appointment = await AppointmentService.createAppointment({
