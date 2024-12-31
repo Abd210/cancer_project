@@ -162,6 +162,47 @@ class TestController {
     }
   }
 
+  static async updateTestData(req, res) {
+    try {
+      const { testid } = req.headers;
+
+      // Destructure the fields to update from the request body
+      const updateFields = req.body;
+
+      // Validate if testId is provided
+      if (!testid) {
+        return res.status(400).json({
+          error: "TestController-update test: Missing testId",
+        });
+      }
+  
+      // Validate if updateFields are provided
+      if (!updateFields || Object.keys(updateFields).length === 0) {
+        return res.status(400).json({
+          error: "TestController-update test: No fields provided to update",
+        });
+      }
+  
+      // Call the TestService to perform the update
+      const updatedTest = await TestService.updateTest(testid, updateFields);
+  
+      // Check if the patient was found and updated
+      if (!updatedTest) {
+        return res.status(404).json({
+          error: "TestController- Update Test Data: Test not found",
+        });
+      }
+  
+      // Respond with the updated test data
+      return res.status(200).json(updatedTest);
+    } catch (updateTestError) {
+      // Catch and return errors
+      return res.status(500).json({
+        error: `TestController-update test: ${updateTestError.message}`,
+      });
+    }
+  }
+
 }
 
 module.exports = TestController;

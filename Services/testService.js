@@ -80,6 +80,31 @@ class TestService {
       return { error: error.message };
     }
   }
+
+  static async updateTest(testId, updateFields) {
+    // Validate the testId as a valid MongoDB ObjectId
+    if (!mongoose.isValidObjectId(testId)) {
+      throw new Error("testService-update test: Invalid testId");
+    }
+
+    // Prevent updating the _id field
+    if (updateFields._id) {
+        throw new Error("testService-update test: Changing the '_id' field is not allowed");
+    }
+
+    // Perform the update
+    const updatedTest = await Test.findByIdAndUpdate(
+        testId,
+        { $set: updateFields }, // Update only the provided fields
+        { new: true, runValidators: true } // Return the updated document and run schema validators
+    );
+
+    if (!updatedTest) {
+        throw new Error("testService-update test: Test not found");
+    }
+
+    return updatedTest;
+  }
   
 }
 
