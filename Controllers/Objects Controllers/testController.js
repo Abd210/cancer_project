@@ -41,7 +41,7 @@ class TestController {
 
       // Fetch the test data from the TestService
       const test = await TestService.fetchTests({
-        role,
+        role: role,
         user_id: _id,
       });
 
