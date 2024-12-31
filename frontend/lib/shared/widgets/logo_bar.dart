@@ -6,20 +6,22 @@ class LogoLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
-      height: 50,
+      color: const Color.fromARGB(255, 255, 252, 254),
+      height: 50, // Keep the total row height at 50
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          // Use a Center or Align to ensure the image is nicely centered
+          Center(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/acuranics.png', // Replace with the correct asset path
-                  height: 70,
+                  'assets/images/acuranics.png',
+                  height: 150, 
+                  filterQuality: FilterQuality.high, // for a sharper look
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 5),
                 const Text(
                   'CURANICS',
                   style: TextStyle(
@@ -29,17 +31,6 @@ class LogoLine extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: Text(
-              'Super Admin',
-              style: TextStyle(
-                color: Color.fromARGB(255, 229, 45, 134),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
             ),
           ),
         ],
