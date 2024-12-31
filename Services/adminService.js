@@ -37,6 +37,68 @@ class AdminService {
       deletedAdmin, // Optionally return the deleted admin data
     };
   }
+
+    static async updateAdmin(adminId, updateFields) {
+        // Validate the adminId as a valid MongoDB ObjectId
+        if (!mongoose.isValidObjectId(adminId)) {
+        throw new Error("adminService-update admin: Invalid adminId");
+        }
+
+        // Prevent updating the _id field
+        if (updateFields._id) {
+            throw new Error("adminService-update admin: Changing the '_id' field is not allowed");
+        }
+
+        // Prevent updating the role field
+        if (updateFields.role) {
+            throw new Error("adminService-update admin: Changing the 'role' field is not allowed");
+        }
+
+        // Internal helper function to check uniqueness across collections
+        const checkUniqueness = async (field, value) => {
+        const collections = [Patient, Doctor, Admin, SuperAdmin];
+        for (const Collection of collections) {
+            const existingUser = await Collection.findOne({ [field]: value });
+            if (existingUser && existingUser._id.toString() !== adminId) {
+            throw new Error(`adminService-update admin: The ${field} '${value}' is already in use by another user`);
+            }
+        }
+        };
+
+        // Check `pers_id` uniqueness if it is being updated
+        if (updateFields.pers_id) {
+        await checkUniqueness("pers_id", updateFields.pers_id);
+        }
+
+        // Check `email` uniqueness if it is being updated
+        if (updateFields.email) {
+        await checkUniqueness("email", updateFields.email);
+        }
+
+        // Check `mobile_number` uniqueness if it is being updated
+        if (updateFields.mobile_number) {
+        await checkUniqueness("mobile_number", updateFields.mobile_number);
+        }
+
+        // Check if the password is being updated and hash it
+        if (updateFields.password) {
+            const salt = await bcrypt.genSalt(10);
+            updateFields.password = await bcrypt.hash(updateFields.password, salt);
+        }
+
+        // Perform the update
+        const updatedAdmin = await Admin.findByIdAndUpdate(
+            adminId,
+            { $set: updateFields }, // Update only the provided fields
+            { new: true, runValidators: true } // Return the updated document and run schema validators
+        );
+
+        if (!updatedAdmin) {
+            throw new Error("adminService-update admin: admin not found");
+        }
+
+        return updatedAdmin;
+    }
 }
 
 module.exports = AdminService;

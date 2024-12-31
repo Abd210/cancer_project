@@ -28,4 +28,12 @@ router.delete(
   adminController.deleteAdmin // Controller function
 );
 
+// Route to update doctor data (Superadmin access only)
+router.put(
+  "/admin/data/update", // Endpoint
+  authenticate, // Middleware to ensure the user is authenticated
+  authorize("superadmin"), // Middleware to ensure only superadmins can access this
+  adminController.updateAdminData // Controller function to handle the request
+);
+
 module.exports = router;
