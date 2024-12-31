@@ -84,6 +84,26 @@ class PatientService {
 
     return updatedPatient;
   }
+
+  static async deletePatient(patientId) {
+    // Validate the patientId as a valid MongoDB ObjectId
+    if (!mongoose.isValidObjectId(patientId)) {
+      throw new Error("patientService-delete patient: Invalid patientId");
+    }
+
+    // Find and delete the patient by ID
+    const deletedPatient = await Patient.findByIdAndDelete(patientId);
+
+    if (!deletedPatient) {
+      throw new Error("patientService-delete patient: Patient not found");
+    }
+
+    return {
+      message: "Patient successfully deleted",
+      deletedPatient, // Optionally return the deleted patient data
+    };
+  }
+  
   
 }
 

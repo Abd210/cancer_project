@@ -160,6 +160,37 @@ class PatientController {
       res.status(500).json({ error: updatePatientError.message });
     }
   }
+
+
+  static async deletePatientData(req, res) {
+    try {
+      const { patientid } = req.headers;
+  
+      // Validate if patientId is provided
+      if (!patientid) {
+        return res.status(400).json({
+          error: "PatientController-delete patient: Missing patientId",
+        });
+      }
+  
+      // Call the PatientService to perform the deletion
+      const result = await PatientService.deletePatient(patientid);
+  
+      // Check if the service returned an error
+      if (result.error) {
+        return res.status(400).json({ error: result.error });
+      }
+  
+      // Respond with success
+      return res.status(200).json(result);
+    } catch (deletePatientError) {
+      // Catch and return errors
+      return res.status(500).json({
+        error: `PatientController-delete patient: ${deletePatientError.message}`,
+      });
+    }
+  }
+  
   
 }
 
