@@ -248,6 +248,31 @@ class AppointmentService {
     };
   }
 
+  static async updateAppointment(appointmentId, updateFields) {
+      // Validate the appointmentId as a valid MongoDB ObjectId
+      if (!mongoose.isValidObjectId(appointmentId)) {
+        throw new Error("appointmentService-update appointment: Invalid appointmentId");
+      }
+  
+      // Prevent updating the _id field
+      if (updateFields._id) {
+          throw new Error("appointmentService-update appointment: Changing the '_id' field is not allowed");
+      }
+  
+      // Perform the update
+      const updatedAppointment = await Appointment.findByIdAndUpdate(
+          appointmentId,
+          { $set: updateFields }, // Update only the provided fields
+          { new: true, runValidators: true } // Return the updated document and run schema validators
+      );
+  
+      if (!updatedAppointment) {
+          throw new Error("appointmentService-update appointment: Appointment not found");
+      }
+  
+      return updatedAppointment;
+    }
+
 }
 
 module.exports = AppointmentService;

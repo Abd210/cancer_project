@@ -266,6 +266,47 @@ class AppointmentController {
     }
   }
 
+  static async updateAppointmentData(req, res) {
+    try {
+      const { appointmentid } = req.headers;
+
+      // Destructure the fields to update from the request body
+      const updateFields = req.body;
+
+      // Validate if appointmentId is provided
+      if (!appointmentid) {
+        return res.status(400).json({
+          error: "AppointmentController-update appointment: Missing appointmentId",
+        });
+      }
+  
+      // Validate if updateFields are provided
+      if (!updateFields || Object.keys(updateFields).length === 0) {
+        return res.status(400).json({
+          error: "AppointmentController-update appointment: No fields provided to update",
+        });
+      }
+  
+      // Call the AppointmentService to perform the update
+      const updatedAppointment = await AppointmentService.updateAppointment(appointmentid, updateFields);
+  
+      // Check if the patient was found and updated
+      if (!updatedAppointment) {
+        return res.status(404).json({
+          error: "AppointmentController- Update Appointment Data: Appointment not found",
+        });
+      }
+  
+      // Respond with the updated appointment data
+      return res.status(200).json(updatedAppointment);
+    } catch (updateAppointmentError) {
+      // Catch and return errors
+      return res.status(500).json({
+        error: `AppointmentController-update appointment: ${updateAppointmentError.message}`,
+      });
+    }
+  }
+
 }
 
 module.exports = AppointmentController;

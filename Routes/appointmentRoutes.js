@@ -113,4 +113,11 @@ router.delete(
   appointmentController.deleteAppointment // Controller function
 );
 
+router.put(
+  "/appointment/update",
+  authenticate, // Middleware to authenticate the user
+  authorize("superadmin"), // Middleware to allow only superadmins
+  appointmentController.updateAppointmentData // Controller function
+);
+
 module.exports = router;
