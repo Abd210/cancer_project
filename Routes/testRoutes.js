@@ -55,4 +55,11 @@ router.post(
   TestController.createTest
 );
 
+router.delete(
+  "/test/delete",
+  authenticate,
+  authorize("superadmin"),
+  TestController.deleteTest
+);
+
 module.exports = router;

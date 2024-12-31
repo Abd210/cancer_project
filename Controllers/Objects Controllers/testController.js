@@ -123,6 +123,45 @@ class TestController {
         .status(500).json({ error:error.message });
     }
   }
+
+  /**
+   * Deletes a specific test by its ID if the authenticated user has the necessary permissions.
+   * Validates the test ID and ensures the test exists before deletion.
+   * 
+   * @param {Object} req - The HTTP request object containing the test ID and user details in the headers.
+   * @param {Object} res - The HTTP response object used to send back the result of the deletion or errors.
+   * 
+   * @returns {Object} A JSON response with a success message or an error message.
+   */
+  static async deleteTest(req, res) {
+    try {
+      const { testid } = req.headers;
+
+      // Validate if the test ID is provided in the request
+      if (!testid) {
+        return res.status(400).json({
+          error: "TestController-deleteTest: Missing test ID",
+        });
+      }
+
+      // Call the TestService to delete the test
+      const result = await TestService.deleteTest(testid);
+
+      // Check if the service returned an error
+      if (result.error) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      // Respond with success
+      return res.status(200).json(result);
+    } catch (deleteTestError) {
+      // Catch and return errors
+      res.status(500).json({
+        error: `TestController-deleteTest: ${deleteTestError.message}`,
+      });
+    }
+  }
+
 }
 
 module.exports = TestController;

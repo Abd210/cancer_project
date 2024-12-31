@@ -54,6 +54,33 @@ class TestService {
 
     return await Test.findOne({ _id: test_id });
   }
+
+  static async deleteTest(test_id) {
+    try {
+      // Validate if the provided test ID is a valid MongoDB ObjectId
+      if (!mongoose.isValidObjectId(test_id)) {
+        throw new Error("testService-deleteTest: Invalid test ID");
+      }
+  
+      // Find and delete the test by its ID
+      const deletedTest = await Test.findByIdAndDelete(test_id);
+  
+      // If the test is not found, throw an error
+      if (!deletedTest) {
+        throw new Error("testService-deleteTest: Test not found");
+      }
+  
+      // Return a success message along with the deleted test data
+      return {
+        message: "Test successfully deleted",
+        deletedTest, // Optional: Include the deleted test data in the response
+      };
+    } catch (error) {
+      // Catch and rethrow errors
+      return { error: error.message };
+    }
+  }
+  
 }
 
 module.exports = TestService;

@@ -206,6 +206,48 @@ class AppointmentService {
     // Fetch the appointment by ID
     return await Appointment.findOne({ _id: appointment_id });
   }
+
+  /**
+   * Deletes an appointment from the database.
+   * The function validates the appointment ID and ensures the appointment exists before deletion.
+   *
+   * @param {string} appointment_id - The unique identifier of the appointment to be deleted.
+   * @returns {Object} Returns a success message and the deleted appointment object or an error message if the appointment cannot be found.
+   * @throws Throws an error if the appointment ID is invalid or the appointment does not exist.
+   */
+  static async deleteAppointment(appointment_id) {
+    // Validate the provided appointment ID
+    if (!mongoose.isValidObjectId(appointment_id)) {
+      throw new Error(
+        "appointmentService-delete appointment: Invalid appointment_id"
+      );
+    }
+
+    // Check if the appointment exists in the database
+    const appointment = await Appointment.findById(appointment_id);
+    if (!appointment) {
+      throw new Error(
+        "appointmentService-delete appointment: Appointment not found"
+      );
+    }
+
+    // Delete the appointment
+    const deletedAppointment = await Appointment.findByIdAndDelete(
+      appointment_id
+    );
+
+    if (!deletedAppointment) {
+      throw new Error(
+        "appointmentService-delete appointment: Failed to delete appointment"
+      );
+    }
+
+    return {
+      message: "Appointment successfully deleted",
+      deletedAppointment,
+    };
+  }
+
 }
 
 module.exports = AppointmentService;

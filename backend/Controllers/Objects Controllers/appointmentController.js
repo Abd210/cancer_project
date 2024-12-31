@@ -231,6 +231,41 @@ class AppointmentController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  /**
+   * Deletes an appointment if the authenticated user is authorized to do so.
+   * Checks for user role and authorization before proceeding with deletion.
+   *
+   * @param {Object} req - The HTTP request object containing the appointment ID in the headers and user role in the headers.
+   * @param {Object} res - The HTTP response object used to send back the result of the deletion or errors.
+   *
+   * @returns {Object} Returns a JSON response with the deleted appointment details or an error message.
+   */
+  static async deleteAppointment(req, res) {
+    try {
+      const { appointment_id } = req.headers;
+
+      // Check if the appointment ID is provided
+      if (!appointment_id) {
+        return res.status(400).json({
+          error: "AppointmentController-Delete: Missing appointment's id",
+        });
+      }
+
+      // Proceed with the deletion process using the AppointmentService
+      const deletedAppointment = await AppointmentService.deleteAppointment(appointment_id);
+
+      // Return the details of the deleted appointment
+      res.status(200).json({
+        message: "Appointment successfully deleted",
+        deletedAppointment,
+      });
+    } catch (deleteAppointmentError) {
+      // Handle errors in deleting the appointment
+      res.status(500).json({ error: deleteAppointmentError.message });
+    }
+  }
+
 }
 
 module.exports = AppointmentController;

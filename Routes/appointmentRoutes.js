@@ -105,4 +105,12 @@ router.post(
   appointmentController.createAppointment
 );
 
+
+router.delete(
+  "/appointment/delete",
+  authenticate, // Middleware to authenticate the user
+  authorize("superadmin"), // Middleware to allow only superadmins
+  appointmentController.deleteAppointment // Controller function
+);
+
 module.exports = router;
