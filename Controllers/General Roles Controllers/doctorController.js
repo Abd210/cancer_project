@@ -50,10 +50,10 @@ class DoctorController {
         });
       }
 
-      // Call the DoctorService to fetch the public data for the doctor
+      // Call the DoctorService to fetch the data for the doctor
       const doctor_data = await DoctorService.getDoctorData({ _id });
 
-      // Respond with the doctor’s public data and a 200 status
+      // Respond with the doctor’s data and a 200 status
       res.status(200).json(doctor_data);
     } catch (fetchDoctorDataError) {
       // Handle any errors that occur during the data fetching process
