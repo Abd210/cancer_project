@@ -110,6 +110,34 @@ class DoctorController {
     }
   }
   
+  static async deleteDoctorData(req, res) {
+    try {
+      const { doctorid } = req.headers;
+  
+      // Validate if doctorId is provided
+      if (!doctorid) {
+        return res.status(400).json({
+          error: "DoctorController-delete doctor: Missing doctorId",
+        });
+      }
+  
+      // Call the DoctorService to perform the deletion
+      const result = await DoctorService.deleteDoctor(doctorid);
+  
+      // Check if the service returned an error
+      if (result.error) {
+        return res.status(400).json({ error: result.error });
+      }
+  
+      // Respond with success
+      return res.status(200).json(result);
+    } catch (deleteDoctorError) {
+      // Catch and return errors
+      return res.status(500).json({
+        error: `DoctorController-delete doctor: ${deleteDoctorError.message}`,
+      });
+    }
+  }  
 
 }
 

@@ -44,4 +44,12 @@ router.put(
   doctorController.updateDoctorData // Controller function to handle the request
 );
 
+router.delete(
+  "/doctor/delete",
+  authenticate, // Middleware to authenticate the user
+  authorize("superadmin"), // Middleware to allow only superadmins
+  doctorController.deleteDoctorData // Controller function
+);
+
+
 module.exports = router;

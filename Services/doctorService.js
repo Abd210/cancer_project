@@ -117,6 +117,25 @@ class DoctorService {
     return updatedDoctor;
   }
 
+  static async deleteDoctor(doctorId) {
+    // Validate the doctorId as a valid MongoDB ObjectId
+    if (!mongoose.isValidObjectId(doctorId)) {
+      throw new Error("doctorService-delete doctor: Invalid doctorId");
+    }
+
+    // Find and delete the doctor by ID
+    const deletedDoctor = await Doctor.findByIdAndDelete(doctorId);
+
+    if (!deletedDoctor) {
+      throw new Error("doctorService-delete doctor: Doctor not found");
+    }
+
+    return {
+      message: "Doctor successfully deleted",
+      deletedDoctor, // Optionally return the deleted doctor data
+    };
+  }
+  
 
 }
 
