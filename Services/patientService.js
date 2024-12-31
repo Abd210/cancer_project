@@ -1,5 +1,8 @@
-// services/patientService.js
+// Ensure all models are imported
 const Patient = require("../Models/Patient");
+const Doctor = require("../Models/Doctor");
+const Admin = require("../Models/Admin");
+const SuperAdmin = require("../Models/SuperAdmin");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
@@ -34,35 +37,59 @@ class PatientService {
       throw new Error("patientService-update patient: Changing the 'role' field is not allowed");
     }
 
-    // Check if the new pers_id is being updated
+    // Internal helper function to check uniqueness across collections
+    const checkUniqueness = async (field, value) => {
+      const collections = [Patient, Doctor, Admin, SuperAdmin];
+      for (const Collection of collections) {
+        const existingUser = await Collection.findOne({ [field]: value });
+        if (existingUser && existingUser._id.toString() !== patientId) {
+          throw new Error(
+            `patientService-update patient: The ${field} '${value}' is already in use by another user`
+          );
+        }
+      }
+    };
+
+    // Check uniqueness for pers_id, email, and mobile_number
     if (updateFields.pers_id) {
-      const existingPatient = await Patient.findOne({ pers_id: updateFields.pers_id });
-      if (existingPatient && existingPatient._id.toString() !== patientId) {
-        throw new Error(
-          `patientService-update patient: The pers_id '${updateFields.pers_id}' is already in use by another patient`
-        );
-      }
+      await checkUniqueness("pers_id", updateFields.pers_id);
     }
-
-    // Check if the new email is being updated
     if (updateFields.email) {
-      const existingPatient = await Patient.findOne({ email: updateFields.email });
-      if (existingPatient && existingPatient._id.toString() !== patientId) {
-        throw new Error(
-          `patientService-update patient: The email '${updateFields.email}' is already in use by another patient`
-        );
-      }
+      await checkUniqueness("email", updateFields.email);
+    }
+    if (updateFields.mobile_number) {
+      await checkUniqueness("mobile_number", updateFields.mobile_number);
     }
 
-    // Check if the new mobile_number is being updated
-    if (updateFields.mobile_number) {
-      const existingPatient = await Patient.findOne({ mobile_number: updateFields.mobile_number });
-      if (existingPatient && existingPatient._id.toString() !== patientId) {
-        throw new Error(
-          `patientService-update patient: The mobile number '${updateFields.mobile_number}' is already in use by another patient`
-        );
-      }
-    }
+    // Check if the new pers_id is being updated
+    // if (updateFields.pers_id) {
+    //   const existingPatient = await Patient.findOne({ pers_id: updateFields.pers_id });
+    //   if (existingPatient && existingPatient._id.toString() !== patientId) {
+    //     throw new Error(
+    //       `patientService-update patient: The pers_id '${updateFields.pers_id}' is already in use by another patient`
+    //     );
+    //   }
+    // }
+
+    // // Check if the new email is being updated
+    // if (updateFields.email) {
+    //   const existingPatient = await Patient.findOne({ email: updateFields.email });
+    //   if (existingPatient && existingPatient._id.toString() !== patientId) {
+    //     throw new Error(
+    //       `patientService-update patient: The email '${updateFields.email}' is already in use by another patient`
+    //     );
+    //   }
+    // }
+
+    // // Check if the new mobile_number is being updated
+    // if (updateFields.mobile_number) {
+    //   const existingPatient = await Patient.findOne({ mobile_number: updateFields.mobile_number });
+    //   if (existingPatient && existingPatient._id.toString() !== patientId) {
+    //     throw new Error(
+    //       `patientService-update patient: The mobile number '${updateFields.mobile_number}' is already in use by another patient`
+    //     );
+    //   }
+    // }
 
     if (updateFields.password) {
       //console.log("Before hashing:", updateFields.password);

@@ -1,4 +1,9 @@
+// Ensure all models are imported
+const Patient = require("../Models/Patient");
 const Doctor = require("../Models/Doctor");
+const Admin = require("../Models/Admin");
+const SuperAdmin = require("../Models/SuperAdmin");
+const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 
 /**
@@ -67,34 +72,30 @@ class DoctorService {
         throw new Error("doctorService-update doctor: Changing the 'role' field is not allowed");
     }
 
-    // Check if the new pers_id is being updated
-    if (updateFields.pers_id) {
-      const existingDoctor = await Doctor.findOne({ pers_id: updateFields.pers_id });
-      if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
-        throw new Error(
-          `doctorService-update doctor: The pers_id '${updateFields.pers_id}' is already in use by another doctor`
-        );
+    // Internal helper function to check uniqueness across collections
+    const checkUniqueness = async (field, value) => {
+      const collections = [Patient, Doctor, Admin, SuperAdmin];
+      for (const Collection of collections) {
+        const existingUser = await Collection.findOne({ [field]: value });
+        if (existingUser && existingUser._id.toString() !== doctorId) {
+          throw new Error(`doctorService-update doctor: The ${field} '${value}' is already in use by another user`);
+        }
       }
+    };
+
+    // Check `pers_id` uniqueness if it is being updated
+    if (updateFields.pers_id) {
+      await checkUniqueness("pers_id", updateFields.pers_id);
     }
 
-    // Check if the new email is being updated
+    // Check `email` uniqueness if it is being updated
     if (updateFields.email) {
-        const existingDoctor = await Doctor.findOne({ email: updateFields.email });
-        if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
-            throw new Error(
-                `doctorService-update doctor: The email '${updateFields.email}' is already in use by another doctor`
-            );
-        }
+      await checkUniqueness("email", updateFields.email);
     }
 
-    // Check if the new mobile_number is being updated
+    // Check `mobile_number` uniqueness if it is being updated
     if (updateFields.mobile_number) {
-        const existingDoctor = await Doctor.findOne({ mobile_number: updateFields.mobile_number });
-        if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
-            throw new Error(
-                `doctorService-update doctor: The mobile number '${updateFields.mobile_number}' is already in use by another doctor`
-            );
-        }
+      await checkUniqueness("mobile_number", updateFields.mobile_number);
     }
 
     // Check if the password is being updated and hash it
