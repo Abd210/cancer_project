@@ -31,4 +31,11 @@ router.post(
   hospitalController.register
 );
 
+router.delete(
+  "/hospital/delete",
+  authenticate, // Middleware to ensure the user is authenticated
+  authorize("superadmin"), // Middleware to ensure only superadmins can access this
+  hospitalController.deleteHospital // Controller method to handle the request
+);
+
 module.exports = router;
