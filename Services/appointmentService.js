@@ -122,35 +122,31 @@ class AppointmentService {
    * @throws Throws an error if the appointment does not exist or if the update fails.
    */
   static async cancelAppointment(appointment_id) {
-    try {
-      // Check if the appointment exists in the database
-      const appointmentExists = await AppointmentService.findAppointment(
-        appointment_id
+    // Check if the appointment exists in the database
+    const appointmentExists = await AppointmentService.findAppointment(
+      appointment_id
+    );
+    if (!appointmentExists) {
+      throw new Error(
+        "appointmentService-cancel appointment: Appointment not found"
       );
-      if (!appointmentExists) {
-        throw new Error(
-          "appointmentService-cancel appointment: Appointment not found"
-        );
-      }
-
-      // Update the status of the appointment to 'cancelled'
-      const appointment = await Appointment.findByIdAndUpdate(
-        appointment_id,
-        { status: "cancelled" },
-        { new: true }
-      );
-
-      // If the appointment update fails, return an error
-      if (!appointment) {
-        throw new Error(
-          "appointmentService-cancel appointment: Appointment not found"
-        );
-      }
-
-      return appointment;
-    } catch (cancelAppointmentError) {
-      return { error: cancelAppointmentError.message };
     }
+
+    // Update the status of the appointment to 'cancelled'
+    const appointment = await Appointment.findByIdAndUpdate(
+      appointment_id,
+      { status: "cancelled" },
+      { new: true }
+    );
+
+    // If the appointment update fails, return an error
+    if (!appointment) {
+      throw new Error(
+        "appointmentService-cancel appointment: Appointment not found"
+      );
+    }
+
+    return appointment;
   }
 
    /**
@@ -166,42 +162,30 @@ class AppointmentService {
    * @returns {Object} Returns a success message and the newly created appointment object or an error message if the creation fails.
    * @throws Throws an error if the appointment data is invalid or cannot be saved.
    */
-  static async createAppointment({
-    patient_id,
-    doctor_id,
-    appointment_date,
-    purpose,
-    status = "scheduled",
-  }) {
-    try {
-      // Create a new appointment object
-      const appointment = new Appointment({
-        patient: patient_id,
-        doctor: doctor_id,
-        appointment_date,
-        purpose,
-        status,
-      });
+  static async createAppointment({ patient_id, doctor_id, appointment_date, purpose, status = "scheduled",}) {
+    // Create a new appointment object
+    const appointment = new Appointment({
+      patient: patient_id,
+      doctor: doctor_id,
+      appointment_date,
+      purpose,
+      status,
+    });
 
-      // Validate the appointment data before saving
-      const validationError = appointment.validateSync();
-      if (validationError) {
-        throw new Error(
-          `appointmentService-create appointment: ${validationError.message}`
-        );
-      }
-
-      // Save the appointment to the database
-      appointment.save();
-      return {
-        message: "Appointment created successfully",
-        new_appointment: appointment,
-      };
-    } catch (saveAppointmentError) {
-      return {
-        error: saveAppointmentError.message,
-      };
+    // Validate the appointment data before saving
+    const validationError = appointment.validateSync();
+    if (validationError) {
+      throw new Error(
+        `appointmentService-create appointment: ${validationError.message}`
+      );
     }
+
+    // Save the appointment to the database
+    appointment.save();
+    return {
+      message: "Appointment created successfully",
+      new_appointment: appointment,
+    };
   }
 
   /**
@@ -213,18 +197,14 @@ class AppointmentService {
    * @throws Throws an error if the appointment ID is invalid.
    */
   static async findAppointment(appointment_id) {
-    try {
-      // Validate the provided appointment ID
-      if (!mongoose.isValidObjectId(appointment_id)) {
-        throw new Error(
-          "appointmentService-appointment exists: Invalid appointment_id"
-        );
-      }
-      // Fetch the appointment by ID
-      return await Appointment.findOne({ _id: appointment_id });
-    } catch (findAppointmentError) {
-      return { error: findAppointmentError.message };
+    // Validate the provided appointment ID
+    if (!mongoose.isValidObjectId(appointment_id)) {
+      throw new Error(
+        "appointmentService-appointment exists: Invalid appointment_id"
+      );
     }
+    // Fetch the appointment by ID
+    return await Appointment.findOne({ _id: appointment_id });
   }
 }
 

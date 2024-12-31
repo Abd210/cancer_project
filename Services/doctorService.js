@@ -17,8 +17,7 @@ class DoctorService {
    * @throws Throws an error if the doctor is not found or any other issue occurs.
    */
   static async getPublicData(_id) {
-    try {
-      // Find the doctor and exclude sensitive fields
+    // Find the doctor and exclude sensitive fields
       const doctor = await Doctor.findOne(
         { _id, role: "doctor" },
         {
@@ -36,98 +35,86 @@ class DoctorService {
       }
 
       return doctor; // Returns the doctor's public data without sensitive information
-    } catch (getDoctorPublicDataError) {
-      return { error: getDoctorPublicDataError.message };
-    }
   }
 
   static async getDoctorData(_id) {
-    try {
-        // Find the doctor and include all fields
-        const doctor = await Doctor.findOne(
-            { _id, role: "doctor" } // Filter by _id and role
-        );
+    // Find the doctor and include all fields
+    const doctor = await Doctor.findOne(
+      { _id, role: "doctor" } // Filter by _id and role
+    );
 
-        // If the doctor is not found, throw an error
-        if (!doctor) {
-            throw new Error("Doctor not found");
-        }
-
-        return doctor; // Returns the full doctor's data
-    } catch (getDoctorPublicDataError) {
-        return { error: getDoctorPublicDataError.message };
+    // If the doctor is not found, throw an error
+    if (!doctor) {
+        throw new Error("Doctor not found");
     }
+
+    return doctor; // Returns the full doctor's data
   }
 
   static async updateDoctor(doctorId, updateFields) {
-    try {
-        // Validate the doctorId as a valid MongoDB ObjectId
-        if (!mongoose.isValidObjectId(doctorId)) {
-            throw new Error("doctorService-update doctor: Invalid doctorId");
-        }
-
-        // Prevent updating the _id field
-        if (updateFields._id) {
-            throw new Error("doctorService-update doctor: Changing the '_id' field is not allowed");
-        }
-
-        // Prevent updating the role field
-        if (updateFields.role) {
-            throw new Error("doctorService-update doctor: Changing the 'role' field is not allowed");
-        }
-
-        // Check if the new pers_id is being updated
-        if (updateFields.pers_id) {
-          const existingDoctor = await Doctor.findOne({ pers_id: updateFields.pers_id });
-          if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
-            throw new Error(
-              `doctorService-update doctor: The pers_id '${updateFields.pers_id}' is already in use by another doctor`
-            );
-          }
-        }
-
-        // Check if the new email is being updated
-        if (updateFields.email) {
-            const existingDoctor = await Doctor.findOne({ email: updateFields.email });
-            if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
-                throw new Error(
-                    `doctorService-update doctor: The email '${updateFields.email}' is already in use by another doctor`
-                );
-            }
-        }
-
-        // Check if the new mobile_number is being updated
-        if (updateFields.mobile_number) {
-            const existingDoctor = await Doctor.findOne({ mobile_number: updateFields.mobile_number });
-            if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
-                throw new Error(
-                    `doctorService-update doctor: The mobile number '${updateFields.mobile_number}' is already in use by another doctor`
-                );
-            }
-        }
-
-        // Check if the password is being updated and hash it
-        if (updateFields.password) {
-            const salt = await bcrypt.genSalt(10);
-            updateFields.password = await bcrypt.hash(updateFields.password, salt);
-        }
-
-        // Perform the update
-        const updatedDoctor = await Doctor.findByIdAndUpdate(
-            doctorId,
-            { $set: updateFields }, // Update only the provided fields
-            { new: true, runValidators: true } // Return the updated document and run schema validators
-        );
-
-        if (!updatedDoctor) {
-            throw new Error("doctorService-update doctor: Doctor not found");
-        }
-
-        return updatedDoctor;
-    } catch (updateDoctorError) {
-        // Return an error if something goes wrong
-        return { error: updateDoctorError.message };
+    // Validate the doctorId as a valid MongoDB ObjectId
+    if (!mongoose.isValidObjectId(doctorId)) {
+      throw new Error("doctorService-update doctor: Invalid doctorId");
     }
+
+    // Prevent updating the _id field
+    if (updateFields._id) {
+        throw new Error("doctorService-update doctor: Changing the '_id' field is not allowed");
+    }
+
+    // Prevent updating the role field
+    if (updateFields.role) {
+        throw new Error("doctorService-update doctor: Changing the 'role' field is not allowed");
+    }
+
+    // Check if the new pers_id is being updated
+    if (updateFields.pers_id) {
+      const existingDoctor = await Doctor.findOne({ pers_id: updateFields.pers_id });
+      if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
+        throw new Error(
+          `doctorService-update doctor: The pers_id '${updateFields.pers_id}' is already in use by another doctor`
+        );
+      }
+    }
+
+    // Check if the new email is being updated
+    if (updateFields.email) {
+        const existingDoctor = await Doctor.findOne({ email: updateFields.email });
+        if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
+            throw new Error(
+                `doctorService-update doctor: The email '${updateFields.email}' is already in use by another doctor`
+            );
+        }
+    }
+
+    // Check if the new mobile_number is being updated
+    if (updateFields.mobile_number) {
+        const existingDoctor = await Doctor.findOne({ mobile_number: updateFields.mobile_number });
+        if (existingDoctor && existingDoctor._id.toString() !== doctorId) {
+            throw new Error(
+                `doctorService-update doctor: The mobile number '${updateFields.mobile_number}' is already in use by another doctor`
+            );
+        }
+    }
+
+    // Check if the password is being updated and hash it
+    if (updateFields.password) {
+        const salt = await bcrypt.genSalt(10);
+        updateFields.password = await bcrypt.hash(updateFields.password, salt);
+    }
+
+    // Perform the update
+    const updatedDoctor = await Doctor.findByIdAndUpdate(
+        doctorId,
+        { $set: updateFields }, // Update only the provided fields
+        { new: true, runValidators: true } // Return the updated document and run schema validators
+    );
+
+    if (!updatedDoctor) {
+        throw new Error("doctorService-update doctor: Doctor not found");
+    }
+
+    return updatedDoctor;
   }
 
 

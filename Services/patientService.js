@@ -5,97 +5,84 @@ const bcrypt = require("bcrypt");
 
 class PatientService {
   static async findPatient(patient_id) {
-    try {
-      if (!mongoose.isValidObjectId(patient_id)) {
-        throw new Error("patientService-find patient: Invalid patient id");
-      }
-
-      return await Patient.findOne({ _id: patient_id });
-    } catch (findPatientError) {
-      return { error: findPatientError.message };
+    if (!mongoose.isValidObjectId(patient_id)) {
+      throw new Error("patientService-find patient: Invalid patient id");
     }
+
+    return await Patient.findOne({ _id: patient_id });
   }
 
   static async findAllPatients() {
-    try {
-      // Fetch all patient data
-      return await Patient.find({});
-    } catch (findAllPatientsError) {
-      return { error: findAllPatientsError.message };
-    }
+    // Fetch all patient data
+    return await Patient.find({});
   }
 
 
   static async updatePatient(patientId, updateFields) {
-    try {
-      // Validate the patientId as a valid MongoDB ObjectId
-      if (!mongoose.isValidObjectId(patientId)) {
-        throw new Error("patientService-update patient: Invalid patientId");
-      }
-
-      // Prevent updating the _id field
-      if (updateFields._id) {
-        throw new Error("patientService-update patient: Changing the '_id' field is not allowed");
-      }
-
-      // Prevent updating the role field
-      if (updateFields.role) {
-        throw new Error("patientService-update patient: Changing the 'role' field is not allowed");
-      }
-
-      // Check if the new pers_id is being updated
-      if (updateFields.pers_id) {
-        const existingPatient = await Patient.findOne({ pers_id: updateFields.pers_id });
-        if (existingPatient && existingPatient._id.toString() !== patientId) {
-          throw new Error(
-            `patientService-update patient: The pers_id '${updateFields.pers_id}' is already in use by another patient`
-          );
-        }
-      }
-
-      // Check if the new email is being updated
-      if (updateFields.email) {
-        const existingPatient = await Patient.findOne({ email: updateFields.email });
-        if (existingPatient && existingPatient._id.toString() !== patientId) {
-          throw new Error(
-            `patientService-update patient: The email '${updateFields.email}' is already in use by another patient`
-          );
-        }
-      }
-
-      // Check if the new mobile_number is being updated
-      if (updateFields.mobile_number) {
-        const existingPatient = await Patient.findOne({ mobile_number: updateFields.mobile_number });
-        if (existingPatient && existingPatient._id.toString() !== patientId) {
-          throw new Error(
-            `patientService-update patient: The mobile number '${updateFields.mobile_number}' is already in use by another patient`
-          );
-        }
-      }
-
-      if (updateFields.password) {
-        //console.log("Before hashing:", updateFields.password);
-        const salt = await bcrypt.genSalt(10);
-        updateFields.password = await bcrypt.hash(updateFields.password, salt);
-        //console.log("After hashing:", updateFields.password);
-      }
-
-      // Perform the update
-      const updatedPatient = await Patient.findByIdAndUpdate(
-        patientId,
-        { $set: updateFields }, // Update only the provided fields
-        { new: true, runValidators: true } // Return the updated document and run schema validators
-      );
-
-      if (!updatedPatient) {
-        throw new Error("patientService-update patient: Patient not found");
-      }
-  
-      return updatedPatient;
-    } catch (updatePatientError) {
-      // Return an error if something goes wrong
-      return { error: updatePatientError.message };
+    // Validate the patientId as a valid MongoDB ObjectId
+    if (!mongoose.isValidObjectId(patientId)) {
+      throw new Error("patientService-update patient: Invalid patientId");
     }
+
+    // Prevent updating the _id field
+    if (updateFields._id) {
+      throw new Error("patientService-update patient: Changing the '_id' field is not allowed");
+    }
+
+    // Prevent updating the role field
+    if (updateFields.role) {
+      throw new Error("patientService-update patient: Changing the 'role' field is not allowed");
+    }
+
+    // Check if the new pers_id is being updated
+    if (updateFields.pers_id) {
+      const existingPatient = await Patient.findOne({ pers_id: updateFields.pers_id });
+      if (existingPatient && existingPatient._id.toString() !== patientId) {
+        throw new Error(
+          `patientService-update patient: The pers_id '${updateFields.pers_id}' is already in use by another patient`
+        );
+      }
+    }
+
+    // Check if the new email is being updated
+    if (updateFields.email) {
+      const existingPatient = await Patient.findOne({ email: updateFields.email });
+      if (existingPatient && existingPatient._id.toString() !== patientId) {
+        throw new Error(
+          `patientService-update patient: The email '${updateFields.email}' is already in use by another patient`
+        );
+      }
+    }
+
+    // Check if the new mobile_number is being updated
+    if (updateFields.mobile_number) {
+      const existingPatient = await Patient.findOne({ mobile_number: updateFields.mobile_number });
+      if (existingPatient && existingPatient._id.toString() !== patientId) {
+        throw new Error(
+          `patientService-update patient: The mobile number '${updateFields.mobile_number}' is already in use by another patient`
+        );
+      }
+    }
+
+    if (updateFields.password) {
+      //console.log("Before hashing:", updateFields.password);
+      const salt = await bcrypt.genSalt(10);
+      updateFields.password = await bcrypt.hash(updateFields.password, salt);
+      //console.log("After hashing:", updateFields.password);
+    }
+
+    // Perform the update
+    const updatedPatient = await Patient.findByIdAndUpdate(
+      patientId,
+      { $set: updateFields }, // Update only the provided fields
+      { new: true, runValidators: true } // Return the updated document and run schema validators
+    );
+
+    if (!updatedPatient) {
+      throw new Error("patientService-update patient: Patient not found");
+    }
+
+    return updatedPatient;
   }
   
 }
