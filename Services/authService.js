@@ -26,111 +26,182 @@ class AuthService {
    * @param {Object} userRegistrationData - The data required to register a new user.
    * @returns {Object} Returns a success or error message based on the outcome of the registration.
    */
+  // static async register(userRegistrationData) {
+  //   let newUser, msg;
+  //   let existingEmail = false;
+  //   let existingMobileNumber = false;
+  //   let existingPersId = false;
+  //   let existingDeviceId = false;
+
+  //   // Switch statement based on user role to handle different registration processes
+  //   const { role } = userRegistrationData;
+  //   switch (role) {
+  //     case "patient":
+  //       // Check for existing email, mobile number, and personal ID in the Patient collection
+  //       existingEmail = await Patient.findOne({
+  //         email: userRegistrationData.email,
+  //       });
+  //       existingMobileNumber = await Patient.findOne({
+  //         mobile_number: userRegistrationData.mobile_number,
+  //       });
+
+  //       existingPersId = await Patient.findOne({
+  //         pers_id: userRegistrationData.pers_id,
+  //       });
+
+  //       newUser = new Patient(userRegistrationData);
+  //       break;
+  //     case "doctor":
+  //       existingEmail = await Doctor.findOne({
+  //         email: userRegistrationData.email,
+  //       });
+  //       existingMobileNumber = await Doctor.findOne({
+  //         mobile_number: userRegistrationData.mobile_number,
+  //       });
+
+  //       existingPersId = await Doctor.findOne({
+  //         pers_id: userRegistrationData.pers_id,
+  //       });
+
+  //       newUser = new Doctor(userRegistrationData);
+  //       break;
+  //     case "admin":
+  //       existingEmail = await Admin.findOne({
+  //         email: userRegistrationData.email,
+  //       });
+  //       existingMobileNumber = await Admin.findOne({
+  //         mobile_number: userRegistrationData.mobile_number,
+  //       });
+
+  //       existingPersId = await Admin.findOne({
+  //         pers_id: userRegistrationData.pers_id,
+  //       });
+
+  //       newUser = new Admin(userRegistrationData);
+  //       break;
+  //     case "superadmin":
+  //       existingEmail = await SuperAdmin.findOne({
+  //         email: userRegistrationData.email,
+  //       });
+  //       existingMobileNumber = await SuperAdmin.findOne({
+  //         mobile_number: userRegistrationData.mobile_number,
+  //       });
+
+  //       existingPersId = await SuperAdmin.findOne({
+  //         pers_id: userRegistrationData.pers_id,
+  //       });
+
+  //       newUser = new SuperAdmin(userRegistrationData);
+  //       break;
+  //     case "device":
+  //       existingDeviceId = await Device.findOne({
+  //         device_id: userRegistrationData.deviceId,
+  //       });
+
+  //       newUser = new Device(userRegistrationData);
+  //       break;
+  //     default:
+  //       throw new Error("authService-Register: Invalid role"); // Invalid role provided
+  //   }
+
+  //   // Check for duplicates (email, mobile number, personal ID, device ID)
+  //   if (existingEmail) {
+  //     throw new Error("authService-Register: Email already registered");
+  //   }
+  //   // Check if mobile number is already registered
+  //   if (existingMobileNumber) {
+  //     throw new Error(
+  //       "authService-Register: Mobile number already registered"
+  //     );
+  //   }
+
+  //   // Check if pers_id is already registered
+  //   if (existingPersId) {
+  //     throw new Error("authService-Register: Personal ID already registered");
+  //   }
+
+  //   // Check if device_id is already registered
+  //   if (existingDeviceId) {
+  //     throw new Error("authService-Register: Device ID already registered");
+  //   }
+
+  //   // Hash the password before saving (this is handled within the user model pre-save)
+  //   await newUser.save();
+  //   msg = "Registration successful";
+
+  //   return { message: msg }; // Return the result message
+  // }
+
+
   static async register(userRegistrationData) {
     let newUser, msg;
-    let existingEmail = false;
-    let existingMobileNumber = false;
-    let existingPersId = false;
-    let existingDeviceId = false;
+  
+    // Function to check for duplicates across all collections
+    const checkForDuplicates = async (field, value) => {
+      const collections = [Patient, Doctor, Admin, SuperAdmin, Device];
+      for (const Collection of collections) {
+        // Ensure that Collection is a valid Mongoose model
+        if (Collection && Collection.findOne) {
+          const existing = await Collection.findOne({ [field]: value });
+          if (existing) return true;
+        }
+      }
+      return false;
+    };
+    
+  
+    const { role } = userRegistrationData;
+  
+    // Check for existing email across all collections
+    if (await checkForDuplicates("email", userRegistrationData.email)) {
+      throw new Error("authService-Register: Email already registered");
+    }
+
+    // Check for existing mobile number across all collections
+    if (await checkForDuplicates("mobile_number", userRegistrationData.mobile_number)) {
+      throw new Error("authService-Register: Mobile number already registered");
+    }
+
+    // Check for existing personal ID (pers_id) across all collections
+    if (userRegistrationData.pers_id && await checkForDuplicates("pers_id", userRegistrationData.pers_id)) {
+      throw new Error("authService-Register: Personal ID already registered");
+    }
+
+    // Check for existing device ID if the role is 'device'
+    if (role === "device" && userRegistrationData.deviceId) {
+      if (await checkForDuplicates("device_id", userRegistrationData.deviceId)) {
+        throw new Error("authService-Register: Device ID already registered");
+      }
+    }
 
     // Switch statement based on user role to handle different registration processes
-    const { role } = userRegistrationData;
     switch (role) {
       case "patient":
-        // Check for existing email, mobile number, and personal ID in the Patient collection
-        existingEmail = await Patient.findOne({
-          email: userRegistrationData.email,
-        });
-        existingMobileNumber = await Patient.findOne({
-          mobile_number: userRegistrationData.mobile_number,
-        });
-
-        existingPersId = await Patient.findOne({
-          pers_id: userRegistrationData.pers_id,
-        });
-
         newUser = new Patient(userRegistrationData);
         break;
       case "doctor":
-        existingEmail = await Doctor.findOne({
-          email: userRegistrationData.email,
-        });
-        existingMobileNumber = await Doctor.findOne({
-          mobile_number: userRegistrationData.mobile_number,
-        });
-
-        existingPersId = await Doctor.findOne({
-          pers_id: userRegistrationData.pers_id,
-        });
-
         newUser = new Doctor(userRegistrationData);
         break;
       case "admin":
-        existingEmail = await Admin.findOne({
-          email: userRegistrationData.email,
-        });
-        existingMobileNumber = await Admin.findOne({
-          mobile_number: userRegistrationData.mobile_number,
-        });
-
-        existingPersId = await Admin.findOne({
-          pers_id: userRegistrationData.pers_id,
-        });
-
         newUser = new Admin(userRegistrationData);
         break;
       case "superadmin":
-        existingEmail = await SuperAdmin.findOne({
-          email: userRegistrationData.email,
-        });
-        existingMobileNumber = await SuperAdmin.findOne({
-          mobile_number: userRegistrationData.mobile_number,
-        });
-
-        existingPersId = await SuperAdmin.findOne({
-          pers_id: userRegistrationData.pers_id,
-        });
-
         newUser = new SuperAdmin(userRegistrationData);
         break;
       case "device":
-        existingDeviceId = await Device.findOne({
-          device_id: userRegistrationData.deviceId,
-        });
-
         newUser = new Device(userRegistrationData);
         break;
       default:
         throw new Error("authService-Register: Invalid role"); // Invalid role provided
     }
 
-    // Check for duplicates (email, mobile number, personal ID, device ID)
-    if (existingEmail) {
-      throw new Error("authService-Register: Email already registered");
-    }
-    // Check if mobile number is already registered
-    if (existingMobileNumber) {
-      throw new Error(
-        "authService-Register: Mobile number already registered"
-      );
-    }
-
-    // Check if pers_id is already registered
-    if (existingPersId) {
-      throw new Error("authService-Register: Personal ID already registered");
-    }
-
-    // Check if device_id is already registered
-    if (existingDeviceId) {
-      throw new Error("authService-Register: Device ID already registered");
-    }
-
-    // Hash the password before saving (this is handled within the user model pre-save)
+    // Hash the password before saving (handled within the user model pre-save hook)
     await newUser.save();
     msg = "Registration successful";
 
     return { message: msg }; // Return the result message
   }
+  
 
    /**
    * Logs in a user based on their role (patient, doctor, admin, superadmin, device).
