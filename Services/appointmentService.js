@@ -1,6 +1,6 @@
 const Doctor = require("../Models/Doctor");
 const Patient = require("../Models/Patient");
-const Appointment = require("../models/Appointment");
+const Appointment = require("../Models/Appointment");
 const mongoose = require("mongoose");
 
 /**
