@@ -27,7 +27,7 @@ class AppointmentController {
       // Check if user ID is provided in the request
       if (!_id) {
         return res.status(400).json({
-          error: "PatientController- Get Patient Data: Missing pers_id",
+          error: "AppointmentController- Get Patient Data: Missing pers_id",
         });
       }
 
@@ -35,7 +35,7 @@ class AppointmentController {
       if (user.role === "patient" || user.role === "doctor") {
         if (_id !== user._id) {
           return res.status(403).json({
-            error: "PatientController- Get Patient Data: Unauthorized",
+            error: "AppointmentController- Get Patient Data: Unauthorized",
           });
         }
       }
@@ -66,37 +66,27 @@ class AppointmentController {
 
   static async getAppointmentHistory(req, res) {
     try {
-      const { _id, user, role, filterbyid, filterbyrole } = req.headers;
-      //const { filterById, filterByRole } = req.query; // Assume filters are passed as query parameters
+      const { _id, user, filterbyid, filterbyrole } = req.headers;
 
       // Check if user ID is provided in the request
       if (!_id) {
         return res.status(400).json({
           error:
-            "PatientController- Get Appointment History: Missing User ID",
+            "AppointmentController- Get Appointment History: Missing User ID",
         });
-      }
-
-      // Verify that the user is either a patient or doctor and that the _id matches the user ID in the request headers
-      if (user.role === "patient" || user.role === "doctor" || user.role === "superadmin") {
-        if (_id !== user._id) {
-          return res.status(403).json({
-            error: "PatientController- Get Patient Data: Unauthorized",
-          });
-        }
       }
 
       // Validate filterByRole if provided
       if (filterbyrole && !["doctor", "patient"].includes(filterbyrole)) {
         return res.status(400).json({
-          error: "PatientController- Get Appointment History: Invalid filterByRole",
+          error: "AppointmentController- Get Appointment History: Invalid filterByRole",
         });
       }
 
       // Fetch appointment history using the AppointmentService
       const appointmentHistory = await AppointmentService.getAppointmentHistory(
         {
-          role,
+          role: user.role,
           user_id: _id,
           filterById: filterbyid || null, // Use filterById from query parameters, default to null
           filterByRole: filterbyrole || null, // Use filterByRole from query parameters, default to null
@@ -123,8 +113,7 @@ class AppointmentController {
 
   static async cancelAppointment(req, res) {
     try {
-      const { user, role } = req.headers;
-      const { appointment_id } = req.body;
+      const { user, appointment_id} = req.headers;
 
       // Check if appointment ID is provided in the request
       if (!appointment_id) {
@@ -135,7 +124,7 @@ class AppointmentController {
 
       // Check the user's role and ensure they are authorized to cancel the appointment
       if (user.role !== "admin" && user.role !== "superadmin") {
-        if (role === "patient") {
+        if (user.role === "patient") {
           const appointment = await AppointmentService.findAppointment(
             appointment_id
           );
@@ -144,7 +133,7 @@ class AppointmentController {
               error: "AppointmentController-Cancel: Unauthorized",
             });
           }
-        } else if (role === "doctor") {
+        } else if (user.role === "doctor") {
           const appointment = await AppointmentService.findAppointment(
             appointment_id
           );
