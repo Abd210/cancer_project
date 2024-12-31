@@ -4,6 +4,14 @@ const router = express.Router();
 const adminController = require("../Controllers/General Roles Controllers/adminController");
 const { authenticate, authorize } = require("../middlewares/jwtAuth");
 
+
+
+router.get(
+  "/admin/data",
+  authenticate,
+  authorize(["admin", "superadmin"]),
+  adminController.getData
+);
 /**
  * Route: DELETE /admin/delete
  * Description: Deletes an admin based on the provided admin ID.

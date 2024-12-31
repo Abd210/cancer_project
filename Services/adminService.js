@@ -12,6 +12,19 @@ const mongoose = require("mongoose");
  */
 class AdminService {
 
+    static async findAdmin(admin_id) {
+        if (!mongoose.isValidObjectId(admin_id)) {
+            throw new Error("adminService-find admin: Invalid admin id");
+        }
+
+        return await Admin.findOne({ _id: admin_id });
+    }
+
+    static async findAllAdmins() {
+        // Fetch all admin data
+        return await Admin.find({});
+    }
+
   /**
    * Deletes an admin account using their unique identifier (adminId).
    * 

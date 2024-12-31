@@ -30,7 +30,7 @@ class AdminController {
             // Call the AdminService to perform the update
             const updatedAdmin = await AdminService.updateAdmin(adminid, updateFields);
         
-            // Check if the patient was found and updated
+            // Check if the admin was found and updated
             if (!updatedAdmin) {
             return res.status(404).json({
                 error: "AdminController- Update Admin Data: Admin not found",
@@ -82,6 +82,60 @@ class AdminController {
         return res.status(500).json({
             error: `AdminController-delete admin: ${deleteAdminError.message}`,
         });
+        }
+    }
+
+    static async getData(req, res) {
+        try {
+            // Destructure _id, user, and role from the request headers
+            const { _id, user, adminid } = req.headers;
+        
+            // Check if the _id is provided in the headers, return error if missing
+            if (!_id) {
+                return res.status(400).json({
+                error: "AdminController- Get Admin Data: Missing _id", // Specific error for missing _id
+                });
+            }
+        
+            let admin_id = _id;
+        
+            // If the user's role is "admin", ensure they can only access their own data
+            if (user.role === "admin") {
+                // If the _id in the headers doesn't match the logged-in user's _id, return a 403 Forbidden error
+                if (_id !== user._id) {
+                return res.status(403).json({
+                    error: "AdminController- Get Admin Data: Unauthorized", // Unauthorized access error
+                });
+                }
+            } else if (user.role === "superadmin") {
+                // If the user is a superadmin
+                if (adminid) {
+                admin_id = adminid; // Retrieve specific admin's data
+                } else {
+                // Retrieve all admins' data if no adminid is provided
+                const allAdmins = await AdminService.findAllAdmins();
+                return res.status(200).json(allAdmins); // Return all admin data
+                }
+            } else {
+                // If the role is neither 'admin' nor 'superadmin', deny access
+                return res.status(403).json({
+                error: "AdminController- Get Admin Data: Access denied", // Access denied error
+                });
+            }
+        
+            // Call the AdminService to find the admin data based on the _id
+            const admin_data = await AdminService.findAdmin(admin_id);
+        
+            // Check if the admin data exists
+            if (!admin_data) {
+                return res.status(404).json({ error: "Admin not found" });
+            }
+        
+            // Return the fetched admin data with a 200 status code
+            res.status(200).json(admin_data);
+        } catch (fetchAdminDataError) {
+            // Catch any errors during the data fetching process and return a 500 status with the error message
+            res.status(500).json({ error: fetchAdminDataError.message });
         }
     }
 }
