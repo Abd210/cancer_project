@@ -28,7 +28,8 @@ const patientSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Hospital",
       required: true,
-    }, // Reference to the hospital the doctor is affiliated with
+    }, // Reference to the hospital the patient is affiliated with
+    suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
   },
   { timestamps: true }
 );

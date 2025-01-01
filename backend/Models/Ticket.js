@@ -38,6 +38,7 @@ const ticketSchema = new mongoose.Schema({
     enum: ["patient", "doctor", "admin", "superadmin"],
     default: ["patient, doctor, admin", "superadmin"], // Optional field
   },
+  suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
 });
 
 module.exports = mongoose.model("Ticket", ticketSchema);

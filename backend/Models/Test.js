@@ -36,6 +36,7 @@ const testSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
 });
 
 testSchema.index({ patient_id: 1, test_result_date: 1 }); // For efficient queries
