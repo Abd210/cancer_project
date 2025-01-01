@@ -87,7 +87,32 @@ Before you can run this project, you need to have the following installed on you
     ```env
     PORT=3000
     JWT_SECRET=your_jwt_secret_key
+    MONGO_URI=your_mongodb_connection_string
     ```
+
+3. **Create a MongoDB Atlas Cluster and Database**:
+   - **Create an account** on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register).
+   - **Create a new cluster**:
+     - Click on "Build a Cluster."
+     - Choose your preferred cloud provider (e.g., AWS, Azure, or Google Cloud).
+     - Select a region and other settings, then click "Create Cluster."
+     - This process may take a few minutes.
+   - **Create a database user**:
+     - In the Atlas dashboard, go to the "Database Access" tab.
+     - Click "Add New Database User" and set up a username and password.
+     - Save the credentials, as you'll need them later.
+   - **Whitelist your IP address**:
+     - Go to the "Network Access" tab.
+     - Click "Add IP Address," then either allow all IPs (not recommended for production) or specify your own IP.
+   - **Get the connection URI**:
+     - In the "Clusters" tab, click "Connect."
+     - Choose "Connect your application" and copy the connection string.
+     - Replace `<username>` and `<password>` in the connection string with your database user credentials.
+   - **Add the URI to the `.env` file** as `MONGO_URI`.
+   - **Create a database and collection**:
+     - Click "Browse Collections" in the cluster dashboard.
+     - Click "Add My Own Data."
+     - Enter a database name and a collection name to initialize your database.
 
 ---
 
@@ -97,3 +122,10 @@ To start the Express server, run the following command in your terminal:
 
 ```bash
 npm start
+```
+
+---
+
+## Project Structure
+
+(Provide a description of the project structure here.)
