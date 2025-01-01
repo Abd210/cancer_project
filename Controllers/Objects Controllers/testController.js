@@ -1,4 +1,5 @@
 const TestService = require("../../Services/testService");
+const SuspendController = require("../suspendController");
 
 /**
  * TestController handles the operations related to managing tests in the system.
@@ -21,7 +22,7 @@ class TestController {
    */
   static async getTestDetails(req, res) {
     try {
-      const { _id, user, role } = req.headers;
+      const { _id, user, role, filter } = req.headers;
 
       // Check if test ID is provided in the request
       if (!_id) {
@@ -30,23 +31,15 @@ class TestController {
         });
       }
 
-      // Check if the user is a patient and ensure the _id matches the user ID in the request headers
-      if (user.role === "patient") {
-        if (_id !== user._id) {
-          return res.status(403).json({
-            error: "TestController-GetTestDetails: Unauthorized",
-          });
-        }
-      }
-
       // Fetch the test data from the TestService
       const test = await TestService.fetchTests({
         role: role,
         user_id: _id,
       });
 
+      const filtered_data = await SuspendController.filterData(test, user.role, filter);
       // Return the entire test object in the response
-      res.status(200).json(test);
+      res.status(200).json(filtered_data);
     } catch (fetchTestDetailsError) {
       // Handle errors in fetching the test details
       res.status(500).json({ error: fetchTestDetailsError.message });
@@ -164,7 +157,7 @@ class TestController {
 
   static async updateTestData(req, res) {
     try {
-      const { testid } = req.headers;
+      const { testid, user } = req.headers;
 
       // Destructure the fields to update from the request body
       const updateFields = req.body;
@@ -184,7 +177,7 @@ class TestController {
       }
   
       // Call the TestService to perform the update
-      const updatedTest = await TestService.updateTest(testid, updateFields);
+      const updatedTest = await TestService.updateTest(testid, updateFields, user);
   
       // Check if the patient was found and updated
       if (!updatedTest) {

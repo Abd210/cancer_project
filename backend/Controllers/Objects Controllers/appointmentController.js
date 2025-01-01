@@ -1,4 +1,5 @@
 const AppointmentService = require("../../Services/appointmentService");
+const SuspendController = require("../suspendController");
 
 /**
  * AppointmentController checks the input in the request to validate it and make sure that the users have the permission to receive this data
@@ -22,32 +23,25 @@ class AppointmentController {
 
   static async getUpcomingAppointments(req, res) {
     try {
-      const { _id, user, role } = req.headers;
+      const { _id, role, suspendfilter, user } = req.headers;
 
       // Check if user ID is provided in the request
       if (!_id) {
         return res.status(400).json({
-          error: "AppointmentController- Get Patient Data: Missing pers_id",
+          error: "AppointmentController- Get Upcoming Appointments Data: Missing _id",
         });
-      }
-
-      // Verify that the user is either a patient or doctor and that the _id matches the user ID in the request headers
-      if (user.role === "patient" || user.role === "doctor") {
-        if (_id !== user._id) {
-          return res.status(403).json({
-            error: "AppointmentController- Get Patient Data: Unauthorized",
-          });
-        }
       }
 
       // Fetch upcoming appointments using the AppointmentService
       const appointments = await AppointmentService.getUpcomingAppointments({
-        role,
+        role: role,
         user_id: _id,
       });
 
+      const filteredResult = await SuspendController.filterData(appointments, user.role, suspendfilter);
+
       // Return the fetched appointments
-      res.status(200).json(appointments);
+      res.status(200).json(filteredResult);
     } catch (fetchUpcomingAppointmentsError) {
       // Handle errors in fetching the appointments
       res.status(500).json({ error: fetchUpcomingAppointmentsError.message });
@@ -66,7 +60,7 @@ class AppointmentController {
 
   static async getAppointmentHistory(req, res) {
     try {
-      const { _id, user, filterbyid, filterbyrole } = req.headers;
+      const { _id, user, filterbyid, filterbyrole, suspendfilter } = req.headers;
 
       // Check if user ID is provided in the request
       if (!_id) {
@@ -93,8 +87,11 @@ class AppointmentController {
         }
       );
 
+
+      const filteredResult = await SuspendController.filterData(appointmentHistory, user.role, suspendfilter);
+
       // Return the fetched appointment history
-      res.status(200).json(appointmentHistory);
+      res.status(200).json(filteredResult);
     } catch (fetchAppointmentHistoryError) {
       // Handle errors in fetching the appointment history
       res.status(500).json({ error: fetchAppointmentHistoryError.message });
@@ -208,12 +205,12 @@ class AppointmentController {
       }
 
       // Check if the appointment date is not in the past
-      if (new Date(appointment_date) < new Date()) {
-        return res.status(400).json({
-          error:
-            "AppointmentController-Create: Appointment date cannot be in the past",
-        });
-      }
+      // if (new Date(appointment_date) < new Date()) {
+      //   return res.status(400).json({
+      //     error:
+      //       "AppointmentController-Create: Appointment date cannot be in the past",
+      //   });
+      // }
 
       // Call the AppointmentService to create the appointment
       const appointment = await AppointmentService.createAppointment({
@@ -268,7 +265,7 @@ class AppointmentController {
 
   static async updateAppointmentData(req, res) {
     try {
-      const { appointmentid } = req.headers;
+      const { user, appointmentid } = req.headers;
 
       // Destructure the fields to update from the request body
       const updateFields = req.body;
@@ -288,7 +285,7 @@ class AppointmentController {
       }
   
       // Call the AppointmentService to perform the update
-      const updatedAppointment = await AppointmentService.updateAppointment(appointmentid, updateFields);
+      const updatedAppointment = await AppointmentService.updateAppointment(appointmentid, updateFields, user);
   
       // Check if the patient was found and updated
       if (!updatedAppointment) {

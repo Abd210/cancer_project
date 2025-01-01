@@ -81,7 +81,7 @@ class TestService {
     }
   }
 
-  static async updateTest(testId, updateFields) {
+  static async updateTest(testId, updateFields, user) {
     // Validate the testId as a valid MongoDB ObjectId
     if (!mongoose.isValidObjectId(testId)) {
       throw new Error("testService-update test: Invalid testId");
@@ -90,6 +90,13 @@ class TestService {
     // Prevent updating the _id field
     if (updateFields._id) {
         throw new Error("testService-update test: Changing the '_id' field is not allowed");
+    }
+
+    if (updateFields.suspended) {
+      // Only superadmins can suspend tests
+      if (user.role !== "superadmin") {
+        throw new Error("testService-update patient: Only superadmins can suspend tests");
+      }
     }
 
     // Perform the update

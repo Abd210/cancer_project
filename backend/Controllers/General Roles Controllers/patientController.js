@@ -1,4 +1,5 @@
 const PatientService = require("../../Services/patientService");
+const SuspendController = require("../suspendController");
 
 /**
  * Fetches patient data based on the provided _id from the request headers.
@@ -18,7 +19,8 @@ class PatientController {
   static async getData(req, res) {
     try {
       // Destructure _id, user, and role from the request headers
-      const { _id, user, patientid } = req.headers;
+      const { _id, user, patientid, filter } = req.headers;
+      console.log(filter);
 
       // Check if the _id is provided in the headers, return error if missing
       if (!_id) {
@@ -37,7 +39,7 @@ class PatientController {
             error: "PatientController- Get Patient Data: Unauthorized", // Unauthorized access error
           });
         }
-      } else if (user.role === "superadmin") {
+      } else if (user.role === "superadmin" || user.role === "admin") {
         // If the user is a superadmin
         if (patientid) {
           patient_id = patientid; // Retrieve specific patient's data
@@ -45,7 +47,9 @@ class PatientController {
           // Retrieve all patients' data if no patientid is provided
           console.log("Superadmin requesting all patient data");
           const allPatients = await PatientService.findAllPatients();
-          return res.status(200).json(allPatients); // Return all patient data
+
+          const filtered_data = await SuspendController.filterData(allPatients, user.role, filter);
+          return res.status(200).json(filtered_data); // Return all patient data
         }
       } else {
         // If the role is neither 'patient' nor 'superadmin', deny access
@@ -54,7 +58,6 @@ class PatientController {
         });
       }
 
-      console.log("PatientController- Get Patient Data: Fetching patient data");
       // Call the PatientService to find the patient data based on the _id
       const patient_data = await PatientService.findPatient(patient_id);
 
@@ -122,13 +125,6 @@ class PatientController {
       // Destructure the fields to update from the request body
       const updateFields = req.body;
   
-      // Check if the role is superadmin
-      if (user.role !== "superadmin") {
-        return res.status(403).json({
-          error: "PatientController- Update Patient Data: Access denied",
-        });
-      }
-  
       // Validate if patientId is provided
       if (!patientid) {
         return res.status(400).json({
@@ -144,7 +140,7 @@ class PatientController {
       }
   
       // Call the PatientService to perform the update
-      const updatedPatient = await PatientService.updatePatient(patientid, updateFields);
+      const updatedPatient = await PatientService.updatePatient(patientid, updateFields, user);
   
       // Check if the patient was found and updated
       if (!updatedPatient) {

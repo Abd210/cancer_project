@@ -1,4 +1,5 @@
 const AdminService = require("../../Services/adminService");
+const SuspendController = require("../suspendController");
 
 /**
  * AdminController handles actions related to Admin management.
@@ -8,7 +9,7 @@ class AdminController {
 
     static async updateAdminData(req, res) {
         try {
-            const { adminid } = req.headers;
+            const { user, adminid } = req.headers;
 
             // Destructure the fields to update from the request body
             const updateFields = req.body;
@@ -28,7 +29,7 @@ class AdminController {
             }
         
             // Call the AdminService to perform the update
-            const updatedAdmin = await AdminService.updateAdmin(adminid, updateFields);
+            const updatedAdmin = await AdminService.updateAdmin(adminid, updateFields, user);
         
             // Check if the admin was found and updated
             if (!updatedAdmin) {
@@ -88,7 +89,7 @@ class AdminController {
     static async getData(req, res) {
         try {
             // Destructure _id, user, and role from the request headers
-            const { _id, user, adminid } = req.headers;
+            const { _id, user, adminid, filter } = req.headers;
         
             // Check if the _id is provided in the headers, return error if missing
             if (!_id) {
@@ -114,7 +115,9 @@ class AdminController {
                 } else {
                 // Retrieve all admins' data if no adminid is provided
                 const allAdmins = await AdminService.findAllAdmins();
-                return res.status(200).json(allAdmins); // Return all admin data
+
+                const filtered_data = await SuspendController.filterData(allAdmins, user.role, filter);
+                return res.status(200).json(filtered_data); // Return all doctor data
                 }
             } else {
                 // If the role is neither 'admin' nor 'superadmin', deny access

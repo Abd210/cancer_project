@@ -56,7 +56,12 @@ class DoctorService {
     return doctor; // Returns the full doctor's data
   }
 
-  static async updateDoctor(doctorId, updateFields) {
+  static async findAllDoctors() {
+    // Fetch all patient data
+    return await Doctor.find({});
+  }
+
+  static async updateDoctor(doctorId, updateFields, user) {
     // Validate the doctorId as a valid MongoDB ObjectId
     if (!mongoose.isValidObjectId(doctorId)) {
       throw new Error("doctorService-update doctor: Invalid doctorId");
@@ -102,6 +107,13 @@ class DoctorService {
     if (updateFields.password) {
         const salt = await bcrypt.genSalt(10);
         updateFields.password = await bcrypt.hash(updateFields.password, salt);
+    }
+
+    if (updateFields.suspended) {
+      // Only superadmins can suspend doctors
+      if (user.role !== "superadmin") {
+        throw new Error("doctorService-update doctor: Only superadmins can suspend doctors");
+      }
     }
 
     // Perform the update

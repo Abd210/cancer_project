@@ -21,7 +21,7 @@ class PatientService {
   }
 
 
-  static async updatePatient(patientId, updateFields) {
+  static async updatePatient(patientId, updateFields, user) {
     // Validate the patientId as a valid MongoDB ObjectId
     if (!mongoose.isValidObjectId(patientId)) {
       throw new Error("patientService-update patient: Invalid patientId");
@@ -96,6 +96,13 @@ class PatientService {
       const salt = await bcrypt.genSalt(10);
       updateFields.password = await bcrypt.hash(updateFields.password, salt);
       //console.log("After hashing:", updateFields.password);
+    }
+
+    if (updateFields.suspended) {
+      // Only superadmins can suspend patients
+      if (user.role !== "superadmin") {
+        throw new Error("patientService-update patient: Only superadmins can suspend patients");
+      }
     }
 
     // Perform the update

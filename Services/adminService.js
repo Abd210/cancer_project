@@ -51,7 +51,7 @@ class AdminService {
     };
   }
 
-    static async updateAdmin(adminId, updateFields) {
+    static async updateAdmin(adminId, updateFields, user) {
         // Validate the adminId as a valid MongoDB ObjectId
         if (!mongoose.isValidObjectId(adminId)) {
         throw new Error("adminService-update admin: Invalid adminId");
@@ -97,6 +97,13 @@ class AdminService {
         if (updateFields.password) {
             const salt = await bcrypt.genSalt(10);
             updateFields.password = await bcrypt.hash(updateFields.password, salt);
+        }
+
+        if (updateFields.suspended) {
+            // Only superadmins can suspend admins
+            if (user.role !== "superadmin") {
+                throw new Error("adminService-update admin: Only superadmins can suspend admins");
+            }
         }
 
         // Perform the update

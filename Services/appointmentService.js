@@ -22,7 +22,7 @@ class AppointmentService {
    * @returns {Array} - Returns an array of upcoming appointments for the user.
    * @throws {Error} - Throws an error if the user_id is invalid or if no appointments are found.
    */
-  static async getUpcomingAppointments({ user_id, role }) {
+  static async getUpcomingAppointments({ role, user_id }) {
     // Check if the provided user_id is valid
     if (!mongoose.isValidObjectId(user_id)) {
       throw new Error(
@@ -248,7 +248,7 @@ class AppointmentService {
     };
   }
 
-  static async updateAppointment(appointmentId, updateFields) {
+  static async updateAppointment(appointmentId, updateFields, user) {
       // Validate the appointmentId as a valid MongoDB ObjectId
       if (!mongoose.isValidObjectId(appointmentId)) {
         throw new Error("appointmentService-update appointment: Invalid appointmentId");
@@ -257,6 +257,13 @@ class AppointmentService {
       // Prevent updating the _id field
       if (updateFields._id) {
           throw new Error("appointmentService-update appointment: Changing the '_id' field is not allowed");
+      }
+
+      if (updateFields.suspended) {
+        // Only superadmins can suspend appointments
+        if (user.role !== "superadmin") {
+          throw new Error("appointmentService-update appointment: Only superadmins can suspend appointmnents");
+        }
       }
   
       // Perform the update
