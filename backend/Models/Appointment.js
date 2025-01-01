@@ -19,6 +19,7 @@ const appointmentSchema = new mongoose.Schema({
     enum: ["scheduled", "cancelled", "completed"],
     default: "scheduled",
   },
+  suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
 });
 
 appointmentSchema.index({ patient: 1, appointment_date: 1 }); // For efficient queries

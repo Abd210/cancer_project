@@ -9,6 +9,7 @@ const appointmentRoutes = require("./Routes/appointmentRoutes");
 const doctorRoutes = require("./Routes/doctorRoutes");
 const testRoutes = require("./Routes/testRoutes");
 const ticketRoutes = require("./Routes/ticketRoutes");
+const adminRoutes = require("./Routes/adminRoutes");
 
 const bodyParser = require("body-parser");
 const helmet = require("helmet");
@@ -31,6 +32,7 @@ app.use("/api", appointmentRoutes);
 app.use("/api", doctorRoutes);
 app.use("/api", testRoutes);
 app.use("/api", ticketRoutes);
+app.use("/api", adminRoutes);
 
 // Connect to MongoDB Atlas
 mongoose
