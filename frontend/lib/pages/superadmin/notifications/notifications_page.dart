@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../services/static_data.dart';
 import '../../../models/ticket.dart';
-import '../../../shared/background.dart';
-import '../../../shared/theme.dart';
+import '../../../shared/widgets/background.dart';
+import '../../../shared/widgets/theme.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({Key? key}) : super(key: key);

@@ -6,9 +6,21 @@
   <component name="ChangeListManager">
     <list default="true" id="8929279c-6ac8-41e0-8cf3-bebdbc4fce1e" name="Changes" comment="added the admin_page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/hospital_details_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/hospital_details_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/authentication/f" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/notifications_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/notifications_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/providers/data_provider.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/providers/data_provider.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/background.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/widgets/background.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/components/custom_paginated_table.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/components/data_table_widget.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/components/modal_forms.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/constants/app_colors.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/constants/app_strings.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/constants/dimensions.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/logo.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/widgets/logo.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/sidebar.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/theme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/widgets/theme.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/widgets/data_table_widget.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/widgets/nav_bar.dart" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,6 +72,7 @@
       <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project\frontend\lib\shared\widgets" />
       <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project\frontend\lib\shared" />
       <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project\frontend\lib\models\a" />
       <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project\frontend\Assets" />
