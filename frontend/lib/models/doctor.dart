@@ -1,9 +1,8 @@
-// lib/models/doctor.dart
 class Doctor {
   final String id;
-  String name;
-  String specialization;
-  String hospitalId;
+  final String name;
+  final String specialization;
+  final String hospitalId;
 
   Doctor({
     required this.id,
