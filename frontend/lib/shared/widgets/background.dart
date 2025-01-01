@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
+import '../theme/app_theme.dart';
 
 class BackgroundContainer extends StatelessWidget {
   final Widget child;

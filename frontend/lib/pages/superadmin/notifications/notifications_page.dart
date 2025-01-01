@@ -3,6 +3,7 @@ import '../../../services/static_data.dart';
 import '../../../models/ticket.dart';
 import '../../../shared/widgets/background.dart';
 import '../../../shared/widgets/theme.dart';
+import '../../../shared/theme/app_theme.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({Key? key}) : super(key: key);

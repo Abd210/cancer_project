@@ -1,11 +1,12 @@
-// lib/pages/superadmin/tickets/tickets_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/data_provider.dart';
-import '../../../models/ticket.dart';
-import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+
+import '../../../providers/data_provider.dart';
+import '../../../models/ticket.dart';
+// Import the new widget
+import '../../../shared/components/components.dart';
 
 class TicketsPage extends StatefulWidget {
   const TicketsPage({Key? key}) : super(key: key);
@@ -76,6 +77,7 @@ class _TicketsPageState extends State<TicketsPage> {
   Widget build(BuildContext context) {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
+        // Filter tickets by query + showOnlyPending
         List<Ticket> tickets = dataProvider.tickets
             .where((t) =>
         t.requester.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -88,38 +90,20 @@ class _TicketsPageState extends State<TicketsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Search and Toggle Pending
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Search Tickets',
-                        prefixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _showOnlyPending,
-                        onChanged: _toggleShowOnlyPending,
-                        activeColor: Theme.of(context).primaryColor,
-                      ),
-                      Text('Show Only Pending'),
-                    ],
-                  ),
-                ],
+              // (A) Our new search + pending row
+              SearchAndPendingRow(
+                searchLabel: 'Search Tickets',
+                onSearchChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                showOnlyPending: _showOnlyPending,
+                onTogglePending: _toggleShowOnlyPending,
               ),
               SizedBox(height: 20),
-              // Tickets DataTable with Actions
+
+              // (B) The card-based list
               Expanded(
                 child: ListView.builder(
                   itemCount: tickets.length,
@@ -138,17 +122,22 @@ class _TicketsPageState extends State<TicketsPage> {
                             Text('Date: ${DateFormat('yyyy-MM-dd').format(ticket.date)}'),
                           ],
                         ),
+                        // If showing only pending, show Approve/Reject actions
                         trailing: _showOnlyPending
                             ? Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                               icon: Icon(Icons.check, color: Colors.green),
-                              onPressed: () => dataProvider.approveTicket(ticket.id),
+                              onPressed: () {
+                                dataProvider.approveTicket(ticket.id);
+                              },
                             ),
                             IconButton(
                               icon: Icon(Icons.close, color: Colors.red),
-                              onPressed: () => dataProvider.rejectTicket(ticket.id),
+                              onPressed: () {
+                                dataProvider.rejectTicket(ticket.id);
+                              },
                             ),
                           ],
                         )
