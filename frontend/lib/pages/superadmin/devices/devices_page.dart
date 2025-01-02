@@ -10,7 +10,7 @@ import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class DevicesPage extends StatefulWidget {
-  const DevicesPage({Key? key}) : super(key: key);
+  const DevicesPage({super.key});
 
   @override
   _DevicesPageState createState() => _DevicesPageState();
@@ -18,34 +18,34 @@ class DevicesPage extends StatefulWidget {
 
 class _DevicesPageState extends State<DevicesPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   /// When adding a device, we require picking a patient from a dropdown.
   void _showAddDeviceDialog(BuildContext context, List<Patient> allPatients) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String type = '';
     String? selectedPatientId;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Add Device'),
+        title: const Text('Add Device'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 // Device Type
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Device Type'),
+                  decoration: const InputDecoration(labelText: 'Device Type'),
                   validator: (value) =>
                       value == null || value.isEmpty ? 'Enter device type' : null,
                   onSaved: (value) => type = value!,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 // Must pick a patient
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Assign to Patient'),
+                  decoration: const InputDecoration(labelText: 'Assign to Patient'),
                   items: allPatients.map((p) {
                     return DropdownMenuItem<String>(
                       value: p.id,
@@ -64,8 +64,8 @@ class _DevicesPageState extends State<DevicesPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
 
                 final newDevice = Device(
                   id: 'dev${DateTime.now().millisecondsSinceEpoch}',
@@ -80,7 +80,7 @@ class _DevicesPageState extends State<DevicesPage> {
                 Fluttertoast.showToast(msg: 'Device added successfully.');
               }
             },
-            child: Text('Add'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -90,31 +90,31 @@ class _DevicesPageState extends State<DevicesPage> {
   /// When editing a device, also require exactly one patient.
   void _showEditDeviceDialog(
       BuildContext context, Device device, List<Patient> allPatients) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String type = device.type;
     String? selectedPatientId = device.patientId; // currently assigned
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Device'),
+        title: const Text('Edit Device'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 // Device type
                 TextFormField(
                   initialValue: type,
-                  decoration: InputDecoration(labelText: 'Device Type'),
+                  decoration: const InputDecoration(labelText: 'Device Type'),
                   validator: (value) =>
                       value == null || value.isEmpty ? 'Enter device type' : null,
                   onSaved: (value) => type = value!,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 // Must pick a patient
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Assign to Patient'),
+                  decoration: const InputDecoration(labelText: 'Assign to Patient'),
                     value: (selectedPatientId?.isEmpty ?? true)
                       ? null
                       : selectedPatientId,
@@ -135,8 +135,8 @@ class _DevicesPageState extends State<DevicesPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
 
                 final updatedDevice = Device(
                   id: device.id,
@@ -151,7 +151,7 @@ class _DevicesPageState extends State<DevicesPage> {
                 Fluttertoast.showToast(msg: 'Device updated successfully.');
               }
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -162,8 +162,8 @@ class _DevicesPageState extends State<DevicesPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Device'),
-        content: Text('Are you sure you want to delete this device?'),
+        title: const Text('Delete Device'),
+        content: const Text('Are you sure you want to delete this device?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -171,11 +171,11 @@ class _DevicesPageState extends State<DevicesPage> {
               Navigator.pop(context);
               Fluttertoast.showToast(msg: 'Device deleted successfully.');
             },
-            child: Text('Yes', style: TextStyle(color: Colors.red)),
+            child: const Text('Yes', style: TextStyle(color: Colors.red)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('No'),
+            child: const Text('No'),
           ),
         ],
       ),
@@ -187,7 +187,7 @@ class _DevicesPageState extends State<DevicesPage> {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
         if (_isLoading) {
-          return LoadingIndicator();
+          return const LoadingIndicator();
         }
 
         // Filter devices by search
@@ -224,7 +224,7 @@ class _DevicesPageState extends State<DevicesPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Devices',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -236,21 +236,21 @@ class _DevicesPageState extends State<DevicesPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: () => _showAddDeviceDialog(context, allPatients),
-                    icon: Icon(Icons.add),
-                    label: Text('Add Device'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Device'),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
               // Devices DataTable
               Expanded(
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text('ID')),
                       DataColumn(label: Text('Type')),
                       DataColumn(label: Text('Assigned To')),
@@ -266,7 +266,7 @@ class _DevicesPageState extends State<DevicesPage> {
                             Row(
                               children: [
                                 IconButton(
-                                  icon: Icon(Icons.edit, color: Colors.blue),
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
                                   onPressed: () => _showEditDeviceDialog(
                                     context,
                                     device,
@@ -274,7 +274,7 @@ class _DevicesPageState extends State<DevicesPage> {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  icon: const Icon(Icons.delete, color: Colors.red),
                                   onPressed: () => _deleteDevice(context, device.id),
                                 ),
                               ],

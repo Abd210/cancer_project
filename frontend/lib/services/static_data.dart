@@ -12,7 +12,7 @@ class StaticData {
         (index) => Hospital(
       id: 'h$index',
       name: 'Hospital ${index + 1}',
-      address: '123${index} Main St, City',
+      address: '123$index Main St, City',
     ),
   );
 

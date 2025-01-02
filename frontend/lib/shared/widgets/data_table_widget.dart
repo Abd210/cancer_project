@@ -14,8 +14,8 @@ class DataTableWidget extends StatelessWidget {
     this.customColumns,
     this.customRows,
     this.isPaginated = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class DataTableWidget extends StatelessWidget {
                 .map((col) => DataColumn(
               label: Text(
                 col.toUpperCase(),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ))
                 .toList(),

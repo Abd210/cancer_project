@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/data_provider.dart';
 import '../../../models/ticket.dart';
-import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
 class TicketsPage extends StatefulWidget {
-  const TicketsPage({Key? key}) : super(key: key);
+  const TicketsPage({super.key});
 
   @override
   _TicketsPageState createState() => _TicketsPageState();
@@ -22,19 +21,19 @@ class _TicketsPageState extends State<TicketsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Ticket Details'),
+        title: const Text('Ticket Details'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Requester: ${ticket.requester}'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text('Type: ${ticket.requestType}'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text('Description: ${ticket.description}'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text('Date: ${DateFormat('yyyy-MM-dd').format(ticket.date)}'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text('Status: ${ticket.isApproved ? "Approved" : "Pending"}'),
           ],
         ),
@@ -46,7 +45,7 @@ class _TicketsPageState extends State<TicketsPage> {
                 Navigator.pop(context);
                 Fluttertoast.showToast(msg: 'Ticket approved.');
               },
-              child: Text('Approve', style: TextStyle(color: Colors.green)),
+              child: const Text('Approve', style: TextStyle(color: Colors.green)),
             ),
           if (!ticket.isApproved)
             TextButton(
@@ -55,11 +54,11 @@ class _TicketsPageState extends State<TicketsPage> {
                 Navigator.pop(context);
                 Fluttertoast.showToast(msg: 'Ticket rejected.');
               },
-              child: Text('Reject', style: TextStyle(color: Colors.red)),
+              child: const Text('Reject', style: TextStyle(color: Colors.red)),
             ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -95,7 +94,7 @@ class _TicketsPageState extends State<TicketsPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Tickets',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onChanged: (value) {
@@ -105,7 +104,7 @@ class _TicketsPageState extends State<TicketsPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Row(
                     children: [
                       Checkbox(
@@ -113,12 +112,12 @@ class _TicketsPageState extends State<TicketsPage> {
                         onChanged: _toggleShowOnlyPending,
                         activeColor: Theme.of(context).primaryColor,
                       ),
-                      Text('Show Only Pending'),
+                      const Text('Show Only Pending'),
                     ],
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Tickets DataTable with Actions
               Expanded(
                 child: ListView.builder(
@@ -127,7 +126,7 @@ class _TicketsPageState extends State<TicketsPage> {
                     final Ticket ticket = tickets[index];
                     return Card(
                       elevation: 3,
-                      margin: EdgeInsets.symmetric(vertical: 8),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
                         title: Text(ticket.requestType),
                         subtitle: Column(
@@ -143,11 +142,11 @@ class _TicketsPageState extends State<TicketsPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.check, color: Colors.green),
+                              icon: const Icon(Icons.check, color: Colors.green),
                               onPressed: () => dataProvider.approveTicket(ticket.id),
                             ),
                             IconButton(
-                              icon: Icon(Icons.close, color: Colors.red),
+                              icon: const Icon(Icons.close, color: Colors.red),
                               onPressed: () => dataProvider.rejectTicket(ticket.id),
                             ),
                           ],

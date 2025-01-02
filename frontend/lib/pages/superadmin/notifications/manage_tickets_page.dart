@@ -5,7 +5,7 @@ import '../../../models/ticket.dart';
 import 'package:intl/intl.dart';
 
 class ManageTicketsPage extends StatefulWidget {
-  const ManageTicketsPage({Key? key}) : super(key: key);
+  const ManageTicketsPage({super.key});
 
   @override
   _ManageTicketsPageState createState() => _ManageTicketsPageState();
@@ -38,7 +38,7 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Tickets',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onChanged: (value) {
@@ -48,7 +48,7 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Row(
                     children: [
                       Checkbox(
@@ -60,12 +60,12 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
                         },
                         activeColor: Theme.of(context).primaryColor,
                       ),
-                      Text('Show Only Pending'),
+                      const Text('Show Only Pending'),
                     ],
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Tickets List
               Expanded(
                 child: ListView.builder(
@@ -74,7 +74,7 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
                     final Ticket ticket = tickets[index];
                     return Card(
                       elevation: 3,
-                      margin: EdgeInsets.symmetric(vertical: 8),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
                         title: Text(ticket.requestType),
                         subtitle: Column(
@@ -90,20 +90,20 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.check, color: Colors.green),
+                              icon: const Icon(Icons.check, color: Colors.green),
                               onPressed: () {
                                 dataProvider.approveTicket(ticket.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Ticket Approved')),
+                                  const SnackBar(content: Text('Ticket Approved')),
                                 );
                               },
                             ),
                             IconButton(
-                              icon: Icon(Icons.close, color: Colors.red),
+                              icon: const Icon(Icons.close, color: Colors.red),
                               onPressed: () {
                                 dataProvider.rejectTicket(ticket.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Ticket Rejected')),
+                                  const SnackBar(content: Text('Ticket Rejected')),
                                 );
                               },
                             ),

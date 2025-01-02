@@ -5,12 +5,11 @@ import '../../../providers/data_provider.dart';
 import '../../../models/appointment.dart';
 import '../../../models/patient.dart';
 import '../../../models/doctor.dart';
-import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
 class AppointmentsPage extends StatefulWidget {
-  const AppointmentsPage({Key? key}) : super(key: key);
+  const AppointmentsPage({super.key});
 
   @override
   _AppointmentsPageState createState() => _AppointmentsPageState();
@@ -18,10 +17,10 @@ class AppointmentsPage extends StatefulWidget {
 
 class _AppointmentsPageState extends State<AppointmentsPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   void _showAddAppointmentDialog(BuildContext context, List<Doctor> doctors, List<Patient> patients) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String? patientId;
     String? doctorId;
     DateTime selectedDate = DateTime.now();
@@ -29,14 +28,14 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Add Appointment'),
+        title: const Text('Add Appointment'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Select Doctor'),
+                decoration: const InputDecoration(labelText: 'Select Doctor'),
                 items: doctors.map((Doctor doctor) {
                   return DropdownMenuItem<String>(
                     value: doctor.id,
@@ -47,7 +46,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 onChanged: (value) => doctorId = value,
               ),
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Select Patient'),
+                decoration: const InputDecoration(labelText: 'Select Patient'),
                 items: patients.map((Patient patient) {
                   return DropdownMenuItem<String>(
                     value: patient.id,
@@ -57,18 +56,18 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 validator: (value) => value == null ? 'Select patient' : null,
                 onChanged: (value) => patientId = value,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-                  Spacer(),
+                  const Spacer(),
                   TextButton(
                     onPressed: () async {
                       final pickedDate = await showDatePicker(
                         context: context,
                         initialDate: selectedDate,
                         firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (pickedDate != null) {
                         setState(() {
@@ -76,7 +75,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         });
                       }
                     },
-                    child: Text('Select Date'),
+                    child: const Text('Select Date'),
                   ),
                 ],
               ),
@@ -86,8 +85,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate() && patientId != null && doctorId != null) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate() && patientId != null && doctorId != null) {
+                formKey.currentState!.save();
                 final newAppointment = Appointment(
                   id: 'a${DateTime.now().millisecondsSinceEpoch}',
                   patientId: patientId!,
@@ -100,7 +99,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 Fluttertoast.showToast(msg: 'Appointment added successfully.');
               }
             },
-            child: Text('Add'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -108,7 +107,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
   }
 
   void _showEditAppointmentDialog(BuildContext context, Appointment appointment, List<Doctor> doctors, List<Patient> patients) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String? patientId = appointment.patientId;
     String? doctorId = appointment.doctorId;
     DateTime selectedDate = appointment.dateTime;
@@ -116,14 +115,14 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Appointment'),
+        title: const Text('Edit Appointment'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Select Doctor'),
+                decoration: const InputDecoration(labelText: 'Select Doctor'),
                 value: doctorId,
                 items: doctors.map((Doctor doctor) {
                   return DropdownMenuItem<String>(
@@ -135,7 +134,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 onChanged: (value) => doctorId = value,
               ),
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Select Patient'),
+                decoration: const InputDecoration(labelText: 'Select Patient'),
                 value: patientId,
                 items: patients.map((Patient patient) {
                   return DropdownMenuItem<String>(
@@ -146,18 +145,18 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 validator: (value) => value == null ? 'Select patient' : null,
                 onChanged: (value) => patientId = value,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-                  Spacer(),
+                  const Spacer(),
                   TextButton(
                     onPressed: () async {
                       final pickedDate = await showDatePicker(
                         context: context,
                         initialDate: selectedDate,
                         firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (pickedDate != null) {
                         setState(() {
@@ -165,7 +164,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         });
                       }
                     },
-                    child: Text('Select Date'),
+                    child: const Text('Select Date'),
                   ),
                 ],
               ),
@@ -175,8 +174,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate() && patientId != null && doctorId != null) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate() && patientId != null && doctorId != null) {
+                formKey.currentState!.save();
                 final updatedAppointment = Appointment(
                   id: appointment.id,
                   patientId: patientId!,
@@ -189,7 +188,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 Fluttertoast.showToast(msg: 'Appointment updated successfully.');
               }
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -200,8 +199,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Appointment'),
-        content: Text('Are you sure you want to delete this appointment?'),
+        title: const Text('Delete Appointment'),
+        content: const Text('Are you sure you want to delete this appointment?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -209,11 +208,11 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
               Navigator.pop(context);
               Fluttertoast.showToast(msg: 'Appointment deleted successfully.');
             },
-            child: Text('Yes', style: TextStyle(color: Colors.red)),
+            child: const Text('Yes', style: TextStyle(color: Colors.red)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('No'),
+            child: const Text('No'),
           ),
         ],
       ),
@@ -254,7 +253,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Appointments',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onChanged: (value) {
@@ -264,20 +263,20 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: () => _showAddAppointmentDialog(context, doctors, patients),
-                    icon: Icon(Icons.add),
-                    label: Text('Add Appointment'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Appointment'),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Appointments DataTable with Edit and Delete
               Expanded(
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text('ID')),
                       DataColumn(label: Text('Patient')),
                       DataColumn(label: Text('Doctor')),
@@ -295,11 +294,11 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         DataCell(Row(
                           children: [
                             IconButton(
-                              icon: Icon(Icons.edit, color: Colors.blue),
+                              icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () => _showEditAppointmentDialog(context, appointment, doctors, patients),
                             ),
                             IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () => _deleteAppointment(context, appointment.id),
                             ),
                           ],

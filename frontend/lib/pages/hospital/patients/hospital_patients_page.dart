@@ -11,7 +11,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 class HospitalPatientsPage extends StatefulWidget {
   final String hospitalId;
 
-  const HospitalPatientsPage({Key? key, required this.hospitalId}) : super(key: key);
+  const HospitalPatientsPage({super.key, required this.hospitalId});
 
   @override
   _HospitalPatientsPageState createState() => _HospitalPatientsPageState();
@@ -19,10 +19,10 @@ class HospitalPatientsPage extends StatefulWidget {
 
 class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   void _showAddPatientDialog(BuildContext context, List<Doctor> hospitalDoctors, List<Device> unassignedDevices) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = '';
     int age = 0;
     String diagnosis = '';
@@ -32,19 +32,19 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Add Patient'),
+        title: const Text('Add Patient'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Patient Name'),
+                  decoration: const InputDecoration(labelText: 'Patient Name'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
                   onSaved: (value) => name = value!,
                 ),
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Age'),
+                  decoration: const InputDecoration(labelText: 'Age'),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Enter age';
                     if (int.tryParse(value) == null) return 'Enter valid age';
@@ -54,12 +54,12 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                   keyboardType: TextInputType.number,
                 ),
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Diagnosis'),
+                  decoration: const InputDecoration(labelText: 'Diagnosis'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter diagnosis' : null,
                   onSaved: (value) => diagnosis = value!,
                 ),
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Assign Doctor'),
+                  decoration: const InputDecoration(labelText: 'Assign Doctor'),
                   items: hospitalDoctors.map((Doctor doctor) {
                     return DropdownMenuItem<String>(
                       value: doctor.id,
@@ -70,7 +70,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                   onChanged: (value) => doctorId = value,
                 ),
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Assign Device'),
+                  decoration: const InputDecoration(labelText: 'Assign Device'),
                   items: unassignedDevices.map((Device device) {
                     return DropdownMenuItem<String>(
                       value: device.id,
@@ -87,8 +87,8 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate() && doctorId != null && deviceId != null) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate() && doctorId != null && deviceId != null) {
+                formKey.currentState!.save();
                 final newPatient = Patient(
                   id: 'p${DateTime.now().millisecondsSinceEpoch}',
                   name: name,
@@ -110,7 +110,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                 Fluttertoast.showToast(msg: 'Patient added successfully.');
               }
             },
-            child: Text('Add'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -123,7 +123,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
     List<Doctor> hospitalDoctors,
     List<Device> availableDevices,
   ) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = patient.name;
     int age = patient.age;
     String diagnosis = patient.diagnosis;
@@ -133,21 +133,21 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Patient'),
+        title: const Text('Edit Patient'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
                   initialValue: name,
-                  decoration: InputDecoration(labelText: 'Patient Name'),
+                  decoration: const InputDecoration(labelText: 'Patient Name'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
                   onSaved: (value) => name = value!,
                 ),
                 TextFormField(
                   initialValue: age.toString(),
-                  decoration: InputDecoration(labelText: 'Age'),
+                  decoration: const InputDecoration(labelText: 'Age'),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Enter age';
                     if (int.tryParse(value) == null) return 'Enter a valid age';
@@ -158,13 +158,13 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                 ),
                 TextFormField(
                   initialValue: diagnosis,
-                  decoration: InputDecoration(labelText: 'Diagnosis'),
+                  decoration: const InputDecoration(labelText: 'Diagnosis'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter diagnosis' : null,
                   onSaved: (value) => diagnosis = value!,
                 ),
                 DropdownButtonFormField<String>(
                   value: doctorId,
-                  decoration: InputDecoration(labelText: 'Assign Doctor'),
+                  decoration: const InputDecoration(labelText: 'Assign Doctor'),
                   items: hospitalDoctors.map((Doctor doctor) {
                     return DropdownMenuItem<String>(
                       value: doctor.id,
@@ -176,7 +176,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                 ),
                 DropdownButtonFormField<String>(
                   value: deviceId,
-                  decoration: InputDecoration(labelText: 'Assign Device'),
+                  decoration: const InputDecoration(labelText: 'Assign Device'),
                   items: availableDevices.map((Device device) {
                     return DropdownMenuItem<String>(
                       value: device.id,
@@ -193,8 +193,8 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate() && doctorId != null && deviceId != null) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate() && doctorId != null && deviceId != null) {
+                formKey.currentState!.save();
                 final updatedPatient = Patient(
                   id: patient.id,
                   name: name,
@@ -217,7 +217,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                 Fluttertoast.showToast(msg: 'Patient updated successfully.');
               }
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -228,8 +228,8 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Patient'),
-        content: Text('Are you sure you want to delete this patient?'),
+        title: const Text('Delete Patient'),
+        content: const Text('Are you sure you want to delete this patient?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -249,11 +249,11 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
               Navigator.pop(context);
               Fluttertoast.showToast(msg: 'Patient deleted successfully.');
             },
-            child: Text('Yes', style: TextStyle(color: Colors.red)),
+            child: const Text('Yes', style: TextStyle(color: Colors.red)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('No'),
+            child: const Text('No'),
           ),
         ],
       ),
@@ -265,7 +265,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
         if (_isLoading) {
-          return LoadingIndicator();
+          return const LoadingIndicator();
         }
 
         // Get all doctors that belong to this hospital
@@ -310,7 +310,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Patients',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onChanged: (value) {
@@ -320,20 +320,20 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: () => _showAddPatientDialog(context, hospitalDoctors, unassignedDevices),
-                    icon: Icon(Icons.add),
-                    label: Text('Add Patient'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Patient'),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Patients DataTable
               Expanded(
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text('ID')),
                       DataColumn(label: Text('Name')),
                       DataColumn(label: Text('Age')),
@@ -363,7 +363,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                           Row(
                             children: [
                               IconButton(
-                                icon: Icon(Icons.edit, color: Colors.blue),
+                                icon: const Icon(Icons.edit, color: Colors.blue),
                                 onPressed: () => _showEditPatientDialog(
                                   context,
                                   patient,
@@ -372,7 +372,7 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
+                                icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () => _deletePatient(context, patient.id),
                               ),
                             ],

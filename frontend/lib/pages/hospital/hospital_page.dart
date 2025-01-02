@@ -19,7 +19,7 @@ class HospitalPage extends StatefulWidget {
   final String hospitalId;
 
   /// Pass the hospitalId (e.g. “h0”) after the user logs in
-  const HospitalPage({Key? key, required this.hospitalId}) : super(key: key);
+  const HospitalPage({super.key, required this.hospitalId});
 
   @override
   _HospitalPageState createState() => _HospitalPageState();
@@ -49,7 +49,7 @@ class _HospitalPageState extends State<HospitalPage> {
       // Index 4 => Logout
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LogIn()),
+        MaterialPageRoute(builder: (context) => const LogIn()),
       );
       Fluttertoast.showToast(msg: 'Logged out successfully.');
       return;
@@ -69,13 +69,13 @@ class _HospitalPageState extends State<HospitalPage> {
         selectedIndex: _selectedIndex,
       ),
       appBar: AppBar(
-        title: Text('Hospital Dashboard'),
+        title: const Text('Hospital Dashboard'),
         backgroundColor: AppTheme.primaryColor,
       ),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(AppTheme.backgroundImage),
+            image: const AssetImage(AppTheme.backgroundImage),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
               Colors.white.withOpacity(0.8),

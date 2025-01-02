@@ -20,8 +20,8 @@ class CustomPaginatedTable extends StatefulWidget {
     this.availableRowsPerPage = const [5, 10, 20],
     this.onRowsPerPageChanged,
     this.onRowTap,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _CustomPaginatedTableState createState() => _CustomPaginatedTableState();
@@ -75,7 +75,7 @@ class _CustomPaginatedTableState extends State<CustomPaginatedTable> {
             return DataColumn(
               label: Text(
                 col.toUpperCase(),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               onSort: (int columnIndex, bool ascending) {
                 _onSort(columnIndex, ascending);
@@ -97,7 +97,7 @@ class _CustomPaginatedTableState extends State<CustomPaginatedTable> {
               : null,
           showCheckboxColumn: false,
           columnSpacing: 30.0,
-          headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+          headingRowColor: WidgetStateProperty.all(Colors.grey[200]),
           dataRowHeight: 56.0,
         ),
       ),
@@ -124,7 +124,7 @@ class _DataSource extends DataTableSource {
         return DataCell(
           Text(
             value.toString(),
-            style: TextStyle(fontSize: 14),
+            style: const TextStyle(fontSize: 14),
           ),
         );
       }).toList(),

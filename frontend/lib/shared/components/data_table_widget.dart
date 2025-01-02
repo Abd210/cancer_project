@@ -22,8 +22,8 @@ class DataTableWidget extends StatefulWidget {
     this.sortAscending = true,
     this.sortColumnIndex,
     this.onRowTap,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _DataTableWidgetState createState() => _DataTableWidgetState();
@@ -74,14 +74,14 @@ class _DataTableWidgetState extends State<DataTableWidget> {
   Widget build(BuildContext context) {
     if (widget.isPaginated) {
       return PaginatedDataTable(
-        header: Text('Data Table'),
+        header: const Text('Data Table'),
         columns: widget.columns.asMap().entries.map((entry) {
           int idx = entry.key;
           String col = entry.value;
           return DataColumn(
             label: Text(
               col.toUpperCase(),
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             onSort: (int columnIndex, bool ascending) {
               _onSort(columnIndex, ascending);
@@ -109,7 +109,7 @@ class _DataTableWidgetState extends State<DataTableWidget> {
             return DataColumn(
               label: Text(
                 col.toUpperCase(),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               onSort: (int columnIndex, bool ascending) {
                 _onSort(columnIndex, ascending);

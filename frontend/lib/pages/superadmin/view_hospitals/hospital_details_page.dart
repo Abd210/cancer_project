@@ -8,12 +8,11 @@ import '../../../models/doctor.dart';
 import '../../../models/appointment.dart';
 import '../../../models/device.dart';
 import 'package:intl/intl.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class HospitalDetailsPage extends StatefulWidget {
   final Hospital hospital;
 
-  const HospitalDetailsPage({required this.hospital, Key? key}) : super(key: key);
+  const HospitalDetailsPage({required this.hospital, super.key});
 
   @override
   _HospitalDetailsPageState createState() => _HospitalDetailsPageState();
@@ -53,11 +52,11 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
 
     // Define DataTable Columns
     final columns = [
-      DataColumn(label: Text('Name')),
-      DataColumn(label: Text('Age')),
-      DataColumn(label: Text('Diagnosis')),
-      DataColumn(label: Text('Doctor')),
-      DataColumn(label: Text('Device')),
+      const DataColumn(label: Text('Name')),
+      const DataColumn(label: Text('Age')),
+      const DataColumn(label: Text('Diagnosis')),
+      const DataColumn(label: Text('Doctor')),
+      const DataColumn(label: Text('Device')),
     ];
 
     // Define DataTable Rows
@@ -106,7 +105,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
           child: TextField(
             decoration: InputDecoration(
               labelText: 'Search Patients',
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onChanged: (value) {
@@ -119,7 +118,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         // Patients DataTable
         Expanded(
           child: patients.isEmpty
-              ? Center(child: Text('No patients found.'))
+              ? const Center(child: Text('No patients found.'))
               : SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: SingleChildScrollView(
@@ -127,7 +126,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
               child: DataTable(
                 columns: columns,
                 rows: rows,
-                headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                headingRowColor: WidgetStateColor.resolveWith((states) => Colors.grey[200]!),
                 dataRowHeight: 60,
                 columnSpacing: 20,
                 onSelectAll: null,
@@ -150,8 +149,8 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
 
     // Define DataTable Columns
     final columns = [
-      DataColumn(label: Text('Name')),
-      DataColumn(label: Text('Specialization')),
+      const DataColumn(label: Text('Name')),
+      const DataColumn(label: Text('Specialization')),
     ];
 
     // Define DataTable Rows
@@ -179,7 +178,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
           child: TextField(
             decoration: InputDecoration(
               labelText: 'Search Doctors',
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onChanged: (value) {
@@ -192,7 +191,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         // Doctors DataTable
         Expanded(
           child: doctors.isEmpty
-              ? Center(child: Text('No doctors found.'))
+              ? const Center(child: Text('No doctors found.'))
               : SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: SingleChildScrollView(
@@ -200,7 +199,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
               child: DataTable(
                 columns: columns,
                 rows: rows,
-                headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                headingRowColor: WidgetStateColor.resolveWith((states) => Colors.grey[200]!),
                 dataRowHeight: 60,
                 columnSpacing: 20,
                 onSelectAll: null,
@@ -230,11 +229,11 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
 
     // Define DataTable Columns
     final columns = [
-      DataColumn(label: Text('Appointment ID')),
-      DataColumn(label: Text('Doctor')),
-      DataColumn(label: Text('Patient')),
-      DataColumn(label: Text('Date')),
-      DataColumn(label: Text('Status')),
+      const DataColumn(label: Text('Appointment ID')),
+      const DataColumn(label: Text('Doctor')),
+      const DataColumn(label: Text('Patient')),
+      const DataColumn(label: Text('Date')),
+      const DataColumn(label: Text('Status')),
     ];
 
     // Define DataTable Rows
@@ -286,7 +285,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
           child: TextField(
             decoration: InputDecoration(
               labelText: 'Search Appointments',
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onChanged: (value) {
@@ -299,7 +298,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         // Appointments DataTable
         Expanded(
           child: appointments.isEmpty
-              ? Center(child: Text('No appointments found.'))
+              ? const Center(child: Text('No appointments found.'))
               : SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: SingleChildScrollView(
@@ -307,7 +306,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
               child: DataTable(
                 columns: columns,
                 rows: rows,
-                headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                headingRowColor: WidgetStateColor.resolveWith((states) => Colors.grey[200]!),
                 dataRowHeight: 60,
                 columnSpacing: 20,
                 onSelectAll: null,
@@ -349,10 +348,10 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
 
     // Define DataTable Columns
     final columns = [
-      DataColumn(label: Text('Device ID')),
-      DataColumn(label: Text('Type')),
-      DataColumn(label: Text('Assigned To')),
-      DataColumn(label: Text('Doctor')),
+      const DataColumn(label: Text('Device ID')),
+      const DataColumn(label: Text('Type')),
+      const DataColumn(label: Text('Assigned To')),
+      const DataColumn(label: Text('Doctor')),
     ];
 
     // Define DataTable Rows
@@ -403,7 +402,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
           child: TextField(
             decoration: InputDecoration(
               labelText: 'Search Devices',
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onChanged: (value) {
@@ -416,7 +415,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
         // Devices DataTable
         Expanded(
           child: devices.isEmpty
-              ? Center(child: Text('No devices found.'))
+              ? const Center(child: Text('No devices found.'))
               : SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: SingleChildScrollView(
@@ -424,7 +423,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
               child: DataTable(
                 columns: columns,
                 rows: rows,
-                headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                headingRowColor: WidgetStateColor.resolveWith((states) => Colors.grey[200]!),
                 dataRowHeight: 60,
                 columnSpacing: 20,
                 onSelectAll: null,
@@ -446,7 +445,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
             bottom: TabBar(
               controller: _tabController,
               isScrollable: true,
-              tabs: [
+              tabs: const [
 
                 Tab(text: 'Patients'),
                 Tab(text: 'Doctors'),
@@ -474,7 +473,7 @@ class _HospitalDetailsPageState extends State<HospitalDetailsPage>
 class PatientDetailsPage extends StatelessWidget {
   final Patient patient;
 
-  const PatientDetailsPage({required this.patient, Key? key}) : super(key: key);
+  const PatientDetailsPage({required this.patient, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -500,10 +499,10 @@ class PatientDetailsPage extends StatelessWidget {
 
     // Define Appointments DataTable Columns
     final columns = [
-      DataColumn(label: Text('Appointment ID')),
-      DataColumn(label: Text('Doctor')),
-      DataColumn(label: Text('Date')),
-      DataColumn(label: Text('Status')),
+      const DataColumn(label: Text('Appointment ID')),
+      const DataColumn(label: Text('Doctor')),
+      const DataColumn(label: Text('Date')),
+      const DataColumn(label: Text('Status')),
     ];
 
     // Define Appointments DataTable Rows
@@ -548,7 +547,7 @@ class PatientDetailsPage extends StatelessWidget {
               elevation: 3,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               child: ListTile(
-                title: Text(patient.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                title: Text(patient.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -560,16 +559,16 @@ class PatientDetailsPage extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Appointments History
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Appointments History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
+                  const Text('Appointments History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
                   appointments.isEmpty
-                      ? Center(child: Text('No appointments found.'))
+                      ? const Center(child: Text('No appointments found.'))
                       : SingleChildScrollView(
                     scrollDirection: Axis.vertical,
                     child: SingleChildScrollView(
@@ -577,7 +576,7 @@ class PatientDetailsPage extends StatelessWidget {
                       child: DataTable(
                         columns: columns,
                         rows: rows,
-                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                        headingRowColor: WidgetStateColor.resolveWith((states) => Colors.grey[200]!),
                         dataRowHeight: 60,
                         columnSpacing: 20,
                         onSelectAll: null,
@@ -598,7 +597,7 @@ class PatientDetailsPage extends StatelessWidget {
 class DoctorDetailsPage extends StatelessWidget {
   final Doctor doctor;
 
-  const DoctorDetailsPage({required this.doctor, Key? key}) : super(key: key);
+  const DoctorDetailsPage({required this.doctor, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -609,8 +608,8 @@ class DoctorDetailsPage extends StatelessWidget {
 
     // Define Patients DataTable Columns
     final patientColumns = [
-      DataColumn(label: Text('Name')),
-      DataColumn(label: Text('Diagnosis')),
+      const DataColumn(label: Text('Name')),
+      const DataColumn(label: Text('Diagnosis')),
     ];
 
     // Define Patients DataTable Rows
@@ -632,9 +631,9 @@ class DoctorDetailsPage extends StatelessWidget {
 
     // Define Devices DataTable Columns
     final deviceColumns = [
-      DataColumn(label: Text('Device ID')),
-      DataColumn(label: Text('Type')),
-      DataColumn(label: Text('Assigned To')),
+      const DataColumn(label: Text('Device ID')),
+      const DataColumn(label: Text('Type')),
+      const DataColumn(label: Text('Assigned To')),
     ];
 
     // Define Devices DataTable Rows
@@ -680,20 +679,20 @@ class DoctorDetailsPage extends StatelessWidget {
               elevation: 3,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               child: ListTile(
-                title: Text(doctor.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                title: Text(doctor.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 subtitle: Text('Specialization: ${doctor.specialization}'),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Patients Managed
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Patients Managed', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
+                  const Text('Patients Managed', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
                   patients.isEmpty
-                      ? Center(child: Text('No patients found.'))
+                      ? const Center(child: Text('No patients found.'))
                       : SingleChildScrollView(
                     scrollDirection: Axis.vertical,
                     child: SingleChildScrollView(
@@ -701,7 +700,7 @@ class DoctorDetailsPage extends StatelessWidget {
                       child: DataTable(
                         columns: patientColumns,
                         rows: patientRows,
-                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                        headingRowColor: WidgetStateColor.resolveWith((states) => Colors.grey[200]!),
                         dataRowHeight: 60,
                         columnSpacing: 20,
                         onSelectAll: null,
@@ -711,16 +710,16 @@ class DoctorDetailsPage extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Devices Assigned
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Devices Assigned', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
+                  const Text('Devices Assigned', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
                   devices.isEmpty
-                      ? Center(child: Text('No devices assigned.'))
+                      ? const Center(child: Text('No devices assigned.'))
                       : SingleChildScrollView(
                     scrollDirection: Axis.vertical,
                     child: SingleChildScrollView(
@@ -728,7 +727,7 @@ class DoctorDetailsPage extends StatelessWidget {
                       child: DataTable(
                         columns: deviceColumns,
                         rows: deviceRows,
-                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                        headingRowColor: WidgetStateColor.resolveWith((states) => Colors.grey[200]!),
                         dataRowHeight: 60,
                         columnSpacing: 20,
                         onSelectAll: null,
@@ -749,7 +748,7 @@ class DoctorDetailsPage extends StatelessWidget {
 class DeviceDetailsPage extends StatelessWidget {
   final Device device;
 
-  const DeviceDetailsPage({required this.device, Key? key}) : super(key: key);
+  const DeviceDetailsPage({required this.device, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -780,8 +779,8 @@ class DeviceDetailsPage extends StatelessWidget {
 
     // Define Assigned Patients DataTable Columns
     final patientColumns = [
-      DataColumn(label: Text('Name')),
-      DataColumn(label: Text('Diagnosis')),
+      const DataColumn(label: Text('Name')),
+      const DataColumn(label: Text('Diagnosis')),
     ];
 
     // Define Assigned Patients DataTable Rows
@@ -803,7 +802,7 @@ class DeviceDetailsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Device Details'),
+        title: const Text('Device Details'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -814,17 +813,17 @@ class DeviceDetailsPage extends StatelessWidget {
               elevation: 3,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               child: ListTile(
-                title: Text('Device ID: ${device.id}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                title: Text('Device ID: ${device.id}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 subtitle: Text('Type: ${device.type}'),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Assigned To
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               child: ListTile(
-                title: Text('Assigned To: ${patient.name}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                title: Text('Assigned To: ${patient.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 subtitle: Text('Doctor: ${doctor.name}'),
                 onTap: () {
                   if (patient.id != 'unknown') {
@@ -839,16 +838,16 @@ class DeviceDetailsPage extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Assigned Patients
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Assigned Patients', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
+                  const Text('Assigned Patients', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
                   assignedPatients.isEmpty
-                      ? Center(child: Text('No patients assigned to this device.'))
+                      ? const Center(child: Text('No patients assigned to this device.'))
                       : SingleChildScrollView(
                     scrollDirection: Axis.vertical,
                     child: SingleChildScrollView(
@@ -856,7 +855,7 @@ class DeviceDetailsPage extends StatelessWidget {
                       child: DataTable(
                         columns: patientColumns,
                         rows: patientRows,
-                        headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[200]!),
+                        headingRowColor: WidgetStateColor.resolveWith((states) => Colors.grey[200]!),
                         dataRowHeight: 60,
                         columnSpacing: 20,
                         onSelectAll: null,
@@ -877,7 +876,7 @@ class DeviceDetailsPage extends StatelessWidget {
 class AppointmentDetailsPage extends StatelessWidget {
   final Appointment appointment;
 
-  const AppointmentDetailsPage({required this.appointment, Key? key}) : super(key: key);
+  const AppointmentDetailsPage({required this.appointment, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -905,7 +904,7 @@ class AppointmentDetailsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Appointment Details'),
+        title: const Text('Appointment Details'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -916,7 +915,7 @@ class AppointmentDetailsPage extends StatelessWidget {
               elevation: 3,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               child: ListTile(
-                title: Text('Appointment ID: ${appointment.id}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                title: Text('Appointment ID: ${appointment.id}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -928,7 +927,7 @@ class AppointmentDetailsPage extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Additional Information or Actions
             // Add any other relevant information or actions here
           ],

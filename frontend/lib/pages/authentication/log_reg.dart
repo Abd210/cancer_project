@@ -15,6 +15,8 @@ import 'package:frontend/pages/doctor/doctor_page.dart'; // Ensure this import e
 
 
 class LogIn extends StatefulWidget {
+  const LogIn({super.key});
+
   @override
   _LogInState createState() => _LogInState();
 }
@@ -51,7 +53,7 @@ class _LogInState extends State<LogIn> {
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/back.png'), // Background image
             fit: BoxFit.cover,
@@ -86,7 +88,7 @@ class _LogInState extends State<LogIn> {
                 width: 300,
                 child: TextField(
                   controller: _usernameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.person,
                         color: Color.fromARGB(255, 218, 73, 143)),
                     hintText: 'USERNAME',
@@ -108,7 +110,7 @@ class _LogInState extends State<LogIn> {
               const SizedBox(height: 20),
 
               // Password TextField with adjusted width
-              SizedBox(
+              const SizedBox(
                 width: 300,
                 child: TextField(
                   obscureText: true,
@@ -141,7 +143,7 @@ class _LogInState extends State<LogIn> {
     if (username == 'patient') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => PatientPage()),
+        MaterialPageRoute(builder: (context) => const PatientPage()),
       );
     } else if (username.startsWith('dr.') || username.startsWith('doctor')) {
   final matchedDoctor = dataProvider.doctors.firstWhere(
@@ -170,7 +172,7 @@ class _LogInState extends State<LogIn> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SuperAdminDashboard(),
+          builder: (context) => const SuperAdminDashboard(),
         ),
       );
     } else {
@@ -194,12 +196,12 @@ class _LogInState extends State<LogIn> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Error'),
-            content: Text('Invalid username. Please try again.'),
+            title: const Text('Error'),
+            content: const Text('Invalid username. Please try again.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           ),
@@ -208,7 +210,7 @@ class _LogInState extends State<LogIn> {
     }
   },
   style: ElevatedButton.styleFrom(
-    backgroundColor: Color.fromARGB(255, 218, 73, 143),
+    backgroundColor: const Color.fromARGB(255, 218, 73, 143),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(30),
     ),

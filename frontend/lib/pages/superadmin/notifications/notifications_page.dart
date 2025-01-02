@@ -5,13 +5,13 @@ import '../../../shared/background.dart';
 import '../../../shared/theme.dart';
 
 class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({Key? key}) : super(key: key);
+  const NotificationsPage({super.key});
 
   void _showTicketDetails(BuildContext context, Ticket ticket) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Ticket Details'),
+        title: const Text('Ticket Details'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -27,7 +27,7 @@ class NotificationsPage extends StatelessWidget {
               // Handle ticket resolution
               Navigator.pop(context);
             },
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -40,7 +40,7 @@ class NotificationsPage extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 20),
-          Text(
+          const Text(
             'Ticket Requests',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
           ),
@@ -51,11 +51,11 @@ class NotificationsPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final Ticket ticket = StaticData.tickets[index];
                 return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: ListTile(
                     title: Text(ticket.requestType),
                     subtitle: Text('Requester: ${ticket.requester}'),
-                    trailing: Icon(Icons.arrow_forward),
+                    trailing: const Icon(Icons.arrow_forward),
                     onTap: () => _showTicketDetails(context, ticket),
                   ),
                 );

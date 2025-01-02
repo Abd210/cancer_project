@@ -9,8 +9,8 @@ class CustomDrawer extends StatelessWidget {
   const CustomDrawer({
     required this.onMenuItemClicked,
     required this.selectedIndex,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class CustomDrawer extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
                 color: AppTheme.accentColor,
               ),
@@ -41,7 +41,7 @@ class CustomDrawer extends StatelessWidget {
             _buildDrawerItem(Icons.device_hub, 'Devices', 3),
             _buildDrawerItem(Icons.event, 'Appointments', 4),
             _buildDrawerItem(Icons.rocket, 'Tickets', 5),
-            Divider(color: Colors.white70),
+            const Divider(color: Colors.white70),
             _buildDrawerItem(Icons.logout, 'Logout', 6),
           ],
         ),

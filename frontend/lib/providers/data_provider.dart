@@ -12,7 +12,7 @@ import '../models/notification.dart' as custom;
 
 class DataProvider with ChangeNotifier {
   // 1) Hospitals
-  List<Hospital> _hospitals = StaticData.hospitals;
+  final List<Hospital> _hospitals = StaticData.hospitals;
   List<Hospital> get hospitals => _hospitals;
 
   void addHospital(Hospital hospital) {
@@ -97,7 +97,7 @@ Doctor? findDoctorByUsername(String username) {
   }
 
   // 2) Doctors
-  List<Doctor> _doctors = StaticData.doctors;
+  final List<Doctor> _doctors = StaticData.doctors;
   List<Doctor> get doctors => _doctors;
 
   void addDoctor(Doctor doctor) {
@@ -120,7 +120,7 @@ Doctor? findDoctorByUsername(String username) {
   }
 
   // 3) Devices
-  List<Device> _devices = StaticData.devices;
+  final List<Device> _devices = StaticData.devices;
   List<Device> get devices => _devices;
 
   /// Add a device ensuring no two devices share the same `patientId`
@@ -165,7 +165,7 @@ Doctor? findDoctorByUsername(String username) {
   }
 
   // 4) Patients
-  List<Patient> _patients = StaticData.patients;
+  final List<Patient> _patients = StaticData.patients;
   List<Patient> get patients => _patients;
 
   void addPatient(Patient patient) {
@@ -217,7 +217,7 @@ Doctor? findDoctorByUsername(String username) {
   }
 
   // 5) Appointments
-  List<Appointment> _appointments = StaticData.appointments;
+  final List<Appointment> _appointments = StaticData.appointments;
   List<Appointment> get appointments => _appointments;
 
   void addAppointment(Appointment appointment) {
@@ -240,7 +240,7 @@ Doctor? findDoctorByUsername(String username) {
   
 
   // 6) Tickets
-  List<Ticket> _tickets = StaticData.tickets;
+  final List<Ticket> _tickets = StaticData.tickets;
   List<Ticket> get tickets => _tickets;
 
   void addTicket(Ticket ticket) {
@@ -262,7 +262,7 @@ Doctor? findDoctorByUsername(String username) {
     notifyListeners();
   }
 // Notifications
-List<custom.Notification> _notifications = [];
+final List<custom.Notification> _notifications = [];
 List<custom.Notification> get notifications => _notifications;
 
 // Add a notification

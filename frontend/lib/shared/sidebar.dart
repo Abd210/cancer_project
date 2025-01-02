@@ -5,7 +5,7 @@ class Sidebar extends StatelessWidget {
   final Function(int) onMenuItemClicked;
   final int selectedIndex;
 
-  const Sidebar({required this.onMenuItemClicked, required this.selectedIndex, Key? key}) : super(key: key);
+  const Sidebar({required this.onMenuItemClicked, required this.selectedIndex, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class Sidebar extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
                 color: AppTheme.accentColor,
               ),
@@ -34,7 +34,7 @@ class Sidebar extends StatelessWidget {
             _buildDrawerItem(Icons.person, 'Doctors', 1, context),
             _buildDrawerItem(Icons.group, 'Patients', 2, context),
             _buildDrawerItem(Icons.rocket, 'Tickets', 3, context),
-            Divider(color: Colors.white70),
+            const Divider(color: Colors.white70),
             _buildDrawerItem(Icons.logout, 'Logout', 4, context),
           ],
         ),
@@ -47,7 +47,7 @@ class Sidebar extends StatelessWidget {
       leading: Icon(icon, color: Colors.white),
       title: Text(
         title,
-        style: TextStyle(color: Colors.white, fontSize: 16),
+        style: const TextStyle(color: Colors.white, fontSize: 16),
       ),
       selected: selectedIndex == index,
       selectedTileColor: AppTheme.accentColor,

@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/data_provider.dart';
 import '../../../models/hospital.dart';
-import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'hospital_details_page.dart';
 
 class HospitalsPage extends StatefulWidget {
-  const HospitalsPage({Key? key}) : super(key: key);
+  const HospitalsPage({super.key});
 
   @override
   _HospitalsPageState createState() => _HospitalsPageState();
@@ -16,29 +15,29 @@ class HospitalsPage extends StatefulWidget {
 
 class _HospitalsPageState extends State<HospitalsPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   void _showAddHospitalDialog(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = '';
     String address = '';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Add Hospital'),
+        title: const Text('Add Hospital'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
-                decoration: InputDecoration(labelText: 'Hospital Name'),
+                decoration: const InputDecoration(labelText: 'Hospital Name'),
                 validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
                 onSaved: (value) => name = value!,
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Address'),
+                decoration: const InputDecoration(labelText: 'Address'),
                 validator: (value) => value == null || value.isEmpty ? 'Enter address' : null,
                 onSaved: (value) => address = value!,
               ),
@@ -48,8 +47,8 @@ class _HospitalsPageState extends State<HospitalsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 final newHospital = Hospital(
                   id: 'h${DateTime.now().millisecondsSinceEpoch}',
                   name: name,
@@ -60,7 +59,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
                 Fluttertoast.showToast(msg: 'Hospital added successfully.');
               }
             },
-            child: Text('Add'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -68,28 +67,28 @@ class _HospitalsPageState extends State<HospitalsPage> {
   }
 
   void _showEditHospitalDialog(BuildContext context, Hospital hospital) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = hospital.name;
     String address = hospital.address;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Hospital'),
+        title: const Text('Edit Hospital'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
                 initialValue: hospital.name,
-                decoration: InputDecoration(labelText: 'Hospital Name'),
+                decoration: const InputDecoration(labelText: 'Hospital Name'),
                 validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
                 onSaved: (value) => name = value!,
               ),
               TextFormField(
                 initialValue: hospital.address,
-                decoration: InputDecoration(labelText: 'Address'),
+                decoration: const InputDecoration(labelText: 'Address'),
                 validator: (value) => value == null || value.isEmpty ? 'Enter address' : null,
                 onSaved: (value) => address = value!,
               ),
@@ -99,8 +98,8 @@ class _HospitalsPageState extends State<HospitalsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 final updatedHospital = Hospital(
                   id: hospital.id,
                   name: name,
@@ -111,7 +110,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
                 Fluttertoast.showToast(msg: 'Hospital updated successfully.');
               }
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -122,8 +121,8 @@ class _HospitalsPageState extends State<HospitalsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Hospital'),
-        content: Text('Are you sure you want to delete this hospital?'),
+        title: const Text('Delete Hospital'),
+        content: const Text('Are you sure you want to delete this hospital?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -131,11 +130,11 @@ class _HospitalsPageState extends State<HospitalsPage> {
               Navigator.pop(context);
               Fluttertoast.showToast(msg: 'Hospital deleted successfully.');
             },
-            child: Text('Yes', style: TextStyle(color: Colors.red)),
+            child: const Text('Yes', style: TextStyle(color: Colors.red)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('No'),
+            child: const Text('No'),
           ),
         ],
       ),
@@ -162,7 +161,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Hospitals',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onChanged: (value) {
@@ -172,15 +171,15 @@ class _HospitalsPageState extends State<HospitalsPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: () => _showAddHospitalDialog(context),
-                    icon: Icon(Icons.add),
-                    label: Text('Add Hospital'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Hospital'),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Hospitals List with Improved UI
               Expanded(
                 child: ListView.builder(
@@ -189,13 +188,13 @@ class _HospitalsPageState extends State<HospitalsPage> {
                     final hospital = hospitals[index];
                     return Card(
                       elevation: 3,
-                      margin: EdgeInsets.symmetric(vertical: 8),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       child: ListTile(
-                        contentPadding: EdgeInsets.all(16),
+                        contentPadding: const EdgeInsets.all(16),
                         title: Text(
                           hospital.name,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
                           hospital.address,
@@ -205,11 +204,11 @@ class _HospitalsPageState extends State<HospitalsPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.edit, color: Colors.blue),
+                              icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () => _showEditHospitalDialog(context, hospital),
                             ),
                             IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () => _deleteHospital(context, hospital.id),
                             ),
                           ],

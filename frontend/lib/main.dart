@@ -11,12 +11,14 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => DataProvider()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   // Root of the application
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class MyApp extends StatelessWidget {
       title: 'Curanics Super Admin',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      home: LogIn(),
+      home: const LogIn(),
     );
   }
 }

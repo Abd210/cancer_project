@@ -13,7 +13,7 @@ import 'reports/doctor_reports_page.dart';
 class DoctorPage extends StatefulWidget {
   final String doctorId;
 
-  const DoctorPage({Key? key, required this.doctorId}) : super(key: key);
+  const DoctorPage({super.key, required this.doctorId});
 
   @override
   _DoctorPageState createState() => _DoctorPageState();
@@ -40,7 +40,7 @@ class _DoctorPageState extends State<DoctorPage> {
       // Index 4 => Logout
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LogIn()),
+        MaterialPageRoute(builder: (context) => const LogIn()),
       );
       Fluttertoast.showToast(msg: 'Logged out successfully.');
       return;
@@ -59,13 +59,13 @@ class _DoctorPageState extends State<DoctorPage> {
         selectedIndex: _selectedIndex,
       ),
       appBar: AppBar(
-        title: Text('Doctor Dashboard'),
+        title: const Text('Doctor Dashboard'),
         backgroundColor: AppTheme.primaryColor,
       ),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(AppTheme.backgroundImage),
+            image: const AssetImage(AppTheme.backgroundImage),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
               Colors.white.withOpacity(0.8),

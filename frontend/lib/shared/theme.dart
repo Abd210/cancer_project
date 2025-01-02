@@ -11,7 +11,7 @@ class AppTheme {
       primaryColor: primaryColor,
       hintColor: accentColor,
       scaffoldBackgroundColor: Colors.white,
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: primaryColor,
         titleTextStyle: TextStyle(
           color: Colors.white,
@@ -41,18 +41,18 @@ class AppTheme {
         filled: true,
         fillColor: Colors.white,
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: primaryColor),
+          borderSide: const BorderSide(color: primaryColor),
           borderRadius: BorderRadius.circular(10),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: primaryColor, width: 2),
+          borderSide: const BorderSide(color: primaryColor, width: 2),
           borderRadius: BorderRadius.circular(10),
         ),
       ),
       dataTableTheme: DataTableThemeData(
-        headingRowColor: MaterialStateColor.resolveWith((states) => primaryColor.withOpacity(0.1)),
-        headingTextStyle: TextStyle(fontWeight: FontWeight.bold, color: primaryColor),
-        dataRowColor: MaterialStateColor.resolveWith((states) => Colors.white),
+        headingRowColor: WidgetStateColor.resolveWith((states) => primaryColor.withOpacity(0.1)),
+        headingTextStyle: const TextStyle(fontWeight: FontWeight.bold, color: primaryColor),
+        dataRowColor: WidgetStateColor.resolveWith((states) => Colors.white),
       ),
     );
   }

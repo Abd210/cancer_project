@@ -8,7 +8,7 @@ import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class PatientsPage extends StatefulWidget {
-  const PatientsPage({Key? key}) : super(key: key);
+  const PatientsPage({super.key});
 
   @override
   _PatientsPageState createState() => _PatientsPageState();
@@ -16,11 +16,11 @@ class PatientsPage extends StatefulWidget {
 
 class _PatientsPageState extends State<PatientsPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   /// We'll pick the Hospital first, then filter Doctors to that hospital
   void _showAddPatientDialog(BuildContext context, List<Hospital> allHospitals) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = '';
     int age = 0;
     String diagnosis = '';
@@ -31,22 +31,22 @@ class _PatientsPageState extends State<PatientsPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Add Patient'),
+          title: const Text('Add Patient'),
           content: Form(
-            key: _formKey,
+            key: formKey,
             child: StatefulBuilder(
               builder: (context, setStateDialog) {
                 return SingleChildScrollView(
                   child: Column(
                     children: [
                       TextFormField(
-                        decoration: InputDecoration(labelText: 'Patient Name'),
+                        decoration: const InputDecoration(labelText: 'Patient Name'),
                         validator: (value) =>
                             value == null || value.isEmpty ? 'Enter name' : null,
                         onSaved: (value) => name = value!,
                       ),
                       TextFormField(
-                        decoration: InputDecoration(labelText: 'Age'),
+                        decoration: const InputDecoration(labelText: 'Age'),
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Enter age';
                           if (int.tryParse(value) == null) return 'Enter valid age';
@@ -56,15 +56,15 @@ class _PatientsPageState extends State<PatientsPage> {
                         keyboardType: TextInputType.number,
                       ),
                       TextFormField(
-                        decoration: InputDecoration(labelText: 'Diagnosis'),
+                        decoration: const InputDecoration(labelText: 'Diagnosis'),
                         validator: (value) =>
                             value == null || value.isEmpty ? 'Enter diagnosis' : null,
                         onSaved: (value) => diagnosis = value!,
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       // 1) Hospital Dropdown
                       DropdownButtonFormField<String>(
-                        decoration: InputDecoration(labelText: 'Select Hospital'),
+                        decoration: const InputDecoration(labelText: 'Select Hospital'),
                         items: allHospitals.map((hospital) {
                           return DropdownMenuItem<String>(
                             value: hospital.id,
@@ -79,10 +79,10 @@ class _PatientsPageState extends State<PatientsPage> {
                           });
                         },
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       // 2) Doctor Dropdown, filtered by the chosen Hospital
                       DropdownButtonFormField<String>(
-                        decoration: InputDecoration(labelText: 'Select Doctor'),
+                        decoration: const InputDecoration(labelText: 'Select Doctor'),
                         // If no hospital chosen, show empty list
                         items: (selectedHospitalId == null
                                 ? <Doctor>[]
@@ -112,8 +112,8 @@ class _PatientsPageState extends State<PatientsPage> {
           actions: [
             TextButton(
               onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
+                if (formKey.currentState!.validate()) {
+                  formKey.currentState!.save();
                   final newPatient = Patient(
                     id: 'p${DateTime.now().millisecondsSinceEpoch}',
                     name: name,
@@ -131,7 +131,7 @@ class _PatientsPageState extends State<PatientsPage> {
                   Fluttertoast.showToast(msg: 'Patient added successfully.');
                 }
               },
-              child: Text('Add'),
+              child: const Text('Add'),
             ),
           ],
         );
@@ -144,7 +144,7 @@ class _PatientsPageState extends State<PatientsPage> {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
         if (_isLoading) {
-          return LoadingIndicator();
+          return const LoadingIndicator();
         }
 
         List<Hospital> allHospitals = dataProvider.hospitals;
@@ -165,7 +165,7 @@ class _PatientsPageState extends State<PatientsPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Patients',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10)),
                       ),
@@ -176,20 +176,20 @@ class _PatientsPageState extends State<PatientsPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: () => _showAddPatientDialog(context, allHospitals),
-                    icon: Icon(Icons.add),
-                    label: Text('Add Patient'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Patient'),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // DataTable
               Expanded(
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text('ID')),
                       DataColumn(label: Text('Name')),
                       DataColumn(label: Text('Age')),

@@ -4,12 +4,12 @@ import 'theme.dart';
 class BackgroundContainer extends StatelessWidget {
   final Widget child;
 
-  const BackgroundContainer({required this.child, Key? key}) : super(key: key);
+  const BackgroundContainer({required this.child, super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage(AppTheme.backgroundImage),
           fit: BoxFit.cover,

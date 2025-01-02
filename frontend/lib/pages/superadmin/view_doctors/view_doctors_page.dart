@@ -7,7 +7,7 @@ import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class DoctorsPage extends StatefulWidget {
-  const DoctorsPage({Key? key}) : super(key: key);
+  const DoctorsPage({super.key});
 
   @override
   _DoctorsPageState createState() => _DoctorsPageState();
@@ -15,10 +15,10 @@ class DoctorsPage extends StatefulWidget {
 
 class _DoctorsPageState extends State<DoctorsPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   void _showAddDoctorDialog(BuildContext context, List<Hospital> allHospitals) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = '';
     String specialization = '';
     String? selectedHospitalId; // from dropdown
@@ -26,28 +26,28 @@ class _DoctorsPageState extends State<DoctorsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Add Doctor'),
+        title: const Text('Add Doctor'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Doctor Name'),
+                  decoration: const InputDecoration(labelText: 'Doctor Name'),
                   validator: (value) =>
                       value == null || value.isEmpty ? 'Enter name' : null,
                   onSaved: (value) => name = value!,
                 ),
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Specialization'),
+                  decoration: const InputDecoration(labelText: 'Specialization'),
                   validator: (value) =>
                       value == null || value.isEmpty ? 'Enter specialization' : null,
                   onSaved: (value) => specialization = value!,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 // Hospital dropdown
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Choose Hospital'),
+                  decoration: const InputDecoration(labelText: 'Choose Hospital'),
                   items: allHospitals.map((hospital) {
                     return DropdownMenuItem<String>(
                       value: hospital.id,
@@ -64,8 +64,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 // Create new doctor
                 final newDoctor = Doctor(
                   id: 'd${DateTime.now().millisecondsSinceEpoch}',
@@ -79,7 +79,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                 Fluttertoast.showToast(msg: 'Doctor added successfully.');
               }
             },
-            child: Text('Add'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -88,7 +88,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
 
   void _showEditDoctorDialog(
       BuildContext context, Doctor doctor, List<Hospital> allHospitals) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = doctor.name;
     String specialization = doctor.specialization;
     String? selectedHospitalId = doctor.hospitalId;
@@ -96,29 +96,29 @@ class _DoctorsPageState extends State<DoctorsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Doctor'),
+        title: const Text('Edit Doctor'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
                   initialValue: name,
-                  decoration: InputDecoration(labelText: 'Doctor Name'),
+                  decoration: const InputDecoration(labelText: 'Doctor Name'),
                   validator: (value) =>
                       value == null || value.isEmpty ? 'Enter name' : null,
                   onSaved: (value) => name = value!,
                 ),
                 TextFormField(
                   initialValue: specialization,
-                  decoration: InputDecoration(labelText: 'Specialization'),
+                  decoration: const InputDecoration(labelText: 'Specialization'),
                   validator: (value) =>
                       value == null || value.isEmpty ? 'Enter specialization' : null,
                   onSaved: (value) => specialization = value!,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Choose Hospital'),
+                  decoration: const InputDecoration(labelText: 'Choose Hospital'),
                   value: selectedHospitalId,
                   items: allHospitals.map((hospital) {
                     return DropdownMenuItem<String>(
@@ -136,8 +136,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 final updatedDoctor = Doctor(
                   id: doctor.id,
                   name: name,
@@ -150,7 +150,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                 Fluttertoast.showToast(msg: 'Doctor updated successfully.');
               }
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -161,8 +161,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Doctor'),
-        content: Text('Are you sure you want to delete this doctor?'),
+        title: const Text('Delete Doctor'),
+        content: const Text('Are you sure you want to delete this doctor?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -170,11 +170,11 @@ class _DoctorsPageState extends State<DoctorsPage> {
               Navigator.pop(context);
               Fluttertoast.showToast(msg: 'Doctor deleted successfully.');
             },
-            child: Text('Yes', style: TextStyle(color: Colors.red)),
+            child: const Text('Yes', style: TextStyle(color: Colors.red)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('No'),
+            child: const Text('No'),
           ),
         ],
       ),
@@ -186,7 +186,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
         if (_isLoading) {
-          return LoadingIndicator(); // if needed
+          return const LoadingIndicator(); // if needed
         }
 
         // We can filter by name/specialization if we want
@@ -209,7 +209,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Doctors',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onChanged: (value) {
@@ -219,20 +219,20 @@ class _DoctorsPageState extends State<DoctorsPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: () => _showAddDoctorDialog(context, allHospitals),
-                    icon: Icon(Icons.add),
-                    label: Text('Add Doctor'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Doctor'),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Doctors DataTable
               Expanded(
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text('ID')),
                       DataColumn(label: Text('Name')),
                       DataColumn(label: Text('Specialization')),
@@ -253,11 +253,11 @@ class _DoctorsPageState extends State<DoctorsPage> {
                           Row(
                             children: [
                               IconButton(
-                                icon: Icon(Icons.edit, color: Colors.blue),
+                                icon: const Icon(Icons.edit, color: Colors.blue),
                                 onPressed: () => _showEditDoctorDialog(context, doctor, allHospitals),
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
+                                icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () => _deleteDoctor(context, doctor.id),
                               ),
                             ],

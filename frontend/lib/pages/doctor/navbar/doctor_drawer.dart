@@ -8,8 +8,8 @@ class DoctorDrawer extends StatelessWidget {
   const DoctorDrawer({
     required this.onMenuItemClicked,
     required this.selectedIndex,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class DoctorDrawer extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
                 color: AppTheme.accentColor,
               ),
@@ -42,7 +42,7 @@ class DoctorDrawer extends StatelessWidget {
             _buildDrawerItem(Icons.group, 'Patients', 2),
             // Reports
             _buildDrawerItem(Icons.description, 'Reports', 3),
-            Divider(color: Colors.white70),
+            const Divider(color: Colors.white70),
             // Logout
             _buildDrawerItem(Icons.logout, 'Logout', 4),
           ],
