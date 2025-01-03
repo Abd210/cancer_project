@@ -1,5 +1,3 @@
-const Doctor = require("../Models/Doctor");
-const Patient = require("../Models/Patient");
 const Appointment = require("../Models/Appointment");
 const mongoose = require("mongoose");
 
@@ -10,10 +8,9 @@ const mongoose = require("mongoose");
  * and appointments are properly linked to users.
  */
 class AppointmentService {
-
   /**
    * Fetches upcoming appointments for a specific user based on their role (doctor or patient).
-   * The function filters appointments that are scheduled and in the future, 
+   * The function filters appointments that are scheduled and in the future,
    * ensuring that only valid appointments are returned.
    *
    * @param {Object} params - The request parameters, including user_id and role.
@@ -34,7 +31,7 @@ class AppointmentService {
     const query =
       role === "doctor" ? { doctor: user_id } : { patient: user_id };
 
-      // Fetch upcoming appointments, scheduled in the future
+    // Fetch upcoming appointments, scheduled in the future
     const appointments = await Appointment.find({
       ...query,
       appointment_date: { $gte: new Date() }, // Only future appointments
@@ -57,7 +54,12 @@ class AppointmentService {
    * @returns {Array} Returns an array of past appointments for the user.
    * @throws Throws an error if the user_id is invalid or if no appointments are found.
    */
-  static async getAppointmentHistory({ user_id, role, filterById, filterByRole }) {
+  static async getAppointmentHistory({
+    user_id,
+    role,
+    filterById,
+    filterByRole,
+  }) {
     // Validate the user_id for correctness
     if (!mongoose.isValidObjectId(user_id)) {
       throw new Error(
@@ -101,7 +103,7 @@ class AppointmentService {
       );
     }
 
-      // Fetch past appointments, appointments that are in the past
+    // Fetch past appointments, appointments that are in the past
     const appointments = await Appointment.find({
       ...query,
       appointment_date: { $lt: new Date() }, // Only past appointments
@@ -149,7 +151,7 @@ class AppointmentService {
     return appointment;
   }
 
-   /**
+  /**
    * Creates a new appointment by saving the provided data in the database.
    * The function validates the appointment data and saves it if valid.
    *
@@ -162,7 +164,13 @@ class AppointmentService {
    * @returns {Object} Returns a success message and the newly created appointment object or an error message if the creation fails.
    * @throws Throws an error if the appointment data is invalid or cannot be saved.
    */
-  static async createAppointment({ patient_id, doctor_id, appointment_date, purpose, status = "scheduled",}) {
+  static async createAppointment({
+    patient_id,
+    doctor_id,
+    appointment_date,
+    purpose,
+    status = "scheduled",
+  }) {
     // Create a new appointment object
     const appointment = new Appointment({
       patient: patient_id,
@@ -249,37 +257,44 @@ class AppointmentService {
   }
 
   static async updateAppointment(appointmentId, updateFields, user) {
-      // Validate the appointmentId as a valid MongoDB ObjectId
-      if (!mongoose.isValidObjectId(appointmentId)) {
-        throw new Error("appointmentService-update appointment: Invalid appointmentId");
-      }
-  
-      // Prevent updating the _id field
-      if (updateFields._id) {
-          throw new Error("appointmentService-update appointment: Changing the '_id' field is not allowed");
-      }
-
-      if (updateFields.suspended) {
-        // Only superadmins can suspend appointments
-        if (user.role !== "superadmin") {
-          throw new Error("appointmentService-update appointment: Only superadmins can suspend appointmnents");
-        }
-      }
-  
-      // Perform the update
-      const updatedAppointment = await Appointment.findByIdAndUpdate(
-          appointmentId,
-          { $set: updateFields }, // Update only the provided fields
-          { new: true, runValidators: true } // Return the updated document and run schema validators
+    // Validate the appointmentId as a valid MongoDB ObjectId
+    if (!mongoose.isValidObjectId(appointmentId)) {
+      throw new Error(
+        "appointmentService-update appointment: Invalid appointmentId"
       );
-  
-      if (!updatedAppointment) {
-          throw new Error("appointmentService-update appointment: Appointment not found");
-      }
-  
-      return updatedAppointment;
     }
 
+    // Prevent updating the _id field
+    if (updateFields._id) {
+      throw new Error(
+        "appointmentService-update appointment: Changing the '_id' field is not allowed"
+      );
+    }
+
+    if (updateFields.suspended) {
+      // Only superadmins can suspend appointments
+      if (user.role !== "superadmin") {
+        throw new Error(
+          "appointmentService-update appointment: Only superadmins can suspend appointmnents"
+        );
+      }
+    }
+
+    // Perform the update
+    const updatedAppointment = await Appointment.findByIdAndUpdate(
+      appointmentId,
+      { $set: updateFields }, // Update only the provided fields
+      { new: true, runValidators: true } // Return the updated document and run schema validators
+    );
+
+    if (!updatedAppointment) {
+      throw new Error(
+        "appointmentService-update appointment: Appointment not found"
+      );
+    }
+
+    return updatedAppointment;
+  }
 }
 
 module.exports = AppointmentService;
