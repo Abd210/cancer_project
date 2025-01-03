@@ -21,7 +21,10 @@ A Platform for the study and detection of breast cancer
 - Implemented the routes, controllers, and services necessary for registering, deleting, updating, suspending or fetching data from the DB and created http request examples in Postman, that can be used by the superadmin  
 ![superadmin example http requests in postman](updates_pics/Superadmins_routes_Postman.png)
 
-- We changed the navbar from a popout to a persistent navbar and we orginzaed the stuctre more and added animation  
-Before: ![popout_navbar_1](updates_pics/popout_navbar1.png) ![popout_navbar_2](updates_pics/popout_navbar2.png)
-After: ![persistent navbar_1](updates_pics/persistent_navbar2.png) ![persistent navbar_2](updates_pics/persistent_navbar1.png)
+We updated the navbar from a popout design to a persistent navbar. The structure was organized, and animations were added for a smoother user experience.
+
+| Before                                                                                             | After                                                                                              |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| ![Popout Navbar 1](updates_pics/popout_navbar_1.png) ![Popout Navbar 2](updates_pics/popout_navbar2.png) | ![Persistent Navbar 1](updates_pics/persistent_navbar1.png) ![Persistent Navbar 2](updates_pics/persistent_navbar2.png) |
+
 
