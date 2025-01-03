@@ -22,6 +22,6 @@ A Platform for the study and detection of breast cancer
 ![superadmin example http requests in postman](updates_pics/Superadmins_routes_Postman.png)
 
 - We changed the navbar from a popout to a persistent navbar and we orginzaed the stuctre more and added animation  
-Before: ![popout navbar](updates_pics/poput_navbar)
+Before: ![popout navbar](updates_pics/persistent_navbar1.png)
 
-After: ![persistent navbar](updates_pics/persistent_navbar)
+After: ![persistent navbar](updates_pics/persistent_navbar2.png)
