@@ -25,7 +25,7 @@ class NotificationsPage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () {
-              // Handle ticket resolution
+              // Handle ticket resolution or other logic
               Navigator.pop(context);
             },
             child: Text('Close'),
@@ -43,7 +43,11 @@ class NotificationsPage extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             'Ticket Requests',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryColor,
+            ),
           ),
           const SizedBox(height: 10),
           Expanded(
@@ -52,11 +56,14 @@ class NotificationsPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final Ticket ticket = StaticData.tickets[index];
                 return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   child: ListTile(
                     title: Text(ticket.requestType),
                     subtitle: Text('Requester: ${ticket.requester}'),
-                    trailing: Icon(Icons.arrow_forward),
+                    trailing: const Icon(Icons.arrow_forward),
                     onTap: () => _showTicketDetails(context, ticket),
                   ),
                 );

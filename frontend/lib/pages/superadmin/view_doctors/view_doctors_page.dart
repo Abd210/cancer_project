@@ -1,5 +1,3 @@
-// lib/pages/superadmin/view_doctors/doctors_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
@@ -8,9 +6,9 @@ import '../../../providers/data_provider.dart';
 import '../../../models/doctor.dart';
 import '../../../models/hospital.dart';
 
-// Same approach as "Devices" page:
+// Our new shared components:
 import '../../../shared/components/components.dart';
-// e.g. where you have SearchAndAddRow, ResponsiveDataTable, showConfirmationDialog, etc.
+import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
 class DoctorsPage extends StatefulWidget {
   const DoctorsPage({Key? key}) : super(key: key);
@@ -95,7 +93,10 @@ class _DoctorsPageState extends State<DoctorsPage> {
 
   // Show the “Edit Doctor” dialog
   void _showEditDoctorDialog(
-      BuildContext ctx, Doctor doctor, List<Hospital> allHospitals) {
+      BuildContext ctx,
+      Doctor doctor,
+      List<Hospital> allHospitals,
+      ) {
     final formKey = GlobalKey<FormState>();
     String name = doctor.name;
     String specialization = doctor.specialization;
@@ -189,16 +190,14 @@ class _DoctorsPageState extends State<DoctorsPage> {
       builder: (ctx, dataProvider, child) {
         // 1) Filter doctors by search
         final allDoctors = dataProvider.doctors.where((doc) {
-          return doc.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              doc.specialization
-                  .toLowerCase()
-                  .contains(_searchQuery.toLowerCase()) ||
-              doc.id.toLowerCase().contains(_searchQuery.toLowerCase());
+          final q = _searchQuery.toLowerCase();
+          return doc.name.toLowerCase().contains(q) ||
+              doc.specialization.toLowerCase().contains(q) ||
+              doc.id.toLowerCase().contains(q);
         }).toList();
 
         // 2) Build the rows
         final rows = allDoctors.map((doctor) {
-          // hospital name
           final hospital = dataProvider.hospitals.firstWhere(
                 (h) => h.id == doctor.hospitalId,
             orElse: () => Hospital(id: '', name: 'Unknown', address: ''),
@@ -233,7 +232,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // (A) Search + Add
+              // Search + Add
               SearchAndAddRow(
                 searchLabel: 'Search Doctors',
                 searchIcon: Icons.search,
@@ -249,8 +248,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
               ),
               const SizedBox(height: 20),
 
-              // (B) The table
-              ResponsiveDataTable(
+              // Display the table
+              BetterDataTable(
                 columns: const [
                   DataColumn(label: Text('ID')),
                   DataColumn(label: Text('Name')),

@@ -5,30 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8929279c-6ac8-41e0-8cf3-bebdbc4fce1e" name="Changes" comment="added the admin_page">
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/components.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/confirmation_dialog.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/responsive_data_table.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/search_and_add_row.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/lib/shared/components/search_and_pending_row.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/doctor/doctor_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/doctor/doctor_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/doctor/navbar/doctor_drawer.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/hospital/hospital_drawer.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/hospital/hospital_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/hospital/hospital_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/appointments/appointments_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/appointments/appointments_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/devices/devices_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/devices/devices_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/manage_tickets_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/manage_tickets_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/notifications_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/notifications_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/superAdmin_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/superAdmin_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/tickets/tickets_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/tickets/tickets_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_doctors/view_doctors_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_doctors/view_doctors_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/hospital_details_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/hospital_details_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/services/static_data.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/services/static_data.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/view_hospitals_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/view_hospitals_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_patients/view_patients_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_patients/view_patients_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/shared/components/custom_drawer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/components/custom_drawer.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/theme/app_theme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/theme/app_theme.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/widgets/background.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/widgets/background.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/widgets/logo.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/widgets/logo.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/widgets/theme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/widgets/theme.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/components/responsive_data_table.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/components/responsive_data_table.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

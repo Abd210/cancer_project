@@ -8,9 +8,10 @@ import '../../../models/appointment.dart';
 import '../../../models/patient.dart';
 import '../../../models/doctor.dart';
 
-// New shared components
+// Shared components
 import '../../../shared/components/components.dart';
-
+// Using only BetterPaginatedDataTable reference? We actually use BetterDataTable:
+import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
 class AppointmentsPage extends StatefulWidget {
   const AppointmentsPage({Key? key}) : super(key: key);
@@ -36,7 +37,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Add Appointment'),
+        title: const Text('Add Appointment'),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -44,7 +45,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Select Doctor'),
+                  decoration: const InputDecoration(labelText: 'Select Doctor'),
                   items: doctors.map((Doctor d) {
                     return DropdownMenuItem<String>(
                       value: d.id,
@@ -55,7 +56,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                   onChanged: (value) => doctorId = value,
                 ),
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Select Patient'),
+                  decoration: const InputDecoration(labelText: 'Select Patient'),
                   items: patients.map((Patient p) {
                     return DropdownMenuItem<String>(
                       value: p.id,
@@ -65,18 +66,19 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                   validator: (value) => value == null ? 'Select patient' : null,
                   onChanged: (value) => patientId = value,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-                    Spacer(),
+                    const Spacer(),
                     TextButton(
                       onPressed: () async {
                         final picked = await showDatePicker(
                           context: ctx,
                           initialDate: selectedDate,
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(Duration(days: 365)),
+                          lastDate:
+                          DateTime.now().add(const Duration(days: 365)),
                         );
                         if (picked != null) {
                           setState(() {
@@ -84,7 +86,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           });
                         }
                       },
-                      child: Text('Select Date'),
+                      child: const Text('Select Date'),
                     ),
                   ],
                 ),
@@ -112,7 +114,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 Fluttertoast.showToast(msg: 'Appointment added successfully.');
               }
             },
-            child: Text('Add'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -134,7 +136,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Edit Appointment'),
+        title: const Text('Edit Appointment'),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -142,7 +144,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Select Doctor'),
+                  decoration: const InputDecoration(labelText: 'Select Doctor'),
                   value: doctorId,
                   items: doctors.map((Doctor d) {
                     return DropdownMenuItem<String>(
@@ -154,7 +156,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                   onChanged: (value) => doctorId = value,
                 ),
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Select Patient'),
+                  decoration: const InputDecoration(labelText: 'Select Patient'),
                   value: patientId,
                   items: patients.map((Patient p) {
                     return DropdownMenuItem<String>(
@@ -165,18 +167,19 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                   validator: (value) => value == null ? 'Select patient' : null,
                   onChanged: (value) => patientId = value,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-                    Spacer(),
+                    const Spacer(),
                     TextButton(
                       onPressed: () async {
                         final picked = await showDatePicker(
                           context: ctx,
                           initialDate: selectedDate,
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(Duration(days: 365)),
+                          lastDate:
+                          DateTime.now().add(const Duration(days: 365)),
                         );
                         if (picked != null) {
                           setState(() {
@@ -184,7 +187,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           });
                         }
                       },
-                      child: Text('Select Date'),
+                      child: const Text('Select Date'),
                     ),
                   ],
                 ),
@@ -208,10 +211,11 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 Provider.of<DataProvider>(context, listen: false)
                     .updateAppointment(updated);
                 Navigator.pop(ctx);
-                Fluttertoast.showToast(msg: 'Appointment updated successfully.');
+                Fluttertoast.showToast(
+                    msg: 'Appointment updated successfully.');
               }
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -251,32 +255,55 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         final rows = appointments.map((appt) {
           return DataRow(cells: [
             DataCell(Text(appt.id)),
-            DataCell(Text(
-              patients.firstWhere(
-                    (p) => p.id == appt.patientId,
-                orElse: () => Patient(id: 'unknown', name: 'Unknown', age: 0, diagnosis: '', doctorId: '', deviceId: ''),
-              ).name,
-            )),
-            DataCell(Text(
-              doctors.firstWhere(
-                    (d) => d.id == appt.doctorId,
-                orElse: () => Doctor(id: 'unknown', name: 'Unknown', specialization: '', hospitalId: ''),
-              ).name,
-            )),
+            DataCell(
+              Text(
+                patients
+                    .firstWhere(
+                      (p) => p.id == appt.patientId,
+                  orElse: () => Patient(
+                    id: 'unknown',
+                    name: 'Unknown',
+                    age: 0,
+                    diagnosis: '',
+                    doctorId: '',
+                    deviceId: '',
+                  ),
+                )
+                    .name,
+              ),
+            ),
+            DataCell(
+              Text(
+                doctors
+                    .firstWhere(
+                      (d) => d.id == appt.doctorId,
+                  orElse: () => Doctor(
+                    id: 'unknown',
+                    name: 'Unknown',
+                    specialization: '',
+                    hospitalId: '',
+                  ),
+                )
+                    .name,
+              ),
+            ),
             DataCell(Text(DateFormat('yyyy-MM-dd').format(appt.dateTime))),
             DataCell(Text(appt.status)),
-            DataCell(Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit, color: Colors.blue),
-                  onPressed: () => _showEditAppointmentDialog(ctx, appt, doctors, patients),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteAppointment(ctx, appt.id),
-                ),
-              ],
-            )),
+            DataCell(
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () =>
+                        _showEditAppointmentDialog(ctx, appt, doctors, patients),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _deleteAppointment(ctx, appt.id),
+                  ),
+                ],
+              ),
+            ),
           ]);
         }).toList();
 
@@ -284,7 +311,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // (A) Our new shared Search + Add row
+              // Our new shared Search + Add row
               SearchAndAddRow(
                 searchLabel: 'Search Appointments',
                 searchIcon: Icons.search,
@@ -293,13 +320,14 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 },
                 addButtonLabel: 'Add Appointment',
                 addButtonIcon: Icons.add,
-                onAddPressed: () => _showAddAppointmentDialog(ctx, doctors, patients),
+                onAddPressed: () =>
+                    _showAddAppointmentDialog(ctx, doctors, patients),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // (B) Our new responsive DataTable
-              ResponsiveDataTable(
-                columns: [
+              // Display the table using our new BetterDataTable
+              BetterDataTable(
+                columns: const [
                   DataColumn(label: Text('ID')),
                   DataColumn(label: Text('Patient')),
                   DataColumn(label: Text('Doctor')),

@@ -6,9 +6,9 @@ import '../../../providers/data_provider.dart';
 import '../../../models/device.dart';
 import '../../../models/patient.dart';
 
-// Our new shared components:
+// Shared components
 import '../../../shared/components/components.dart';
-
+import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({Key? key}) : super(key: key);
@@ -29,21 +29,22 @@ class _DevicesPageState extends State<DevicesPage> {
     showDialog(
       context: ctx,
       builder: (context) => AlertDialog(
-        title: Text('Add Device'),
+        title: const Text('Add Device'),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Device Type'),
+                  decoration: const InputDecoration(labelText: 'Device Type'),
                   validator: (val) =>
                   val == null || val.isEmpty ? 'Enter device type' : null,
                   onSaved: (val) => type = val ?? '',
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Assign to Patient'),
+                  decoration:
+                  const InputDecoration(labelText: 'Assign to Patient'),
                   items: allPatients.map((p) {
                     return DropdownMenuItem(
                       value: p.id,
@@ -67,12 +68,13 @@ class _DevicesPageState extends State<DevicesPage> {
                   type: type,
                   patientId: selectedPatientId ?? '',
                 );
-                Provider.of<DataProvider>(ctx, listen: false).addDevice(newDevice);
+                Provider.of<DataProvider>(ctx, listen: false)
+                    .addDevice(newDevice);
                 Navigator.pop(ctx);
                 Fluttertoast.showToast(msg: 'Device added successfully.');
               }
             },
-            child: Text('Add'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -80,7 +82,11 @@ class _DevicesPageState extends State<DevicesPage> {
   }
 
   // Edit Device
-  void _showEditDeviceDialog(BuildContext ctx, Device device, List<Patient> allPatients) {
+  void _showEditDeviceDialog(
+      BuildContext ctx,
+      Device device,
+      List<Patient> allPatients,
+      ) {
     final _formKey = GlobalKey<FormState>();
     String type = device.type;
     String? selectedPatientId = device.patientId;
@@ -88,7 +94,7 @@ class _DevicesPageState extends State<DevicesPage> {
     showDialog(
       context: ctx,
       builder: (context) => AlertDialog(
-        title: Text('Edit Device'),
+        title: const Text('Edit Device'),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -96,14 +102,15 @@ class _DevicesPageState extends State<DevicesPage> {
               children: [
                 TextFormField(
                   initialValue: type,
-                  decoration: InputDecoration(labelText: 'Device Type'),
+                  decoration: const InputDecoration(labelText: 'Device Type'),
                   validator: (val) =>
                   val == null || val.isEmpty ? 'Enter device type' : null,
                   onSaved: (val) => type = val ?? '',
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Assign to Patient'),
+                  decoration:
+                  const InputDecoration(labelText: 'Assign to Patient'),
                   value: selectedPatientId?.isEmpty ?? true
                       ? null
                       : selectedPatientId,
@@ -136,7 +143,7 @@ class _DevicesPageState extends State<DevicesPage> {
                 Fluttertoast.showToast(msg: 'Device updated successfully.');
               }
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -192,11 +199,11 @@ class _DevicesPageState extends State<DevicesPage> {
               Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.edit, color: Colors.blue),
+                    icon: const Icon(Icons.edit, color: Colors.blue),
                     onPressed: () => _showEditDeviceDialog(ctx, dev, allPatients),
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => _deleteDevice(ctx, dev.id),
                   ),
                 ],
@@ -209,7 +216,7 @@ class _DevicesPageState extends State<DevicesPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // (A) Reusable search + add
+              // Reusable search + add
               SearchAndAddRow(
                 searchLabel: 'Search Devices',
                 searchIcon: Icons.search,
@@ -222,11 +229,10 @@ class _DevicesPageState extends State<DevicesPage> {
                 addButtonIcon: Icons.add,
                 onAddPressed: () => _showAddDeviceDialog(ctx, allPatients),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // (B) Reusable data table
-              ResponsiveDataTable(
-                columns: [
+              BetterDataTable(
+                columns: const [
                   DataColumn(label: Text('ID')),
                   DataColumn(label: Text('Type')),
                   DataColumn(label: Text('Assigned To')),
