@@ -1,71 +1,215 @@
-// lib/shared/components/custom_drawer.dart
+//custom_drawer.dart
 import 'package:flutter/material.dart';
-import '../../shared/theme/app_theme.dart';
+import '../theme/app_theme.dart';
 
-class CustomDrawer extends StatelessWidget {
+/// Simple model for each nav item (icon + text)
+class SidebarItem {
+  final IconData icon;
+  final String label;
+
+  SidebarItem({required this.icon, required this.label});
+}
+
+class PersistentSidebar extends StatefulWidget {
+  final String headerTitle;            // e.g. "Super Admin", "Hospital Portal"
+  final List<SidebarItem> items;       // e.g. [SidebarItem(icon: Icons.person, label: "Doctors")]
+  final int selectedIndex;             // which item is currently active
   final Function(int) onMenuItemClicked;
-  final int selectedIndex;
 
-  const CustomDrawer({
-    required this.onMenuItemClicked,
-    required this.selectedIndex,
+  const PersistentSidebar({
     Key? key,
+    required this.headerTitle,
+    required this.items,
+    required this.selectedIndex,
+    required this.onMenuItemClicked,
   }) : super(key: key);
 
   @override
+  _PersistentSidebarState createState() => _PersistentSidebarState();
+}
+
+class _PersistentSidebarState extends State<PersistentSidebar>
+    with TickerProviderStateMixin {
+  late List<AnimationController> _controllers;
+  late List<Animation<double>> _animations;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Create an animation controller for each item
+    _controllers = List.generate(
+      widget.items.length,
+          (_) => AnimationController(
+        duration: const Duration(milliseconds: 300),
+        vsync: this,
+      ),
+    );
+
+    // Create a curved animation for each item
+    _animations = _controllers.map((controller) {
+      return CurvedAnimation(
+        parent: controller,
+        curve: Curves.easeIn,
+      );
+    }).toList();
+
+    // Forward ALL controllers so that every label is visible (no reversing)
+    for (final controller in _controllers) {
+      controller.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant PersistentSidebar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // We won't reverse the old selected item’s label,
+    // because we want *all* labels to remain visible.
+    //
+    // So we do nothing special here, or we can re-forward
+    // all controllers if you like. Typically, do nothing is enough.
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: Container(
-        color: AppTheme.primaryColor,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: AppTheme.accentColor,
-              ),
-              child: Center(
-                child: Text(
-                  'Super Admin',
-                  style: TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+    return Container(
+      width: 200,                       // fixed sidebar width
+      color: AppTheme.primaryColor,     // main background color
+      child: Column(
+        children: [
+          const SizedBox(height: 24),
+          _buildHeaderLogo(widget.headerTitle),
+          const SizedBox(height: 24),
+
+          // List of nav items
+          Expanded(
+            child: ListView.builder(
+              itemCount: widget.items.length,
+              itemBuilder: (context, index) {
+                final item = widget.items[index];
+                final isSelected = (index == widget.selectedIndex);
+
+                return GestureDetector(
+                  onTap: () => widget.onMenuItemClicked(index),
+                  child: _SidebarAnimatedItem(
+                    item: item,
+                    isSelected: isSelected,
+                    animation: _animations[index],
                   ),
-                ),
-              ),
+                );
+              },
             ),
-            _buildDrawerItem(Icons.local_hospital, 'Hospitals', 0),
-            _buildDrawerItem(Icons.person, 'Doctors', 1),
-            _buildDrawerItem(Icons.group, 'Patients', 2),
-            _buildDrawerItem(Icons.device_hub, 'Devices', 3),
-            _buildDrawerItem(Icons.event, 'Appointments', 4),
-            _buildDrawerItem(Icons.rocket, 'Tickets', 5),
-            Divider(color: Colors.white70),
-            _buildDrawerItem(Icons.logout, 'Logout', 6),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, int index) {
-    bool isSelected = selectedIndex == index;
-    return ListTile(
-      leading: Icon(icon, color: isSelected ? Colors.white : Colors.white70),
-      title: Text(
+  Widget _buildHeaderLogo(String title) {
+    // This replicates the circle + text at the top.
+    // If you want an icon or an image instead, customize here.
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppTheme.accentColor,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      alignment: Alignment.center,
+      child: Text(
         title,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.white70,
-          fontSize: 16,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
         ),
       ),
-      selected: isSelected,
-      selectedTileColor: AppTheme.accentColor,
-      onTap: () {
-        onMenuItemClicked(index);
-      },
+    );
+  }
+}
+
+/// This is just like the `_NavItem` in your `_PersistentNavbar`:
+/// Animated background, icon scale, plus we always show the label
+/// (fade/scale is set to 1.0 for unselected items).
+class _SidebarAnimatedItem extends StatelessWidget {
+  final SidebarItem item;
+  final bool isSelected;
+  final Animation<double> animation;
+
+  const _SidebarAnimatedItem({
+    Key? key,
+    required this.item,
+    required this.isSelected,
+    required this.animation,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? AppTheme.accentColor.withOpacity(0.2)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        border: isSelected
+            ? Border.all(color: AppTheme.accentColor, width: 2)
+            : Border.all(color: Colors.transparent),
+      ),
+      child: Row(
+        children: [
+          /// Icon container with animated size
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: isSelected ? 40 : 30,
+            height: isSelected ? 40 : 30,
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.accentColor : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              item.icon,
+              color: isSelected ? Colors.white : Colors.white70,
+              size: isSelected ? 24 : 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          /// We do a *conditional* fade/scale:
+          /// - If selected => use the animation
+          /// - If not selected => we want it to appear at 1.0
+          ///   so it's still visible.
+          FadeTransition(
+            opacity: isSelected ? animation : const AlwaysStoppedAnimation(1.0),
+            child: ScaleTransition(
+              scale: isSelected ? animation : const AlwaysStoppedAnimation(1.0),
+              child: Text(
+                item.label,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight:
+                  isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

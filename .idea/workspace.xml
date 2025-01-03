@@ -6,7 +6,16 @@
   <component name="ChangeListManager">
     <list default="true" id="8929279c-6ac8-41e0-8cf3-bebdbc4fce1e" name="Changes" comment="added the admin_page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/appointments/appointments_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/appointments/appointments_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/devices/devices_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/devices/devices_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/notifications_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/notifications/notifications_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/tickets/tickets_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/tickets/tickets_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_doctors/view_doctors_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_doctors/view_doctors_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/hospital_details_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/hospital_details_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/view_hospitals_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_hospitals/view_hospitals_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_patients/view_patients_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/pages/superadmin/view_patients/view_patients_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/components/custom_drawer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/components/custom_drawer.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/shared/components/responsive_data_table.dart" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/shared/components/responsive_data_table.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pubspec.yaml" afterDir="false" />
     </list>
@@ -60,6 +69,7 @@
       <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project\frontend\lib\shared\widgets" />
       <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project\frontend\lib\shared" />
       <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project\frontend\lib\models\a" />
       <recent name="C:\Users\Abdul\Documents\GitHub\cancer_project\frontend\Assets" />

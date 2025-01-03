@@ -237,7 +237,7 @@ Doctor? findDoctorByUsername(String username) {
     _appointments.removeWhere((a) => a.id == id);
     notifyListeners();
   }
-  
+
 
   // 6) Tickets
   List<Ticket> _tickets = StaticData.tickets;

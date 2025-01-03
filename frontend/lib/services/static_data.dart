@@ -36,7 +36,7 @@ class StaticData {
   );
 
   static List<Patient> patients = List.generate(
-    200,
+    50,
         (index) => Patient(
       id: 'p$index',
       name: 'Patient ${index + 1}',
@@ -48,7 +48,7 @@ class StaticData {
   );
 
   static List<Appointment> appointments = List.generate(
-    300,
+    50,
         (index) => Appointment(
       id: 'a$index',
       patientId: patients[index % patients.length].id,
@@ -59,7 +59,7 @@ class StaticData {
   );
 
   static List<Ticket> tickets = List.generate(
-    100,
+    50,
         (index) => Ticket(
       id: 't$index',
       requester: 'Requester ${index + 1}',

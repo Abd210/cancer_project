@@ -1,24 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:provider/provider.dart';
-
-import '../../providers/data_provider.dart';
+import '../../shared/components/custom_drawer.dart';
 import '../../shared/theme/app_theme.dart';
 import '../authentication/log_reg.dart';
 
-// These are the pages we created for the Hospital user
+
+// The pages for hospital user
 import 'doctors/hospital_doctors_page.dart';
 import 'patients/hospital_patients_page.dart';
 import 'devices/hospital_devices_page.dart';
 import 'appointments/hospital_appointments_page.dart';
 
-// This is a custom drawer just for the hospital user
-import 'hospital_drawer.dart';
-
 class HospitalPage extends StatefulWidget {
   final String hospitalId;
-
-  /// Pass the hospitalId (e.g. “h0”) after the user logs in
   const HospitalPage({Key? key, required this.hospitalId}) : super(key: key);
 
   @override
@@ -29,12 +23,17 @@ class _HospitalPageState extends State<HospitalPage> {
   int _selectedIndex = 0;
 
   late final List<Widget> _pages;
+  final List<SidebarItem> _hospitalItems = [
+    SidebarItem(icon: Icons.person, label: 'Doctors'),
+    SidebarItem(icon: Icons.group, label: 'Patients'),
+    SidebarItem(icon: Icons.device_hub, label: 'Devices'),
+    SidebarItem(icon: Icons.event, label: 'Appointments'),
+    SidebarItem(icon: Icons.logout, label: 'Logout'),
+  ];
 
   @override
   void initState() {
     super.initState();
-    
-    // Initialize each tab/page with a reference to this hospital
     _pages = [
       HospitalDoctorsPage(hospitalId: widget.hospitalId),
       HospitalPatientsPage(hospitalId: widget.hospitalId),
@@ -43,10 +42,9 @@ class _HospitalPageState extends State<HospitalPage> {
     ];
   }
 
-  /// Called when a menu item is tapped in the hospital drawer
   void _onMenuItemClicked(int index) {
     if (index == 4) {
-      // Index 4 => Logout
+      // Logout
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LogIn()),
@@ -57,34 +55,39 @@ class _HospitalPageState extends State<HospitalPage> {
     setState(() {
       _selectedIndex = index;
     });
-    Navigator.pop(context); // Close the drawer
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // A custom drawer for hospital-level navigation
-      drawer: HospitalDrawer(
-        onMenuItemClicked: _onMenuItemClicked,
-        selectedIndex: _selectedIndex,
-      ),
-      appBar: AppBar(
-        title: Text('Hospital Dashboard'),
-        backgroundColor: AppTheme.primaryColor,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(AppTheme.backgroundImage),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Colors.white.withOpacity(0.8),
-              BlendMode.dstATop,
+      // We remove drawer:. Instead, make a fixed sidebar:
+      body: Row(
+        children: [
+          // 1) Our universal sidebar for hospital
+          PersistentSidebar(
+            headerTitle: 'Hospital Portal',
+            items: _hospitalItems,
+            selectedIndex: _selectedIndex,
+            onMenuItemClicked: _onMenuItemClicked,
+          ),
+
+          // 2) Main content area
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(AppTheme.backgroundImage),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.white.withOpacity(0.8),
+                    BlendMode.dstATop,
+                  ),
+                ),
+              ),
+              child: _pages[_selectedIndex],
             ),
           ),
-        ),
-        // Show the selected page
-        child: _pages[_selectedIndex],
+        ],
       ),
     );
   }

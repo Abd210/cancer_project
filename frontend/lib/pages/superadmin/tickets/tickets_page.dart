@@ -1,11 +1,12 @@
-// lib/pages/superadmin/tickets/tickets_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/data_provider.dart';
-import '../../../models/ticket.dart';
-import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+
+import '../../../providers/data_provider.dart';
+import '../../../models/ticket.dart';
+import '../../../shared/components/components.dart';
+import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
 class TicketsPage extends StatefulWidget {
   const TicketsPage({Key? key}) : super(key: key);
@@ -22,19 +23,19 @@ class _TicketsPageState extends State<TicketsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Ticket Details'),
+        title: const Text('Ticket Details'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Requester: ${ticket.requester}'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text('Type: ${ticket.requestType}'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text('Description: ${ticket.description}'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text('Date: ${DateFormat('yyyy-MM-dd').format(ticket.date)}'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text('Status: ${ticket.isApproved ? "Approved" : "Pending"}'),
           ],
         ),
@@ -42,24 +43,26 @@ class _TicketsPageState extends State<TicketsPage> {
           if (!ticket.isApproved)
             TextButton(
               onPressed: () {
-                Provider.of<DataProvider>(context, listen: false).approveTicket(ticket.id);
+                Provider.of<DataProvider>(context, listen: false)
+                    .approveTicket(ticket.id);
                 Navigator.pop(context);
                 Fluttertoast.showToast(msg: 'Ticket approved.');
               },
-              child: Text('Approve', style: TextStyle(color: Colors.green)),
+              child: const Text('Approve', style: TextStyle(color: Colors.green)),
             ),
           if (!ticket.isApproved)
             TextButton(
               onPressed: () {
-                Provider.of<DataProvider>(context, listen: false).rejectTicket(ticket.id);
+                Provider.of<DataProvider>(context, listen: false)
+                    .rejectTicket(ticket.id);
                 Navigator.pop(context);
                 Fluttertoast.showToast(msg: 'Ticket rejected.');
               },
-              child: Text('Reject', style: TextStyle(color: Colors.red)),
+              child: const Text('Reject', style: TextStyle(color: Colors.red)),
             ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -76,87 +79,90 @@ class _TicketsPageState extends State<TicketsPage> {
   Widget build(BuildContext context) {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
+        // Filter tickets by query + showOnlyPending
         List<Ticket> tickets = dataProvider.tickets
             .where((t) =>
         t.requester.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            t.requestType.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            t.description.toLowerCase().contains(_searchQuery.toLowerCase()))
+            t.requestType
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) ||
+            t.description
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()))
             .where((t) => !_showOnlyPending || !t.isApproved)
             .toList();
+
+        // Convert tickets to DataRow
+        final rows = tickets.map((ticket) {
+          return DataRow(
+            cells: [
+              DataCell(Text(ticket.id)),
+              DataCell(Text(ticket.requester)),
+              DataCell(Text(ticket.requestType)),
+              DataCell(Text(ticket.description)),
+              DataCell(Text(DateFormat('yyyy-MM-dd').format(ticket.date))),
+              DataCell(Text(ticket.isApproved ? 'Approved' : 'Pending')),
+              DataCell(
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!ticket.isApproved)
+                      IconButton(
+                        icon: const Icon(Icons.check, color: Colors.green),
+                        onPressed: () {
+                          dataProvider.approveTicket(ticket.id);
+                          Fluttertoast.showToast(msg: 'Ticket approved.');
+                        },
+                      ),
+                    if (!ticket.isApproved)
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        onPressed: () {
+                          dataProvider.rejectTicket(ticket.id);
+                          Fluttertoast.showToast(msg: 'Ticket rejected.');
+                        },
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.info, color: Colors.blueGrey),
+                      onPressed: () => _showTicketDetails(context, ticket),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }).toList();
 
         return Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Search and Toggle Pending
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Search Tickets',
-                        prefixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _showOnlyPending,
-                        onChanged: _toggleShowOnlyPending,
-                        activeColor: Theme.of(context).primaryColor,
-                      ),
-                      Text('Show Only Pending'),
-                    ],
-                  ),
-                ],
+              // Our new search + pending row
+              SearchAndPendingRow(
+                searchLabel: 'Search Tickets',
+                onSearchChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                showOnlyPending: _showOnlyPending,
+                onTogglePending: _toggleShowOnlyPending,
               ),
-              SizedBox(height: 20),
-              // Tickets DataTable with Actions
+              const SizedBox(height: 20),
+
+              // Display the table
               Expanded(
-                child: ListView.builder(
-                  itemCount: tickets.length,
-                  itemBuilder: (context, index) {
-                    final Ticket ticket = tickets[index];
-                    return Card(
-                      elevation: 3,
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        title: Text(ticket.requestType),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Requester: ${ticket.requester}'),
-                            Text('Description: ${ticket.description}'),
-                            Text('Date: ${DateFormat('yyyy-MM-dd').format(ticket.date)}'),
-                          ],
-                        ),
-                        trailing: _showOnlyPending
-                            ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.check, color: Colors.green),
-                              onPressed: () => dataProvider.approveTicket(ticket.id),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.close, color: Colors.red),
-                              onPressed: () => dataProvider.rejectTicket(ticket.id),
-                            ),
-                          ],
-                        )
-                            : null,
-                        onTap: () => _showTicketDetails(context, ticket),
-                      ),
-                    );
-                  },
+                child: BetterDataTable(
+                  columns: const [
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Requester')),
+                    DataColumn(label: Text('Type')),
+                    DataColumn(label: Text('Description')),
+                    DataColumn(label: Text('Date')),
+                    DataColumn(label: Text('Status')),
+                    DataColumn(label: Text('Actions')),
+                  ],
+                  rows: rows,
                 ),
               ),
             ],

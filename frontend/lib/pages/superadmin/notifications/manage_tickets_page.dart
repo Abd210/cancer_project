@@ -4,6 +4,9 @@ import '../../../providers/data_provider.dart';
 import '../../../models/ticket.dart';
 import 'package:intl/intl.dart';
 
+// Import the new shared widget
+import '../../../shared/components/components.dart';
+
 class ManageTicketsPage extends StatefulWidget {
   const ManageTicketsPage({Key? key}) : super(key: key);
 
@@ -19,7 +22,8 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
   Widget build(BuildContext context) {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
-        List<Ticket> tickets = dataProvider.tickets
+        // Filter tickets by search query + pending
+        final List<Ticket> tickets = dataProvider.tickets
             .where((t) =>
         t.requester.toLowerCase().contains(_searchQuery.toLowerCase()) ||
             t.requestType.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -31,42 +35,24 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Search and Toggle
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Search Tickets',
-                        prefixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _showOnlyPending,
-                        onChanged: (value) {
-                          setState(() {
-                            _showOnlyPending = value!;
-                          });
-                        },
-                        activeColor: Theme.of(context).primaryColor,
-                      ),
-                      Text('Show Only Pending'),
-                    ],
-                  ),
-                ],
+              // (A) Our reusable "SearchAndPendingRow"
+              SearchAndPendingRow(
+                searchLabel: 'Search Tickets',
+                onSearchChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                showOnlyPending: _showOnlyPending,
+                onTogglePending: (value) {
+                  setState(() {
+                    _showOnlyPending = value ?? false;
+                  });
+                },
               ),
-              SizedBox(height: 20),
-              // Tickets List
+              const SizedBox(height: 20),
+
+              // (B) The tickets list
               Expanded(
                 child: ListView.builder(
                   itemCount: tickets.length,
