@@ -16,7 +16,12 @@ A Platform for the study and detection of breast cancer
 - Specialized devices for studying tumors are worn by patients. These devices transmit raw data to a remote server where it will be processed, afterwards it can be retrieved by doctors or patients and displayed in auto-generated graphics and statistics.
 
 ## Updates Log
-03/01/2025
+### 03/01/2025
 
-- Implemented the routes, controllers, and services necessary for registering, deleting, updating, suspending or fetching data from the DB and created http request examples in Postman, that can be used by the superadmin 
-![superadmin example http requests in postman](update_pics/Superadmins_routes_Postman.png)
+- Implemented the routes, controllers, and services necessary for registering, deleting, updating, suspending or fetching data from the DB and created http request examples in Postman, that can be used by the superadmin  
+![superadmin example http requests in postman](updates_pics/Superadmins_routes_Postman.png)
+
+- We changed the navbar from a popout to a persistent navbar and we orginzaed the stuctre more and added animation  
+Before: ![popout navbar](updates_pics/poput_navbar)
+
+After: ![persistent navbar](updates_pics/persistent_navbar)
