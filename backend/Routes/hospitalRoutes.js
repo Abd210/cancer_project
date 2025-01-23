@@ -31,6 +31,20 @@ router.post(
   hospitalController.register
 );
 
+router.get(
+  "/hospital/data",
+  authenticate, // Middleware to ensure the user is authenticated
+  authorize("superadmin"), // Middleware to ensure only superadmins can access this
+  hospitalController.getHospitalData // Controller method to handle the request
+);
+
+router.put(
+  "/hospital/data/update", // Endpoint
+  authenticate, // Middleware to ensure the user is authenticated
+  authorize("superadmin"), // Middleware to ensure only superadmins can access this
+  hospitalController.updateHospitalData // Controller function to handle the request
+);
+
 router.delete(
   "/hospital/delete",
   authenticate, // Middleware to ensure the user is authenticated

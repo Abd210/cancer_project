@@ -1,4 +1,5 @@
 const HospitalService = require("../../Services/hospitalService");
+const SuspendController = require("../suspendController");
 
 /**
  * HospitalController handles the operations related to managing hospitals in the system.
@@ -52,6 +53,95 @@ class HospitalController {
       res
         .status(500)
         .json({ error: `HospitalController-Register: ${error.message}` });
+    }
+  }
+
+  static async getHospitalData(req, res) {
+    try {
+      // Destructure user, and role from the request headers
+      const { user, hospitalid, filter } = req.headers;
+
+      // Check if the hospitalid is provided in the headers, return error if missing
+      if (!hospitalid && !filter) {
+        return res.status(400).json({
+          error: "HospitalController- Get Hospital Data: hospitalid or filter must be provided", // Specific error for missing hospitalid
+        });
+      }
+
+      // Ensure that only admins and the superadmin can access hospital data
+      if (user.role === "doctor" || user.role === "patient") {
+        return res.status(403).json({
+          error: "HospitalController- Get Hospital Data: Unauthorized", // Unauthorized access error
+        });
+      } else if (user.role === "superadmin") { // Ensure that only superadmin can access the data of all hospitals
+        // If the user is a superadmin
+        if (!hospitalid) {
+          // Retrieve all hospitals' data if no hospitalid is provided
+          const allHospitals = await HospitalService.findAllHospitals();
+
+          const filtered_data = await SuspendController.filterData(allHospitals, user.role, filter);
+          return res.status(200).json(filtered_data); // Return all hospital data
+        }
+      }
+
+      //Admin or Superadmin can access specific hospital data
+      let hospital_id = hospitalid;
+
+      console.log("HospitalController- Get Hospital Data: Fetching hospital data");
+      // Call the HospitalService to find the hospital data based on the _id
+      const hospital_data = await HospitalService.getHospitalData(hospital_id);
+
+      // Check if the hospital data exists
+      if (!hospital_data) {
+        return res.status(404).json({ error: "Hospital not found" });
+      }
+
+      // Return the fetched hospital data with a 200 status code
+      res.status(200).json(hospital_data);
+    } catch (fetchHospitalDataError) {
+      // Catch any errors during the data fetching process and return a 500 status with the error message
+      res.status(500).json({ error: fetchHospitalDataError.message });
+    }
+  }
+
+  static async updateHospitalData(req, res) {
+    try {
+      const { user, hospitalid } = req.headers;
+
+      // Destructure the fields to update from the request body
+      const updateFields = req.body;
+
+      // Validate if hospitalId is provided
+      if (!hospitalid) {
+        return res.status(400).json({
+          error: "HospitalController-update hospital: Missing hospitalId",
+        });
+      }
+  
+      // Validate if updateFields are provided
+      if (!updateFields || Object.keys(updateFields).length === 0) {
+        return res.status(400).json({
+          error: "HospitalController-update hospital: No fields provided to update",
+        });
+      }
+  
+      // Call the HospitalService to perform the update
+      const updatedHospital = await HospitalService.updateHospital(hospitalid, updateFields, user);
+  
+      // Check if the hospital was found and updated
+      if (!updatedHospital) {
+        return res.status(404).json({
+          error: "HospitalController- Update Hospital Data: Hospital not found",
+        });
+      }
+  
+      // Respond with the updated hospital data
+      return res.status(200).json(updatedHospital);
+    } catch (updateHospitalError) {
+      // Catch and return errors
+      return res.status(500).json({
+        error: `HospitalController-update hospital: ${updateHospitalError.message}`,
+      });
     }
   }
 
