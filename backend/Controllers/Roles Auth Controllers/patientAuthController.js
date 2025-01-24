@@ -33,6 +33,7 @@ class PatientAuthController {
         birth_date,
         medicalHistory,
         hospital_id,
+        suspended,
       } = req.body;
 
       // Check for required fields for Patient
@@ -74,6 +75,7 @@ class PatientAuthController {
         birth_date,
         medicalHistory,
         hospital: hospital_id,
+        suspended
       });
 
       // Return the result of the registration
