@@ -6,10 +6,9 @@ import 'package:frontend/shared/theme/app_theme.dart';
 import 'package:frontend/shared/widgets/logo_bar.dart';
 import 'package:frontend/pages/authentication/log_reg.dart';
 
-// Import your single SidebarItem & PersistentSidebar from custom_drawer.dart
 import 'package:frontend/shared/components/custom_drawer.dart';
 
-// The sub-pages under SuperAdmin
+// Import these pages
 import 'view_hospitals/view_hospitals_page.dart';
 import 'view_doctors/view_doctors_page.dart';
 import 'view_patients/view_patients_page.dart';
@@ -28,8 +27,6 @@ class SuperAdminDashboard extends StatefulWidget {
 class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
   int _selectedIndex = 0;
 
-  late final List<Widget> _pages;
-
   // The sidebar items
   final List<SidebarItem> _adminItems = [
     SidebarItem(icon: Icons.local_hospital, label: 'Hospitals'),
@@ -40,20 +37,6 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
     SidebarItem(icon: Icons.rocket, label: 'Tickets'),
     SidebarItem(icon: Icons.logout, label: 'Logout'),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    // Pass the token to your hospitals page if it needs to fetch data from server
-    _pages = [
-      HospitalsPage(token: widget.token),
-      const DoctorsPage(),
-      const PatientsPage(),
-      const DevicesPage(),
-      const AppointmentsPage(),
-      const TicketsPage(),
-    ];
-  }
 
   void _onMenuItemClicked(int index) {
     // If logout
@@ -70,6 +53,16 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    // Rebuild your pages every time build() is called
+    final pages = [
+      HospitalsPage(token: widget.token), // 0
+      const DoctorsPage(),                // 1
+      const PatientsPage(),               // 2
+      const DevicesPage(),                // 3
+      const AppointmentsPage(),           // 4
+      const TicketsPage(),                // 5
+    ];
+
     return Scaffold(
       body: Row(
         children: [
@@ -99,7 +92,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                         ),
                       ),
                     ),
-                    child: _pages[_selectedIndex],
+                    child: pages[_selectedIndex],
                   ),
                 ),
               ],

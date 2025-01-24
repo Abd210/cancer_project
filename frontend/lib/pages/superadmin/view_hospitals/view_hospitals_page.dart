@@ -33,6 +33,7 @@ class _HospitalsPageState extends State<HospitalsPage>
 
   late TabController _tabController;
 
+  // Optional placeholders if you need them for searching within tabs, etc.
   String _searchQueryPatients = '';
   String _searchQueryDoctors = '';
   String _searchQueryAppointments = '';
@@ -42,11 +43,10 @@ class _HospitalsPageState extends State<HospitalsPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-
-    // fetch from server
     _fetchHospitals();
   }
 
+  /// Fetches hospitals from backend
   Future<void> _fetchHospitals() async {
     setState(() => _isLoading = true);
     try {
@@ -66,7 +66,7 @@ class _HospitalsPageState extends State<HospitalsPage>
     }
   }
 
-  // CREATE
+  /// Opens a dialog to create a new hospital
   void _showAddHospitalDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
 
@@ -85,27 +85,32 @@ class _HospitalsPageState extends State<HospitalsPage>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Hospital Name
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Hospital Name'),
                   validator: (value) =>
                       (value == null || value.isEmpty) ? 'Enter name' : null,
-                  onSaved: (value) => name = value!,
+                  onSaved: (value) => name = value!.trim(),
                 ),
+                // Address
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Address'),
                   validator: (value) =>
                       (value == null || value.isEmpty) ? 'Enter address' : null,
-                  onSaved: (value) => address = value!,
+                  onSaved: (value) => address = value!.trim(),
                 ),
+                // Mobile Numbers
                 TextFormField(
                   decoration: const InputDecoration(
                     labelText: 'Mobile Numbers (comma-separated)',
                   ),
                   onSaved: (value) => mobileNumbers = value ?? '',
                 ),
+                // Emails
                 TextFormField(
-                  decoration:
-                      const InputDecoration(labelText: 'Emails (comma-separated)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Emails (comma-separated)',
+                  ),
                   onSaved: (value) => emails = value ?? '',
                 ),
               ],
@@ -117,6 +122,8 @@ class _HospitalsPageState extends State<HospitalsPage>
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 formKey.currentState!.save();
+
+                // Close the dialog
                 Navigator.pop(context);
 
                 final mobileList = mobileNumbers
@@ -139,8 +146,10 @@ class _HospitalsPageState extends State<HospitalsPage>
                     mobileNumbers: mobileList,
                     emails: emailList,
                   );
-                  // Refresh from server so new hospital shows up immediately
+
+                  // Automatically refresh list so newly-created hospital is visible immediately
                   await _fetchHospitals();
+
                   Fluttertoast.showToast(msg: 'Hospital added successfully.');
                 } catch (e) {
                   Fluttertoast.showToast(msg: 'Failed to add hospital: $e');
@@ -156,7 +165,7 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
-  // UPDATE
+  /// Opens dialog to edit an existing hospital
   void _showEditHospitalDialog(BuildContext context, HospitalData hospital) {
     final formKey = GlobalKey<FormState>();
 
@@ -165,7 +174,6 @@ class _HospitalsPageState extends State<HospitalsPage>
     String address = hospital.address;
     bool isSuspended = hospital.isSuspended;
 
-    // Convert existing lists to comma-separated strings
     String mobileNumbers = hospital.mobileNumbers.join(', ');
     String emails = hospital.emails.join(', ');
 
@@ -184,16 +192,15 @@ class _HospitalsPageState extends State<HospitalsPage>
                   decoration: const InputDecoration(labelText: 'Hospital Name'),
                   validator: (value) =>
                       (value == null || value.isEmpty) ? 'Enter name' : null,
-                  onSaved: (value) => name = value!,
+                  onSaved: (value) => name = value!.trim(),
                 ),
                 TextFormField(
                   initialValue: address,
                   decoration: const InputDecoration(labelText: 'Address'),
                   validator: (value) =>
                       (value == null || value.isEmpty) ? 'Enter address' : null,
-                  onSaved: (value) => address = value!,
+                  onSaved: (value) => address = value!.trim(),
                 ),
-                // Mobile
                 TextFormField(
                   initialValue: mobileNumbers,
                   decoration: const InputDecoration(
@@ -201,7 +208,6 @@ class _HospitalsPageState extends State<HospitalsPage>
                   ),
                   onSaved: (value) => mobileNumbers = value ?? '',
                 ),
-                // Emails
                 TextFormField(
                   initialValue: emails,
                   decoration: const InputDecoration(
@@ -260,7 +266,6 @@ class _HospitalsPageState extends State<HospitalsPage>
                     hospitalId: hospital.id,
                     updatedFields: updatedFields,
                   );
-                  // Re-fetch to see the changes
                   await _fetchHospitals();
                   Fluttertoast.showToast(msg: 'Hospital updated successfully.');
                 } catch (e) {
@@ -277,7 +282,7 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
-  // DELETE
+  /// Delete a hospital
   void _deleteHospital(BuildContext context, String id) {
     showDialog(
       context: context,
@@ -316,28 +321,26 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
-  /// Build Patients Section
+  /// (Optional) Sub-pages for the selected hospital details
   Widget _buildPatientsSection() {
     return const Center(child: Text('No patient data integrated yet.'));
   }
 
-  /// Build Doctors Section
   Widget _buildDoctorsSection() {
     return const Center(child: Text('No doctors data integrated yet.'));
   }
 
-  /// Build Appointments Section
   Widget _buildAppointmentsSection() {
     return const Center(child: Text('No appointments data integrated yet.'));
   }
 
-  /// Build Devices Section
   Widget _buildDevicesSection() {
     return const Center(child: Text('No devices data integrated yet.'));
   }
 
   @override
   Widget build(BuildContext context) {
+    // Loading spinner if needed
     if (_isLoading) {
       return const LoadingIndicator();
     }
@@ -384,7 +387,7 @@ class _HospitalsPageState extends State<HospitalsPage>
       );
     }
 
-    // Otherwise => show the hospital list
+    // Otherwise => show the main hospital list
     final filteredHospitals = _hospitalList.where((h) {
       final q = _searchQuery.toLowerCase();
       return h.name.toLowerCase().contains(q) ||
@@ -396,10 +399,10 @@ class _HospitalsPageState extends State<HospitalsPage>
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Filter row
+            // 1) Row with filter, search, Add button, and now a Refresh button
             Row(
               children: [
-                // Suspended/Unsuspended dropdown
+                // Suspended/Unsuspended filter dropdown
                 Container(
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -429,6 +432,7 @@ class _HospitalsPageState extends State<HospitalsPage>
                     ],
                   ),
                 ),
+
                 // Search bar
                 Expanded(
                   child: TextField(
@@ -444,18 +448,30 @@ class _HospitalsPageState extends State<HospitalsPage>
                     },
                   ),
                 ),
+
                 const SizedBox(width: 10),
-                // Add button
+
+                // Add Hospital button
                 ElevatedButton.icon(
                   onPressed: () => _showAddHospitalDialog(context),
                   icon: const Icon(Icons.add),
                   label: const Text('Add Hospital'),
                 ),
+
+                const SizedBox(width: 10),
+
+                // REFRESH button => calls _fetchHospitals() like re-tapping the Hospitals tab
+                ElevatedButton.icon(
+                  onPressed: _fetchHospitals, // Just call the same method
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Refresh'),
+                ),
               ],
             ),
+
             const SizedBox(height: 20),
 
-            // Hospital list
+            // 2) Hospital list
             Expanded(
               child: filteredHospitals.isEmpty
                   ? const Center(child: Text('No hospitals found.'))
@@ -488,19 +504,21 @@ class _HospitalsPageState extends State<HospitalsPage>
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                // Edit
                                 IconButton(
                                   icon: const Icon(Icons.edit, color: Colors.blue),
                                   onPressed: () =>
                                       _showEditHospitalDialog(context, hospital),
                                 ),
+                                // Delete
                                 IconButton(
-                                  icon:
-                                      const Icon(Icons.delete, color: Colors.red),
+                                  icon: const Icon(Icons.delete, color: Colors.red),
                                   onPressed: () =>
                                       _deleteHospital(context, hospital.id),
                                 ),
                               ],
                             ),
+                            // Tap to see detailed tabs
                             onTap: () {
                               setState(() => _selectedHospital = hospital);
                             },
