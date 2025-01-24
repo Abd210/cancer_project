@@ -30,6 +30,7 @@ class DoctorAuthController {
         licenses,
         description,
         hospital,
+        suspended,
       } = req.body;
 
       // Check for required fields for Doctor registration
@@ -66,6 +67,7 @@ class DoctorAuthController {
         licenses,
         description,
         hospital,
+        suspended
       });
 
       // Return the result of the registration
