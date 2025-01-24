@@ -14,7 +14,7 @@ import '../../../shared/components/components.dart';
 import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
 class AppointmentsPage extends StatefulWidget {
-  const AppointmentsPage({Key? key}) : super(key: key);
+  const AppointmentsPage({super.key});
 
   @override
   _AppointmentsPageState createState() => _AppointmentsPageState();
@@ -29,7 +29,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       List<Doctor> doctors,
       List<Patient> patients,
       ) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String? patientId;
     String? doctorId;
     DateTime selectedDate = DateTime.now();
@@ -39,7 +39,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Add Appointment'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -97,10 +97,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate() &&
+              if (formKey.currentState!.validate() &&
                   patientId != null &&
                   doctorId != null) {
-                _formKey.currentState!.save();
+                formKey.currentState!.save();
                 final newAppt = Appointment(
                   id: 'a${DateTime.now().millisecondsSinceEpoch}',
                   patientId: patientId!,
@@ -128,7 +128,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       List<Doctor> doctors,
       List<Patient> patients,
       ) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String? patientId = appt.patientId;
     String? doctorId = appt.doctorId;
     DateTime selectedDate = appt.dateTime;
@@ -138,7 +138,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Edit Appointment'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -198,7 +198,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate() &&
+              if (formKey.currentState!.validate() &&
                   patientId != null &&
                   doctorId != null) {
                 final updated = Appointment(

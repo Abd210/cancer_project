@@ -5,7 +5,7 @@ import '../../../models/appointment.dart';
 class DoctorNotificationsPage extends StatelessWidget {
   final String doctorId;
 
-  const DoctorNotificationsPage({Key? key, required this.doctorId}) : super(key: key);
+  const DoctorNotificationsPage({super.key, required this.doctorId});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class DoctorNotificationsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifications'),
+        title: const Text('Notifications'),
       ),
       body: ListView.builder(
         itemCount: dataProvider.notifications.length,
@@ -29,7 +29,7 @@ class DoctorNotificationsPage extends StatelessWidget {
                 children: [
                   // Approve button
                   IconButton(
-                    icon: Icon(Icons.check, color: Colors.green),
+                    icon: const Icon(Icons.check, color: Colors.green),
                         onPressed: () {
                         final appointment = Appointment(
                           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -44,7 +44,7 @@ class DoctorNotificationsPage extends StatelessWidget {
                   ),
                   // Reject button
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.red),
+                    icon: const Icon(Icons.close, color: Colors.red),
                     onPressed: () {
                       dataProvider.rejectAppointmentRequest(notification.id);
                     },

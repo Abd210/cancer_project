@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/shared/widgets/logo_bar.dart'; // Update with your actual import path
 
 class PatientPage extends StatefulWidget {
+  const PatientPage({super.key});
+
   @override
   _PatientPageState createState() => _PatientPageState();
 }
@@ -12,7 +14,7 @@ class _PatientPageState extends State<PatientPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
+      appBar: const PreferredSize(
         preferredSize: Size.fromHeight(60),
         child: LogoLine(), // Using the shared LogoLine widget
       ),
@@ -20,7 +22,7 @@ class _PatientPageState extends State<PatientPage> {
         children: [
           // Pink Navigation Row directly below the logo row
           Container(
-            color: Color.fromARGB(255, 218, 73, 143),
+            color: const Color.fromARGB(255, 218, 73, 143),
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -29,9 +31,9 @@ class _PatientPageState extends State<PatientPage> {
                 Row(
                   children: [
                     _buildNavItem(Icons.account_circle, 'Account', 0),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     _buildNavItem(Icons.notifications, 'Notifications', 1),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     _buildNavItem(Icons.assignment, 'Results', 2),
                   ],
                 ),
@@ -42,19 +44,19 @@ class _PatientPageState extends State<PatientPage> {
                       onPressed: () {
                         // Handle request for modification 1
                       },
-                      icon: Icon(Icons.edit, color: Colors.white),
+                      icon: const Icon(Icons.edit, color: Colors.white),
                     ),
                     IconButton(
                       onPressed: () {
                         // Handle request for modification 2
                       },
-                      icon: Icon(Icons.feedback, color: Colors.white),
+                      icon: const Icon(Icons.feedback, color: Colors.white),
                     ),
                     IconButton(
                       onPressed: () {
                         // Handle request for modification 3
                       },
-                      icon: Icon(Icons.more_vert, color: Colors.white),
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
                     ),
                   ],
                 ),
@@ -78,7 +80,7 @@ class _PatientPageState extends State<PatientPage> {
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.2),
                             blurRadius: 5,
-                            offset: Offset(0, 3),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
@@ -88,15 +90,15 @@ class _PatientPageState extends State<PatientPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Patient Profile Picture and Name
-                            Column(
+                            const Column(
                               children: [
                                 CircleAvatar(
                                   radius: 40,
                                   backgroundImage:
                                       AssetImage('assets/images/patient_image.png'), // Replace with actual path
                                 ),
-                                const SizedBox(height: 10),
-                                const Text(
+                                SizedBox(height: 10),
+                                Text(
                                   'Abbey Carter',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -186,7 +188,7 @@ class _PatientPageState extends State<PatientPage> {
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.2),
                             blurRadius: 5,
-                            offset: Offset(0, 3),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
@@ -196,9 +198,9 @@ class _PatientPageState extends State<PatientPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             _buildDeviceInfoItem('Device ID', '102567'),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
                             _buildDeviceInfoItem('MAC ID', '3324'),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
                             _buildDeviceInfoItem('Status', 'ON'),
                           ],
                         ),
@@ -228,7 +230,7 @@ class _PatientPageState extends State<PatientPage> {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? Color.fromARGB(255, 255, 200, 230) // Light pink background
+              ? const Color.fromARGB(255, 255, 200, 230) // Light pink background
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
@@ -237,7 +239,7 @@ class _PatientPageState extends State<PatientPage> {
             Icon(
               icon,
               color: isSelected
-                  ? Color.fromARGB(255, 218, 73, 143) // Pink icon when selected
+                  ? const Color.fromARGB(255, 218, 73, 143) // Pink icon when selected
                   : Colors.white,
               size: 20,
             ),
@@ -246,7 +248,7 @@ class _PatientPageState extends State<PatientPage> {
               label,
               style: TextStyle(
                 color: isSelected
-                    ? Color.fromARGB(255, 218, 73, 143)
+                    ? const Color.fromARGB(255, 218, 73, 143)
                     : Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -263,7 +265,7 @@ class _PatientPageState extends State<PatientPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Color.fromARGB(255, 218, 73, 143), size: 20),
+        Icon(icon, color: const Color.fromARGB(255, 218, 73, 143), size: 20),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -271,14 +273,14 @@ class _PatientPageState extends State<PatientPage> {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
               ),
               Text(
                 value,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -297,7 +299,7 @@ class _PatientPageState extends State<PatientPage> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: Colors.grey,
@@ -306,7 +308,7 @@ class _PatientPageState extends State<PatientPage> {
         const SizedBox(height: 5),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: Color.fromARGB(255, 218, 73, 143),

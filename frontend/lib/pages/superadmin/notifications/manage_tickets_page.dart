@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import '../../../shared/components/components.dart';
 
 class ManageTicketsPage extends StatefulWidget {
-  const ManageTicketsPage({Key? key}) : super(key: key);
+  const ManageTicketsPage({super.key});
 
   @override
   _ManageTicketsPageState createState() => _ManageTicketsPageState();
@@ -60,7 +60,7 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
                     final Ticket ticket = tickets[index];
                     return Card(
                       elevation: 3,
-                      margin: EdgeInsets.symmetric(vertical: 8),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
                         title: Text(ticket.requestType),
                         subtitle: Column(
@@ -76,20 +76,20 @@ class _ManageTicketsPageState extends State<ManageTicketsPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.check, color: Colors.green),
+                              icon: const Icon(Icons.check, color: Colors.green),
                               onPressed: () {
                                 dataProvider.approveTicket(ticket.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Ticket Approved')),
+                                  const SnackBar(content: Text('Ticket Approved')),
                                 );
                               },
                             ),
                             IconButton(
-                              icon: Icon(Icons.close, color: Colors.red),
+                              icon: const Icon(Icons.close, color: Colors.red),
                               onPressed: () {
                                 dataProvider.rejectTicket(ticket.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Ticket Rejected')),
+                                  const SnackBar(content: Text('Ticket Rejected')),
                                 );
                               },
                             ),

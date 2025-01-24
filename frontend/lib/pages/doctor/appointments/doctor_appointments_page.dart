@@ -8,7 +8,7 @@ import '../../../models/appointment.dart';
 class DoctorAppointmentsPage extends StatelessWidget {
   final String doctorId;
 
-  const DoctorAppointmentsPage({Key? key, required this.doctorId}) : super(key: key);
+  const DoctorAppointmentsPage({super.key, required this.doctorId});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class DoctorAppointmentsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Appointments'),
+        title: const Text('Appointments'),
       ),
       body: ListView.builder(
         itemCount: dataProvider.getAppointmentsForDoctor(doctorId).length,
@@ -31,14 +31,14 @@ class DoctorAppointmentsPage extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.edit, color: Colors.blue),
+                    icon: const Icon(Icons.edit, color: Colors.blue),
                     onPressed: () {
                       // Open a dialog to reschedule
                       _showRescheduleDialog(context, dataProvider, appointment);
                     },
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () {
                       // Cancel the appointment
                       dataProvider.deleteAppointment(appointment.id);
@@ -65,17 +65,17 @@ class DoctorAppointmentsPage extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Reschedule Appointment'),
+          title: const Text('Reschedule Appointment'),
           content: TextField(
             controller: dateTimeController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Enter new date and time',
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
@@ -94,7 +94,7 @@ class DoctorAppointmentsPage extends StatelessWidget {
                 );
                 Navigator.pop(context);
               },
-              child: Text('Reschedule'),
+              child: const Text('Reschedule'),
             ),
           ],
         );

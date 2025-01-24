@@ -10,10 +10,10 @@ class BetterDataTable extends StatelessWidget {
   final List<DataRow> rows;
 
   const BetterDataTable({
-    Key? key,
+    super.key,
     required this.columns,
     required this.rows,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class BetterDataTable extends StatelessWidget {
               columns: columns,
               rows: rows,
               // Optional styling
-              headingRowColor: MaterialStateProperty.all(Colors.grey.shade200),
+              headingRowColor: WidgetStateProperty.all(Colors.grey.shade200),
               headingTextStyle: const TextStyle(fontWeight: FontWeight.bold),
               dataRowHeight: 56,
               headingRowHeight: 56,

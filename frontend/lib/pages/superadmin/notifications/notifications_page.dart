@@ -6,13 +6,13 @@ import '../../../shared/widgets/theme.dart';
 import '../../../shared/theme/app_theme.dart';
 
 class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({Key? key}) : super(key: key);
+  const NotificationsPage({super.key});
 
   void _showTicketDetails(BuildContext context, Ticket ticket) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Ticket Details'),
+        title: const Text('Ticket Details'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -28,7 +28,7 @@ class NotificationsPage extends StatelessWidget {
               // Handle ticket resolution or other logic
               Navigator.pop(context);
             },
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -41,7 +41,7 @@ class NotificationsPage extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 20),
-          Text(
+          const Text(
             'Ticket Requests',
             style: TextStyle(
               fontSize: 24,

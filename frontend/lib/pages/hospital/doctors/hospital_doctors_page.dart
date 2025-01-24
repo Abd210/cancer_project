@@ -10,7 +10,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 class HospitalDoctorsPage extends StatefulWidget {
   final String hospitalId;
 
-  const HospitalDoctorsPage({Key? key, required this.hospitalId}) : super(key: key);
+  const HospitalDoctorsPage({super.key, required this.hospitalId});
 
   @override
   _HospitalDoctorsPageState createState() => _HospitalDoctorsPageState();
@@ -18,29 +18,29 @@ class HospitalDoctorsPage extends StatefulWidget {
 
 class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   void _showAddDoctorDialog(BuildContext context, Hospital hospital) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = '';
     String specialization = '';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Add Doctor'),
+        title: const Text('Add Doctor'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Doctor Name'),
+                  decoration: const InputDecoration(labelText: 'Doctor Name'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
                   onSaved: (value) => name = value!,
                 ),
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Specialization'),
+                  decoration: const InputDecoration(labelText: 'Specialization'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter specialization' : null,
                   onSaved: (value) => specialization = value!,
                 ),
@@ -51,8 +51,8 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 final newDoctor = Doctor(
                   id: 'd${DateTime.now().millisecondsSinceEpoch}',
                   name: name,
@@ -64,7 +64,7 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                 Fluttertoast.showToast(msg: 'Doctor added successfully.');
               }
             },
-            child: Text('Add'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -72,28 +72,28 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
   }
 
   void _showEditDoctorDialog(BuildContext context, Doctor doctor) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = doctor.name;
     String specialization = doctor.specialization;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Doctor'),
+        title: const Text('Edit Doctor'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
                   initialValue: doctor.name,
-                  decoration: InputDecoration(labelText: 'Doctor Name'),
+                  decoration: const InputDecoration(labelText: 'Doctor Name'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
                   onSaved: (value) => name = value!,
                 ),
                 TextFormField(
                   initialValue: doctor.specialization,
-                  decoration: InputDecoration(labelText: 'Specialization'),
+                  decoration: const InputDecoration(labelText: 'Specialization'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter specialization' : null,
                   onSaved: (value) => specialization = value!,
                 ),
@@ -104,8 +104,8 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 final updatedDoctor = Doctor(
                   id: doctor.id,
                   name: name,
@@ -117,7 +117,7 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                 Fluttertoast.showToast(msg: 'Doctor updated successfully.');
               }
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -128,8 +128,8 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Doctor'),
-        content: Text('Are you sure you want to delete this doctor?'),
+        title: const Text('Delete Doctor'),
+        content: const Text('Are you sure you want to delete this doctor?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -137,11 +137,11 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
               Navigator.pop(context);
               Fluttertoast.showToast(msg: 'Doctor deleted successfully.');
             },
-            child: Text('Yes', style: TextStyle(color: Colors.red)),
+            child: const Text('Yes', style: TextStyle(color: Colors.red)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('No'),
+            child: const Text('No'),
           ),
         ],
       ),
@@ -153,7 +153,7 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
         if (_isLoading) {
-          return LoadingIndicator();
+          return const LoadingIndicator();
         }
 
         // Retrieve the hospital object from the DataProvider
@@ -181,7 +181,7 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Doctors',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onChanged: (value) {
@@ -191,20 +191,20 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: () => _showAddDoctorDialog(context, hospital),
-                    icon: Icon(Icons.add),
-                    label: Text('Add Doctor'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Doctor'),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Doctors DataTable
               Expanded(
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text('ID')),
                       DataColumn(label: Text('Name')),
                       DataColumn(label: Text('Specialization')),
@@ -219,11 +219,11 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                           Row(
                             children: [
                               IconButton(
-                                icon: Icon(Icons.edit, color: Colors.blue),
+                                icon: const Icon(Icons.edit, color: Colors.blue),
                                 onPressed: () => _showEditDoctorDialog(context, doctor),
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
+                                icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () => _deleteDoctor(context, doctor.id),
                               ),
                             ],

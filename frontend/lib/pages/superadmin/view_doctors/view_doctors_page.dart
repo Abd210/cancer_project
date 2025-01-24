@@ -11,7 +11,7 @@ import '../../../shared/components/components.dart';
 import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
 class DoctorsPage extends StatefulWidget {
-  const DoctorsPage({Key? key}) : super(key: key);
+  const DoctorsPage({super.key});
 
   @override
   _DoctorsPageState createState() => _DoctorsPageState();

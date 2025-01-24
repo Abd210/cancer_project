@@ -11,7 +11,7 @@ import '../../../shared/components/responsive_data_table.dart'
     show BetterDataTable, BetterPaginatedDataTable;
 
 class PatientsPage extends StatefulWidget {
-  const PatientsPage({Key? key}) : super(key: key);
+  const PatientsPage({super.key});
 
   @override
   _PatientsPageState createState() => _PatientsPageState();
@@ -19,11 +19,11 @@ class PatientsPage extends StatefulWidget {
 
 class _PatientsPageState extends State<PatientsPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   /// We'll pick the Hospital first, then filter Doctors to that hospital
   void _showAddPatientDialog(BuildContext context, List<Hospital> allHospitals) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String name = '';
     int age = 0;
     String diagnosis = '';
@@ -36,7 +36,7 @@ class _PatientsPageState extends State<PatientsPage> {
         return AlertDialog(
           title: const Text('Add Patient'),
           content: Form(
-            key: _formKey,
+            key: formKey,
             child: StatefulBuilder(
               builder: (context, setStateDialog) {
                 return SingleChildScrollView(
@@ -131,8 +131,8 @@ class _PatientsPageState extends State<PatientsPage> {
           actions: [
             TextButton(
               onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
+                if (formKey.currentState!.validate()) {
+                  formKey.currentState!.save();
                   final newPatient = Patient(
                     id: 'p${DateTime.now().millisecondsSinceEpoch}',
                     name: name,

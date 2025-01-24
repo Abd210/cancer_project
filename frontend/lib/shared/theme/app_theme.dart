@@ -12,7 +12,7 @@ class AppTheme {
       hintColor: accentColor,
       scaffoldBackgroundColor: Colors.white,
 
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: primaryColor,
         titleTextStyle: TextStyle(
           color: Colors.white,
@@ -22,7 +22,7 @@ class AppTheme {
         iconTheme: IconThemeData(color: Colors.white),
       ),
 
-      drawerTheme: DrawerThemeData(
+      drawerTheme: const DrawerThemeData(
         backgroundColor: primaryColor,
       ),
 
@@ -50,40 +50,40 @@ class AppTheme {
         filled: true,
         fillColor: Colors.white,
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: primaryColor),
+          borderSide: const BorderSide(color: primaryColor),
           borderRadius: BorderRadius.circular(10),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: primaryColor, width: 2),
+          borderSide: const BorderSide(color: primaryColor, width: 2),
           borderRadius: BorderRadius.circular(10),
         ),
       ),
 
       dataTableTheme: DataTableThemeData(
-        headingRowColor: MaterialStateColor.resolveWith(
+        headingRowColor: WidgetStateColor.resolveWith(
               (states) => primaryColor.withOpacity(0.1),
         ),
-        headingTextStyle: TextStyle(
+        headingTextStyle: const TextStyle(
           fontWeight: FontWeight.bold,
           color: primaryColor,
         ),
-        dataRowColor: MaterialStateColor.resolveWith((states) => Colors.white),
-        dataTextStyle: TextStyle(color: Colors.black87),
+        dataRowColor: WidgetStateColor.resolveWith((states) => Colors.white),
+        dataTextStyle: const TextStyle(color: Colors.black87),
       ),
 
       cardTheme: CardTheme(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 3,
-        margin: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
       ),
 
-      listTileTheme: ListTileThemeData(
+      listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         iconColor: primaryColor,
         textColor: Colors.black87,
       ),
 
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: const TabBarTheme(
         labelColor: primaryColor,
         unselectedLabelColor: Colors.grey,
         indicator: UnderlineTabIndicator(

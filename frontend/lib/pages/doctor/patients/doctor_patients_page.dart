@@ -6,7 +6,7 @@ import '../../../models/patient.dart';
 class DoctorPatientsPage extends StatelessWidget {
   final String doctorId;
 
-  const DoctorPatientsPage({Key? key, required this.doctorId}) : super(key: key);
+  const DoctorPatientsPage({super.key, required this.doctorId});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class DoctorPatientsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Patients'),
+        title: const Text('Patients'),
       ),
       body: ListView.builder(
         itemCount: patients.length,
@@ -44,7 +44,7 @@ class DoctorPatientsPage extends StatelessWidget {
 class PatientDetailsPage extends StatelessWidget {
   final Patient patient;
 
-  const PatientDetailsPage({Key? key, required this.patient}) : super(key: key);
+  const PatientDetailsPage({super.key, required this.patient});
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +57,9 @@ class PatientDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Name: ${patient.name}', style: TextStyle(fontSize: 18)),
-            Text('Age: ${patient.age}', style: TextStyle(fontSize: 18)),
-            Text('Diagnosis: ${patient.diagnosis}', style: TextStyle(fontSize: 18)),
+            Text('Name: ${patient.name}', style: const TextStyle(fontSize: 18)),
+            Text('Age: ${patient.age}', style: const TextStyle(fontSize: 18)),
+            Text('Diagnosis: ${patient.diagnosis}', style: const TextStyle(fontSize: 18)),
           ],
         ),
       ),
