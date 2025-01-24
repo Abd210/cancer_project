@@ -61,6 +61,12 @@ class DoctorService {
     return await Doctor.find({});
   }
 
+  static async findAllDoctorsByHospital(hospitalId) {
+    // Find all doctors whose `hospital` field matches the given hospitalId
+    return await Doctor.find({ hospital: hospitalId });
+  }
+  
+
   static async updateDoctor(doctorId, updateFields, user) {
     // Validate the doctorId as a valid MongoDB ObjectId
     if (!mongoose.isValidObjectId(doctorId)) {

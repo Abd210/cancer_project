@@ -42,35 +42,42 @@ class DoctorController {
   static async getDoctorData(req, res) {
     try {
       // Destructure _id, user, and role from the request headers
-      const { _id, user, doctorid, filter } = req.headers;
+      const { user, doctorid, filter, hospitalid } = req.headers;
 
-      // Check if the _id is provided in the headers, return error if missing
-      if (!_id) {
-        return res.status(400).json({
-          error: "DoctorController- Get Doctor Data: Missing _id", // Specific error for missing _id
-        });
-      }
-
-      let doctor_id = _id;
-
-       // If the user's role is "doctor", ensure they can only access their own data
+      // If the user's role is "doctor", ensure they can only access their own data
       if (user.role === "doctor") {
-        // If the _id in the headers doesn't match the logged-in user's _id, return a 403 Forbidden error
-        if (_id !== user._id) {
-          return res.status(403).json({
-            error: "DoctorController- Get Doctor Data: Unauthorized", // Unauthorized access error
-          });
+        const doctor_data = await DoctorService.getDoctorData(user._id);
+        // Check if the doctor data exists
+        if (!doctor_data) {
+          return res.status(404).json({ error: "Doctor not found" });
         }
-      } else if (user.role === "superadmin" || user.role === "admin") {
-        // If the user is a superadmin
-        if (doctorid) {
-          doctor_id = doctorid; // Retrieve specific doctor's data
-        } else {
-          // Retrieve all doctors' data if no doctorid is provided
-          const allDoctors = await DoctorService.findAllDoctors();
 
-          const filtered_data = await SuspendController.filterData(allDoctors, user.role, filter);
-          return res.status(200).json(filtered_data); // Return all doctor data
+        // Return the fetched doctor data with a 200 status code
+        res.status(200).json(doctor_data);
+      } else if (user.role === "superadmin") {
+        // If the user is a superadmin and a specific doctor's ID was not provided
+        if (!doctorid) {
+          if (filter) {
+            if (hospitalid) {
+              console.log("DoctorController- Get Doctor Data: Fetching doctor data by hospital");
+              // Retrieve all doctors' data from specified hospital if no doctorid is given and hospitalid is provided
+              const allDoctors = await DoctorService.findAllDoctorsByHospital(hospitalid);
+              console.log(allDoctors);
+    
+              const filtered_data = await SuspendController.filterData(allDoctors, user.role, filter);
+              return res.status(200).json(filtered_data); // Return all doctor data
+            } else {
+              // Retrieve all doctors' data if no doctorid is provided
+              const allDoctors = await DoctorService.findAllDoctors();
+    
+              const filtered_data = await SuspendController.filterData(allDoctors, user.role, filter);
+              return res.status(200).json(filtered_data); // Return all doctor data
+            }
+          } else {
+            return res.status(400).json({
+              error: "DoctorController- Get Doctor Data: Please provide either a filter or a doctor's id", // Specific error for missing filter
+            });
+          }
         }
       } else {
         // If the role is neither 'doctor' nor 'superadmin', deny access
@@ -81,7 +88,7 @@ class DoctorController {
 
       console.log("DoctorController- Get Doctor Data: Fetching doctor data");
       // Call the DoctorService to find the doctor data based on the _id
-      const doctor_data = await DoctorService.getDoctorData(doctor_id);
+      const doctor_data = await DoctorService.getDoctorData(doctorid);
 
       // Check if the doctor data exists
       if (!doctor_data) {
