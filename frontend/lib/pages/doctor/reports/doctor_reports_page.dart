@@ -5,7 +5,7 @@ import '../../../models/patient.dart';
 class DoctorReportsPage extends StatelessWidget {
   final String doctorId;
 
-  const DoctorReportsPage({Key? key, required this.doctorId}) : super(key: key);
+  const DoctorReportsPage({super.key, required this.doctorId});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class DoctorReportsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reports'),
+        title: const Text('Reports'),
       ),
       body: ListView.builder(
         itemCount: patients.length,
@@ -42,7 +42,7 @@ class DoctorReportsPage extends StatelessWidget {
 class PatientReportsPage extends StatefulWidget {
   final Patient patient;
 
-  const PatientReportsPage({Key? key, required this.patient}) : super(key: key);
+  const PatientReportsPage({super.key, required this.patient});
 
   @override
   _PatientReportsPageState createState() => _PatientReportsPageState();
@@ -71,13 +71,13 @@ class _PatientReportsPageState extends State<PatientReportsPage> {
             ),
             TextField(
               controller: _notesController,
-              decoration: InputDecoration(labelText: 'Add Notes'),
+              decoration: const InputDecoration(labelText: 'Add Notes'),
             ),
             ElevatedButton(
               onPressed: () {
                 // Save the notes logic here
               },
-              child: Text('Save Notes'),
+              child: const Text('Save Notes'),
             ),
           ],
         ),

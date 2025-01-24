@@ -9,7 +9,7 @@ import '../../../shared/components/components.dart';
 import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
 class TicketsPage extends StatefulWidget {
-  const TicketsPage({Key? key}) : super(key: key);
+  const TicketsPage({super.key});
 
   @override
   _TicketsPageState createState() => _TicketsPageState();

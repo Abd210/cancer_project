@@ -12,12 +12,12 @@ class SearchAndPendingRow extends StatelessWidget {
   final Function(bool?) onTogglePending;
 
   const SearchAndPendingRow({
-    Key? key,
+    super.key,
     required this.searchLabel,
     required this.onSearchChanged,
     required this.showOnlyPending,
     required this.onTogglePending,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class SearchAndPendingRow extends StatelessWidget {
           child: TextField(
             decoration: InputDecoration(
               labelText: searchLabel,
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onChanged: onSearchChanged,
@@ -44,7 +44,7 @@ class SearchAndPendingRow extends StatelessWidget {
               onChanged: onTogglePending,
               activeColor: Theme.of(context).primaryColor,
             ),
-            Text('Show Only Pending'),
+            const Text('Show Only Pending'),
           ],
         ),
       ],

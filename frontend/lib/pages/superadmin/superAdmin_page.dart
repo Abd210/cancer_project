@@ -1,11 +1,14 @@
+// lib/pages/superadmin/superAdmin_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/shared/theme/app_theme.dart';
 import 'package:frontend/shared/widgets/logo_bar.dart';
 import 'package:frontend/pages/authentication/log_reg.dart';
 
-// The pages
-import '../../shared/components/custom_drawer.dart';
+import 'package:frontend/shared/components/custom_drawer.dart';
+
+// Import these pages
 import 'view_hospitals/view_hospitals_page.dart';
 import 'view_doctors/view_doctors_page.dart';
 import 'view_patients/view_patients_page.dart';
@@ -14,7 +17,8 @@ import 'appointments/appointments_page.dart';
 import 'tickets/tickets_page.dart';
 
 class SuperAdminDashboard extends StatefulWidget {
-  const SuperAdminDashboard({Key? key}) : super(key: key);
+  final String token;
+  const SuperAdminDashboard({Key? key, required this.token}) : super(key: key);
 
   @override
   _SuperAdminDashboardState createState() => _SuperAdminDashboardState();
@@ -23,17 +27,7 @@ class SuperAdminDashboard extends StatefulWidget {
 class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
   int _selectedIndex = 0;
 
-  // The pages
-  final List<Widget> _pages = [
-    HospitalsPage(),
-    DoctorsPage(),
-    PatientsPage(),
-    DevicesPage(),
-    AppointmentsPage(),
-    TicketsPage(),
-  ];
-
-  // The sidebar items for Super Admin
+  // The sidebar items
   final List<SidebarItem> _adminItems = [
     SidebarItem(icon: Icons.local_hospital, label: 'Hospitals'),
     SidebarItem(icon: Icons.person, label: 'Doctors'),
@@ -45,26 +39,34 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
   ];
 
   void _onMenuItemClicked(int index) {
-    // If "Logout"
+    // If logout
     if (index == 6) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LogIn()),
+        MaterialPageRoute(builder: (context) => const LogIn()),
       );
       Fluttertoast.showToast(msg: 'Logged out successfully.');
       return;
     }
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Rebuild your pages every time build() is called
+    final pages = [
+      HospitalsPage(token: widget.token), // 0
+      const DoctorsPage(),                // 1
+      const PatientsPage(),               // 2
+      const DevicesPage(),                // 3
+      const AppointmentsPage(),           // 4
+      const TicketsPage(),                // 5
+    ];
+
     return Scaffold(
       body: Row(
         children: [
-          // 1) Our universal sidebar
+          // 1) Sidebar
           PersistentSidebar(
             headerTitle: 'Super Admin',
             items: _adminItems,
@@ -76,12 +78,13 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
           Expanded(
             child: Column(
               children: [
-                const LogoLine(), // your custom logo bar on top
+                // Your custom logo bar at the top
+                const LogoLine(),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage(AppTheme.backgroundImage),
+                        image: const AssetImage(AppTheme.backgroundImage),
                         fit: BoxFit.cover,
                         colorFilter: ColorFilter.mode(
                           Colors.white.withOpacity(0.8),
@@ -89,7 +92,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                         ),
                       ),
                     ),
-                    child: _pages[_selectedIndex],
+                    child: pages[_selectedIndex],
                   ),
                 ),
               ],

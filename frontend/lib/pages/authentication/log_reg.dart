@@ -1,33 +1,26 @@
 // lib/pages/authentication/log_reg.dart
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';  // <--- Make sure to import Provider
-import 'package:frontend/providers/data_provider.dart'; // <--- So we can access hospitals
-
-import 'package:frontend/pages/hospital/hospital_page.dart';
-import 'package:frontend/pages/patients/patient_page.dart';
-import 'package:frontend/pages/doctor/doctor_page.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frontend/providers/auth_provider.dart'; // <-- Use your AuthProvider
 import 'package:frontend/pages/superadmin/superAdmin_page.dart';
-import 'package:frontend/models/hospital.dart';
-import 'package:frontend/models/doctor.dart';
-import 'package:frontend/pages/doctor/doctor_page.dart'; // Ensure this import exists
-
-
 
 class LogIn extends StatefulWidget {
+  const LogIn({super.key});
+
   @override
   _LogInState createState() => _LogInState();
 }
 
 class _LogInState extends State<LogIn> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController =
+      TextEditingController(text: 'Azzam@example.com'); // example default
+  final TextEditingController _passwordController =
+      TextEditingController(text: '123'); // example default
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    super.dispose();
-  }
-   void _showErrorDialog(BuildContext context, String message) {
+  bool _isLoading = false;
+
+  void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -43,207 +36,188 @@ class _LogInState extends State<LogIn> {
     );
   }
 
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorDialog(context, 'Please enter email and password.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final authProvider = AuthProvider();
+      // Attempt login against your Express backend
+      final response = await authProvider.login(
+        email: email,
+        password: password,
+        role: 'superadmin', // or adjust if needed
+      );
+
+      // If a token is returned, navigate to the SuperAdminDashboard
+      if (response.token != null && response.token!.isNotEmpty) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SuperAdminDashboard(token: response.token!),
+          ),
+        );
+        Fluttertoast.showToast(msg: 'Login successful.');
+      } else {
+        _showErrorDialog(context, 'No token received.');
+      }
+    } catch (e) {
+      _showErrorDialog(context, e.toString());
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // We'll need to read the DataProvider here to check for custom hospital names.
-    final dataProvider = Provider.of<DataProvider>(context, listen: false);
-
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        // Background image
+        decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/back.png'), // Background image
+            image: AssetImage('assets/images/back.png'),
             fit: BoxFit.cover,
           ),
         ),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo and app name in a Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/acuranics.png', // Replace with your logo
-                    height: 135,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo + Title
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/acuranics.png',
+                      height: 135,
+                    ),
+                    const Text(
+                      'CURANICS',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 218, 73, 143),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Email TextField
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(
+                        Icons.person,
+                        color: Color.fromARGB(255, 218, 73, 143),
+                      ),
+                      hintText: 'EMAIL',
+                      hintStyle: TextStyle(
+                        color: Color.fromARGB(255, 218, 73, 143),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color.fromARGB(255, 218, 73, 143),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color.fromARGB(255, 218, 73, 143),
+                          width: 2,
+                        ),
+                      ),
+                    ),
                   ),
-                  const Text(
-                    'CURANICS',
+                ),
+                const SizedBox(height: 20),
+
+                // Password TextField
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(
+                        Icons.lock,
+                        color: Color.fromARGB(255, 218, 73, 143),
+                      ),
+                      hintText: 'PASSWORD',
+                      hintStyle: TextStyle(
+                        color: Color.fromARGB(255, 218, 73, 143),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color.fromARGB(255, 218, 73, 143),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color.fromARGB(255, 218, 73, 143),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // Login button
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 218, 73, 143),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 100,
+                      vertical: 15,
+                    ),
+                    elevation: 5,
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'LOGIN',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 20),
+
+                // Forgot password (optional)
+                TextButton(
+                  onPressed: () {
+                    // add your forgot password logic
+                  },
+                  child: const Text(
+                    'Forgot password?',
                     style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
                       color: Color.fromARGB(255, 218, 73, 143),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // Username TextField with adjusted width
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.person,
-                        color: Color.fromARGB(255, 218, 73, 143)),
-                    hintText: 'USERNAME',
-                    hintStyle:
-                        TextStyle(color: Color.fromARGB(255, 218, 73, 143)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color.fromARGB(255, 218, 73, 143)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Color.fromARGB(255, 218, 73, 143), width: 2),
+                      fontSize: 14,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-
-              // Password TextField with adjusted width
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.lock,
-                        color: Color.fromARGB(255, 218, 73, 143)),
-                    hintText: 'PASSWORD',
-                    hintStyle:
-                        TextStyle(color: Color.fromARGB(255, 218, 73, 143)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color.fromARGB(255, 218, 73, 143)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Color.fromARGB(255, 218, 73, 143), width: 2),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-
-              // Login Button
-              ElevatedButton(
-  onPressed: () {
-    final username = _usernameController.text.trim().toLowerCase();
-
-    if (username == 'patient') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PatientPage()),
-      );
-    } else if (username.startsWith('dr.') || username.startsWith('doctor')) {
-  final matchedDoctor = dataProvider.doctors.firstWhere(
-    (d) => d.name.toLowerCase() == username,
-    orElse: () => Doctor(
-      id: '',
-      name: '',
-      specialization: 'General',
-      hospitalId: '',
-    ),
-  );
-
-  if (matchedDoctor.id.isNotEmpty) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DoctorPage(doctorId: matchedDoctor.id),
-      ),
-    );
-  } else {
-    _showErrorDialog(context, 'Invalid doctor username. Please try again.');
-  }
-}
-
-     else if (username == 'superadmin') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SuperAdminDashboard(),
-        ),
-      );
-    } else {
-      // Check if hospital exists
-      final matchedHospital = dataProvider.hospitals.firstWhere(
-        (h) => h.name.toLowerCase() == username,
-        orElse: () => Hospital(id: '', name: '', address: ''),
-      );
-
-      if (matchedHospital.id.isNotEmpty) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HospitalPage(
-              hospitalId: matchedHospital.id,
+              ],
             ),
-          ),
-        );
-      } else {
-        // Show error for invalid input
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Error'),
-            content: Text('Invalid username. Please try again.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-    }
-  },
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Color.fromARGB(255, 218, 73, 143),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(30),
-    ),
-    padding: const EdgeInsets.symmetric(
-      horizontal: 100,
-      vertical: 15,
-    ),
-    elevation: 5,
-  ),
-  child: const Text(
-    'LOGIN',
-    style: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.bold,
-      color: Colors.white,
-    ),
-  ),
-),
-
-              const SizedBox(height: 20),
-
-              // Forgot password link
-              TextButton(
-                onPressed: () {
-                  // Navigate to forgot password
-                },
-                child: const Text(
-                  'Forgot password?',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 218, 73, 143),
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
       ),

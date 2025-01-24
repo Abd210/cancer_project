@@ -17,12 +17,12 @@ class PersistentSidebar extends StatefulWidget {
   final Function(int) onMenuItemClicked;
 
   const PersistentSidebar({
-    Key? key,
+    super.key,
     required this.headerTitle,
     required this.items,
     required this.selectedIndex,
     required this.onMenuItemClicked,
-  }) : super(key: key);
+  });
 
   @override
   _PersistentSidebarState createState() => _PersistentSidebarState();
@@ -149,11 +149,11 @@ class _SidebarAnimatedItem extends StatelessWidget {
   final Animation<double> animation;
 
   const _SidebarAnimatedItem({
-    Key? key,
+    super.key,
     required this.item,
     required this.isSelected,
     required this.animation,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

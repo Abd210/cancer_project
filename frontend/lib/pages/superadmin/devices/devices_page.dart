@@ -11,7 +11,7 @@ import '../../../shared/components/components.dart';
 import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
 class DevicesPage extends StatefulWidget {
-  const DevicesPage({Key? key}) : super(key: key);
+  const DevicesPage({super.key});
 
   @override
   _DevicesPageState createState() => _DevicesPageState();
@@ -22,7 +22,7 @@ class _DevicesPageState extends State<DevicesPage> {
 
   // Add Device
   void _showAddDeviceDialog(BuildContext ctx, List<Patient> allPatients) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String type = '';
     String? selectedPatientId;
 
@@ -31,7 +31,7 @@ class _DevicesPageState extends State<DevicesPage> {
       builder: (context) => AlertDialog(
         title: const Text('Add Device'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -61,8 +61,8 @@ class _DevicesPageState extends State<DevicesPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 final newDevice = Device(
                   id: 'dev${DateTime.now().millisecondsSinceEpoch}',
                   type: type,
@@ -87,7 +87,7 @@ class _DevicesPageState extends State<DevicesPage> {
       Device device,
       List<Patient> allPatients,
       ) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String type = device.type;
     String? selectedPatientId = device.patientId;
 
@@ -96,7 +96,7 @@ class _DevicesPageState extends State<DevicesPage> {
       builder: (context) => AlertDialog(
         title: const Text('Edit Device'),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -130,8 +130,8 @@ class _DevicesPageState extends State<DevicesPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 final updated = Device(
                   id: device.id,
                   type: type,

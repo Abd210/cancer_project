@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class LoadingIndicator extends StatelessWidget {
   final String message;
 
-  const LoadingIndicator({this.message = 'Loading...', Key? key}) : super(key: key);
+  const LoadingIndicator({this.message = 'Loading...', super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class LoadingIndicator extends StatelessWidget {
           CircularProgressIndicator(
             color: Theme.of(context).primaryColor,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Text(message),
         ],
       ),

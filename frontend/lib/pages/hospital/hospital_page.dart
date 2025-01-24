@@ -13,7 +13,7 @@ import 'appointments/hospital_appointments_page.dart';
 
 class HospitalPage extends StatefulWidget {
   final String hospitalId;
-  const HospitalPage({Key? key, required this.hospitalId}) : super(key: key);
+  const HospitalPage({super.key, required this.hospitalId});
 
   @override
   _HospitalPageState createState() => _HospitalPageState();
@@ -76,7 +76,7 @@ class _HospitalPageState extends State<HospitalPage> {
             child: Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(AppTheme.backgroundImage),
+                  image: const AssetImage(AppTheme.backgroundImage),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
                     Colors.white.withOpacity(0.8),

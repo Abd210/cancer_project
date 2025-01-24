@@ -1,23 +1,19 @@
+// lib/pages/superadmin/view_hospitals/view_hospitals_page.dart
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:provider/provider.dart';
 
-import '../../../providers/data_provider.dart';
-import '../../../models/hospital.dart';
-import '../../../models/patient.dart';
-import '../../../models/doctor.dart';
-import '../../../models/appointment.dart';
-import '../../../models/device.dart';
-
-// Import your shared UI components
 import '../../../shared/components/loading_indicator.dart';
 import '../../../shared/components/components.dart';
 import '../../../shared/components/responsive_data_table.dart'
     show BetterDataTable, BetterPaginatedDataTable;
 
+import 'package:frontend/providers/hospital_provider.dart';
+import 'package:frontend/models/hospital_data.dart';
+
 class HospitalsPage extends StatefulWidget {
-  const HospitalsPage({Key? key}) : super(key: key);
+  final String token;
+  const HospitalsPage({super.key, required this.token});
 
   @override
   _HospitalsPageState createState() => _HospitalsPageState();
@@ -25,16 +21,19 @@ class HospitalsPage extends StatefulWidget {
 
 class _HospitalsPageState extends State<HospitalsPage>
     with SingleTickerProviderStateMixin {
-  String _searchQuery = '';
+  final HospitalProvider _hospitalProvider = HospitalProvider();
+
   bool _isLoading = false;
+  String _searchQuery = '';
+  String _filter = 'unsuspended'; // "unsuspended" or "suspended"
 
-  // The hospital that’s currently selected to view details
-  Hospital? _selectedHospital;
+  List<HospitalData> _hospitalList = [];
 
-  // Tab controller for the detail tabs
+  HospitalData? _selectedHospital;
+
   late TabController _tabController;
 
-  // separate search queries for each tab in detail
+  // Optional placeholders if you need them for searching within tabs, etc.
   String _searchQueryPatients = '';
   String _searchQueryDoctors = '';
   String _searchQueryAppointments = '';
@@ -43,54 +42,120 @@ class _HospitalsPageState extends State<HospitalsPage>
   @override
   void initState() {
     super.initState();
-    // We have 4 tabs for the hospital details: Patients, Doctors, Appointments, Devices
     _tabController = TabController(length: 4, vsync: this);
+    _fetchHospitals();
   }
 
-  // CREATE / EDIT / DELETE HOSPITAL
+  /// Fetches hospitals from backend
+  Future<void> _fetchHospitals() async {
+    setState(() => _isLoading = true);
+    try {
+      final data = await _hospitalProvider.getHospitals(
+        token: widget.token,
+        hospitalId: '',
+        filter: _filter,
+      );
+      setState(() {
+        _hospitalList = data;
+      });
+    } catch (e) {
+      debugPrint('Error fetching hospitals: $e');
+      Fluttertoast.showToast(msg: 'Failed to load hospitals: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  /// Opens a dialog to create a new hospital
   void _showAddHospitalDialog(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
+
     String name = '';
     String address = '';
+    String mobileNumbers = '';
+    String emails = '';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Hospital'),
         content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Hospital Name'),
-                validator: (value) =>
-                (value == null || value.isEmpty) ? 'Enter name' : null,
-                onSaved: (value) => name = value!,
-              ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Address'),
-                validator: (value) =>
-                (value == null || value.isEmpty) ? 'Enter address' : null,
-                onSaved: (value) => address = value!,
-              ),
-            ],
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Hospital Name
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Hospital Name'),
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? 'Enter name' : null,
+                  onSaved: (value) => name = value!.trim(),
+                ),
+                // Address
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Address'),
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? 'Enter address' : null,
+                  onSaved: (value) => address = value!.trim(),
+                ),
+                // Mobile Numbers
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Mobile Numbers (comma-separated)',
+                  ),
+                  onSaved: (value) => mobileNumbers = value ?? '',
+                ),
+                // Emails
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Emails (comma-separated)',
+                  ),
+                  onSaved: (value) => emails = value ?? '',
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                final newHospital = Hospital(
-                  id: 'h${DateTime.now().millisecondsSinceEpoch}',
-                  name: name,
-                  address: address,
-                );
-                Provider.of<DataProvider>(context, listen: false)
-                    .addHospital(newHospital);
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
+
+                // Close the dialog
                 Navigator.pop(context);
-                Fluttertoast.showToast(msg: 'Hospital added successfully.');
+
+                final mobileList = mobileNumbers
+                    .split(',')
+                    .map((s) => s.trim())
+                    .where((s) => s.isNotEmpty)
+                    .toList();
+                final emailList = emails
+                    .split(',')
+                    .map((s) => s.trim())
+                    .where((s) => s.isNotEmpty)
+                    .toList();
+
+                setState(() => _isLoading = true);
+                try {
+                  await _hospitalProvider.createHospital(
+                    token: widget.token,
+                    hospitalName: name,
+                    hospitalAddress: address,
+                    mobileNumbers: mobileList,
+                    emails: emailList,
+                  );
+
+                  // Automatically refresh list so newly-created hospital is visible immediately
+                  await _fetchHospitals();
+
+                  Fluttertoast.showToast(msg: 'Hospital added successfully.');
+                } catch (e) {
+                  Fluttertoast.showToast(msg: 'Failed to add hospital: $e');
+                } finally {
+                  setState(() => _isLoading = false);
+                }
               }
             },
             child: const Text('Add'),
@@ -100,51 +165,114 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
-  void _showEditHospitalDialog(BuildContext context, Hospital hospital) {
-    final _formKey = GlobalKey<FormState>();
+  /// Opens dialog to edit an existing hospital
+  void _showEditHospitalDialog(BuildContext context, HospitalData hospital) {
+    final formKey = GlobalKey<FormState>();
+
+    // Pre-populate form fields
     String name = hospital.name;
     String address = hospital.address;
+    bool isSuspended = hospital.isSuspended;
+
+    String mobileNumbers = hospital.mobileNumbers.join(', ');
+    String emails = hospital.emails.join(', ');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Hospital'),
         content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                initialValue: hospital.name,
-                decoration: const InputDecoration(labelText: 'Hospital Name'),
-                validator: (value) =>
-                (value == null || value.isEmpty) ? 'Enter name' : null,
-                onSaved: (value) => name = value!,
-              ),
-              TextFormField(
-                initialValue: hospital.address,
-                decoration: const InputDecoration(labelText: 'Address'),
-                validator: (value) =>
-                (value == null || value.isEmpty) ? 'Enter address' : null,
-                onSaved: (value) => address = value!,
-              ),
-            ],
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: name,
+                  decoration: const InputDecoration(labelText: 'Hospital Name'),
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? 'Enter name' : null,
+                  onSaved: (value) => name = value!.trim(),
+                ),
+                TextFormField(
+                  initialValue: address,
+                  decoration: const InputDecoration(labelText: 'Address'),
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? 'Enter address' : null,
+                  onSaved: (value) => address = value!.trim(),
+                ),
+                TextFormField(
+                  initialValue: mobileNumbers,
+                  decoration: const InputDecoration(
+                    labelText: 'Mobile Numbers (comma-separated)',
+                  ),
+                  onSaved: (value) => mobileNumbers = value ?? '',
+                ),
+                TextFormField(
+                  initialValue: emails,
+                  decoration: const InputDecoration(
+                    labelText: 'Emails (comma-separated)',
+                  ),
+                  onSaved: (value) => emails = value ?? '',
+                ),
+                // Suspended checkbox
+                Row(
+                  children: [
+                    const Text('Suspended?'),
+                    Checkbox(
+                      value: isSuspended,
+                      onChanged: (val) {
+                        setState(() {
+                          isSuspended = val ?? false;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                final updatedHospital = Hospital(
-                  id: hospital.id,
-                  name: name,
-                  address: address,
-                );
-                Provider.of<DataProvider>(context, listen: false)
-                    .updateHospital(updatedHospital);
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
                 Navigator.pop(context);
-                Fluttertoast.showToast(msg: 'Hospital updated successfully.');
+
+                final mobileList = mobileNumbers
+                    .split(',')
+                    .map((s) => s.trim())
+                    .where((s) => s.isNotEmpty)
+                    .toList();
+                final emailList = emails
+                    .split(',')
+                    .map((s) => s.trim())
+                    .where((s) => s.isNotEmpty)
+                    .toList();
+
+                final updatedFields = <String, dynamic>{
+                  'hospital_name': name,
+                  'hospital_address': address,
+                  'suspended': isSuspended,
+                  'mobile_numbers': mobileList,
+                  'emails': emailList,
+                };
+
+                setState(() => _isLoading = true);
+                try {
+                  await _hospitalProvider.updateHospital(
+                    token: widget.token,
+                    hospitalId: hospital.id,
+                    updatedFields: updatedFields,
+                  );
+                  await _fetchHospitals();
+                  Fluttertoast.showToast(msg: 'Hospital updated successfully.');
+                } catch (e) {
+                  Fluttertoast.showToast(msg: 'Failed to update: $e');
+                } finally {
+                  setState(() => _isLoading = false);
+                }
               }
             },
             child: const Text('Save'),
@@ -154,6 +282,7 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
+  /// Delete a hospital
   void _deleteHospital(BuildContext context, String id) {
     showDialog(
       context: context,
@@ -162,16 +291,23 @@ class _HospitalsPageState extends State<HospitalsPage>
         content: const Text('Are you sure you want to delete this hospital?'),
         actions: [
           TextButton(
-            onPressed: () {
-              Provider.of<DataProvider>(context, listen: false)
-                  .deleteHospital(id);
+            onPressed: () async {
               Navigator.pop(context);
-              Fluttertoast.showToast(msg: 'Hospital deleted successfully.');
-              // If we had been viewing the deleted hospital’s details, clear it
-              if (_selectedHospital?.id == id) {
-                setState(() {
+              setState(() => _isLoading = true);
+              try {
+                await _hospitalProvider.deleteHospital(
+                  token: widget.token,
+                  hospitalId: id,
+                );
+                await _fetchHospitals();
+                if (_selectedHospital?.id == id) {
                   _selectedHospital = null;
-                });
+                }
+                Fluttertoast.showToast(msg: 'Hospital deleted successfully.');
+              } catch (e) {
+                Fluttertoast.showToast(msg: 'Failed to delete hospital: $e');
+              } finally {
+                setState(() => _isLoading = false);
               }
             },
             child: const Text('Yes', style: TextStyle(color: Colors.red)),
@@ -185,463 +321,215 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
-  /// Patients Section
-  Widget _buildPatientsSection(DataProvider dataProvider) {
-    if (_selectedHospital == null) return const SizedBox();
-    final patients = dataProvider.patients.where((p) {
-      if (p.doctorId.isEmpty) return false;
-      final doctor = dataProvider.doctors.firstWhere(
-            (d) => d.id == p.doctorId,
-        orElse: () => Doctor(
-          id: 'unknown',
-          name: 'Unknown',
-          specialization: '',
-          hospitalId: '',
-        ),
-      );
-      if (doctor.hospitalId != _selectedHospital!.id) return false;
-      return p.name.toLowerCase().contains(_searchQueryPatients.toLowerCase());
-    }).toList();
-
-    final columns = const [
-      DataColumn(label: Text('Name')),
-      DataColumn(label: Text('Age')),
-      DataColumn(label: Text('Diagnosis')),
-      DataColumn(label: Text('Doctor')),
-      DataColumn(label: Text('Device')),
-    ];
-
-    final rows = patients.map((patient) {
-      final doctor = dataProvider.doctors.firstWhere(
-            (d) => d.id == patient.doctorId,
-        orElse: () => Doctor(
-          id: 'unknown',
-          name: 'Unknown',
-          specialization: '',
-          hospitalId: '',
-        ),
-      );
-      final device = dataProvider.devices.firstWhere(
-            (dev) => dev.id == patient.deviceId,
-        orElse: () => Device(id: 'unknown', type: 'Unassigned', patientId: ''),
-      );
-      return DataRow(
-        cells: [
-          DataCell(Text(patient.name)),
-          DataCell(Text('${patient.age}')),
-          DataCell(Text(patient.diagnosis)),
-          DataCell(Text(doctor.name)),
-          DataCell(Text(device.type)),
-        ],
-      );
-    }).toList();
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              labelText: 'Search Patients',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onChanged: (value) {
-              setState(() => _searchQueryPatients = value);
-            },
-          ),
-        ),
-        Expanded(
-          child: patients.isEmpty
-              ? const Center(child: Text('No patients found.'))
-              : BetterDataTable(columns: columns, rows: rows),
-        ),
-      ],
-    );
+  /// (Optional) Sub-pages for the selected hospital details
+  Widget _buildPatientsSection() {
+    return const Center(child: Text('No patient data integrated yet.'));
   }
 
-  /// Doctors Section
-  Widget _buildDoctorsSection(DataProvider dataProvider) {
-    if (_selectedHospital == null) return const SizedBox();
-    final doctors = dataProvider.doctors.where((d) {
-      if (d.hospitalId != _selectedHospital!.id) return false;
-      final q = _searchQueryDoctors.toLowerCase();
-      return d.name.toLowerCase().contains(q) ||
-          d.specialization.toLowerCase().contains(q);
-    }).toList();
-
-    final columns = const [
-      DataColumn(label: Text('Name')),
-      DataColumn(label: Text('Specialization')),
-    ];
-
-    final rows = doctors.map((doctor) {
-      return DataRow(
-        cells: [
-          DataCell(Text(doctor.name)),
-          DataCell(Text(doctor.specialization)),
-        ],
-      );
-    }).toList();
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              labelText: 'Search Doctors',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onChanged: (value) {
-              setState(() => _searchQueryDoctors = value);
-            },
-          ),
-        ),
-        Expanded(
-          child: doctors.isEmpty
-              ? const Center(child: Text('No doctors found.'))
-              : BetterDataTable(columns: columns, rows: rows),
-        ),
-      ],
-    );
+  Widget _buildDoctorsSection() {
+    return const Center(child: Text('No doctors data integrated yet.'));
   }
 
-  /// Appointments Section
-  Widget _buildAppointmentsSection(DataProvider dataProvider) {
-    if (_selectedHospital == null) return const SizedBox();
-    final appointments = dataProvider.appointments.where((appt) {
-      // only those whose doctor belongs to this hospital
-      final doc = dataProvider.doctors.firstWhere(
-            (d) => d.id == appt.doctorId,
-        orElse: () => Doctor(
-          id: '',
-          name: '',
-          specialization: '',
-          hospitalId: '',
-        ),
-      );
-      if (doc.hospitalId != _selectedHospital!.id) return false;
-
-      // filter by status or ID with search
-      return appt.status
-          .toLowerCase()
-          .contains(_searchQueryAppointments.toLowerCase());
-    }).toList();
-
-    final columns = const [
-      DataColumn(label: Text('Appointment ID')),
-      DataColumn(label: Text('Doctor')),
-      DataColumn(label: Text('Patient')),
-      DataColumn(label: Text('Date')),
-      DataColumn(label: Text('Status')),
-    ];
-
-    final rows = appointments.map((a) {
-      final doctor = dataProvider.doctors.firstWhere(
-            (d) => d.id == a.doctorId,
-        orElse: () => Doctor(
-          id: '',
-          name: 'Unknown',
-          specialization: '',
-          hospitalId: '',
-        ),
-      );
-      final patient = dataProvider.patients.firstWhere(
-            (p) => p.id == a.patientId,
-        orElse: () => Patient(
-          id: '',
-          name: 'Unknown',
-          age: 0,
-          diagnosis: '',
-          doctorId: '',
-          deviceId: '',
-        ),
-      );
-      return DataRow(
-        cells: [
-          DataCell(Text(a.id)),
-          DataCell(Text(doctor.name)),
-          DataCell(Text(patient.name)),
-          DataCell(Text(DateFormat('yyyy-MM-dd').format(a.dateTime))),
-          DataCell(Text(a.status)),
-        ],
-      );
-    }).toList();
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              labelText: 'Search Appointments',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onChanged: (value) {
-              setState(() => _searchQueryAppointments = value);
-            },
-          ),
-        ),
-        Expanded(
-          child: appointments.isEmpty
-              ? const Center(child: Text('No appointments found.'))
-              : BetterDataTable(columns: columns, rows: rows),
-        ),
-      ],
-    );
+  Widget _buildAppointmentsSection() {
+    return const Center(child: Text('No appointments data integrated yet.'));
   }
 
-  /// Devices Section
-  Widget _buildDevicesSection(DataProvider dataProvider) {
-    if (_selectedHospital == null) return const SizedBox();
-    final devices = dataProvider.devices.where((dev) {
-      // only devices assigned to a patient whose doctor is in this hospital
-      if (dev.patientId.isEmpty) return false;
-      final patient = dataProvider.patients.firstWhere(
-            (p) => p.id == dev.patientId,
-        orElse: () => Patient(
-          id: '',
-          name: 'Unassigned',
-          age: 0,
-          diagnosis: '',
-          doctorId: '',
-          deviceId: '',
-        ),
-      );
-      if (patient.doctorId.isEmpty) return false;
-      final doc = dataProvider.doctors.firstWhere(
-            (d) => d.id == patient.doctorId,
-        orElse: () => Doctor(
-          id: '',
-          name: '',
-          specialization: '',
-          hospitalId: '',
-        ),
-      );
-      if (doc.hospitalId != _selectedHospital!.id) return false;
-
-      return dev.type.toLowerCase().contains(_searchQueryDevices.toLowerCase());
-    }).toList();
-
-    final columns = const [
-      DataColumn(label: Text('Device ID')),
-      DataColumn(label: Text('Type')),
-      DataColumn(label: Text('Assigned To')),
-      DataColumn(label: Text('Doctor')),
-    ];
-
-    final rows = devices.map((dev) {
-      final patient = dataProvider.patients.firstWhere(
-            (p) => p.id == dev.patientId,
-        orElse: () => Patient(
-          id: '',
-          name: 'Unassigned',
-          age: 0,
-          diagnosis: '',
-          doctorId: '',
-          deviceId: '',
-        ),
-      );
-      final doctor = dataProvider.doctors.firstWhere(
-            (d) => d.id == patient.doctorId,
-        orElse: () => Doctor(
-          id: '',
-          name: 'Unknown',
-          specialization: '',
-          hospitalId: '',
-        ),
-      );
-      return DataRow(
-        cells: [
-          DataCell(Text(dev.id)),
-          DataCell(Text(dev.type)),
-          DataCell(Text(patient.name)),
-          DataCell(Text(doctor.name)),
-        ],
-      );
-    }).toList();
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              labelText: 'Search Devices',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onChanged: (value) {
-              setState(() => _searchQueryDevices = value);
-            },
-          ),
-        ),
-        Expanded(
-          child: devices.isEmpty
-              ? const Center(child: Text('No devices found.'))
-              : BetterDataTable(columns: columns, rows: rows),
-        ),
-      ],
-    );
+  Widget _buildDevicesSection() {
+    return const Center(child: Text('No devices data integrated yet.'));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<DataProvider>(
-      builder: (context, dataProvider, child) {
-        if (_isLoading) {
-          return const LoadingIndicator();
-        }
+    // Loading spinner if needed
+    if (_isLoading) {
+      return const LoadingIndicator();
+    }
 
-        // If we have selected a hospital, show details (tabs).
-        if (_selectedHospital != null) {
-          return Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              iconTheme: const IconThemeData(color: Colors.black),
-              title: Text(
-                '${_selectedHospital!.name} Details',
-                style: const TextStyle(color: Colors.black),
-              ),
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  setState(() => _selectedHospital = null);
-                },
-              ),
-              bottom: TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                labelColor: Colors.black,
-                unselectedLabelColor: Colors.grey,
-                tabs: const [
-                  Tab(text: 'Patients'),
-                  Tab(text: 'Doctors'),
-                  Tab(text: 'Appointments'),
-                  Tab(text: 'Devices'),
-                ],
-              ),
-            ),
-            body: Container(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildPatientsSection(dataProvider),
-                  _buildDoctorsSection(dataProvider),
-                  _buildAppointmentsSection(dataProvider),
-                  _buildDevicesSection(dataProvider),
-                ],
-              ),
-            ),
-          );
-        }
-
-        // Otherwise, show the hospital list
-        List<Hospital> hospitals = dataProvider.hospitals.where((h) {
-          return h.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              h.address.toLowerCase().contains(_searchQuery.toLowerCase());
-        }).toList();
-
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // Search and Add Button
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Search Hospitals',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() => _searchQuery = value);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddHospitalDialog(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Hospital'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              Expanded(
-                child: ListView.builder(
-                  itemCount: hospitals.length,
-                  itemBuilder: (context, index) {
-                    final hospital = hospitals[index];
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        title: Text(
-                          hospital.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Text(
-                          hospital.address,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () =>
-                                  _showEditHospitalDialog(context, hospital),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () =>
-                                  _deleteHospital(context, hospital.id),
-                            ),
-                          ],
-                        ),
-                        onTap: () {
-                          // Show details in the same screen
-                          setState(() {
-                            _selectedHospital = hospital;
-                          });
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
+    // If a hospital is selected => show detail tabs
+    if (_selectedHospital != null) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.black),
+          title: Text(
+            '${_selectedHospital!.name} Details',
+            style: const TextStyle(color: Colors.black),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              setState(() => _selectedHospital = null);
+            },
+          ),
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.grey,
+            tabs: const [
+              Tab(text: 'Patients'),
+              Tab(text: 'Doctors'),
+              Tab(text: 'Appointments'),
+              Tab(text: 'Devices'),
             ],
           ),
-        );
-      },
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildPatientsSection(),
+            _buildDoctorsSection(),
+            _buildAppointmentsSection(),
+            _buildDevicesSection(),
+          ],
+        ),
+      );
+    }
+
+    // Otherwise => show the main hospital list
+    final filteredHospitals = _hospitalList.where((h) {
+      final q = _searchQuery.toLowerCase();
+      return h.name.toLowerCase().contains(q) ||
+          h.address.toLowerCase().contains(q);
+    }).toList();
+
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // 1) Row with filter, search, Add button, and now a Refresh button
+            Row(
+              children: [
+                // Suspended/Unsuspended filter dropdown
+                Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _filter,
+                    underline: const SizedBox(),
+                    onChanged: (val) async {
+                      if (val != null) {
+                        setState(() => _filter = val);
+                        await _fetchHospitals();
+                      }
+                    },
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'unsuspended',
+                        child: Text('Unsuspended'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'suspended',
+                        child: Text('Suspended'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Search bar
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Search Hospitals',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value);
+                    },
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                // Add Hospital button
+                ElevatedButton.icon(
+                  onPressed: () => _showAddHospitalDialog(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Hospital'),
+                ),
+
+                const SizedBox(width: 10),
+
+                // REFRESH button => calls _fetchHospitals() like re-tapping the Hospitals tab
+                ElevatedButton.icon(
+                  onPressed: _fetchHospitals, // Just call the same method
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Refresh'),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // 2) Hospital list
+            Expanded(
+              child: filteredHospitals.isEmpty
+                  ? const Center(child: Text('No hospitals found.'))
+                  : ListView.builder(
+                      itemCount: filteredHospitals.length,
+                      itemBuilder: (context, index) {
+                        final hospital = filteredHospitals[index];
+                        return Card(
+                          elevation: 3,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(16),
+                            title: Text(
+                              hospital.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              hospital.address,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Edit
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () =>
+                                      _showEditHospitalDialog(context, hospital),
+                                ),
+                                // Delete
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () =>
+                                      _deleteHospital(context, hospital.id),
+                                ),
+                              ],
+                            ),
+                            // Tap to see detailed tabs
+                            onTap: () {
+                              setState(() => _selectedHospital = hospital);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

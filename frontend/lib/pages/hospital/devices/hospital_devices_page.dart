@@ -11,8 +11,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 class HospitalDevicesPage extends StatefulWidget {
   final String hospitalId;
 
-  const HospitalDevicesPage({Key? key, required this.hospitalId})
-      : super(key: key);
+  const HospitalDevicesPage({super.key, required this.hospitalId});
 
   @override
   _HospitalDevicesPageState createState() => _HospitalDevicesPageState();
@@ -20,7 +19,7 @@ class HospitalDevicesPage extends StatefulWidget {
 
 class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
   String _searchQuery = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   /// NO addDevice or editDevice for hospital
   /// We only show a "delete" icon that unassigns the device from this hospital.
@@ -31,8 +30,8 @@ class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Unassign Device'),
-        content: Text(
+        title: const Text('Unassign Device'),
+        content: const Text(
             'Are you sure you want to remove this device from your hospital’s patient?'),
         actions: [
           TextButton(
@@ -49,11 +48,11 @@ class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
                 msg: 'Device unassigned for this hospital successfully.',
               );
             },
-            child: Text('Yes', style: TextStyle(color: Colors.red)),
+            child: const Text('Yes', style: TextStyle(color: Colors.red)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('No'),
+            child: const Text('No'),
           ),
         ],
       ),
@@ -65,7 +64,7 @@ class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
         if (_isLoading) {
-          return LoadingIndicator();
+          return const LoadingIndicator();
         }
 
         // 1) Doctors for THIS hospital
@@ -118,7 +117,7 @@ class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
                     child: TextField(
                       decoration: InputDecoration(
                         labelText: 'Search Devices',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -133,13 +132,13 @@ class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
                   // No "add" button for hospital
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
               // Show the filtered devices in a DataTable
               Expanded(
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text('ID')),
                       DataColumn(label: Text('Type')),
                       DataColumn(label: Text('Assigned To')),
@@ -156,7 +155,7 @@ class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
                             children: [
                               // We remove the "edit" button: no IconButton(Icons.edit)
                               IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
+                                icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () =>
                                     _deleteDeviceForHospital(context, device),
                               ),

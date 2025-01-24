@@ -10,14 +10,14 @@ class SearchAndAddRow extends StatelessWidget {
   final VoidCallback onAddPressed;
 
   const SearchAndAddRow({
-    Key? key,
+    super.key,
     required this.searchLabel,
     required this.searchIcon,
     required this.onSearchChanged,
     required this.addButtonLabel,
     required this.addButtonIcon,
     required this.onAddPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
