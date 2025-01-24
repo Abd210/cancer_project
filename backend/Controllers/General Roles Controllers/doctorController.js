@@ -103,7 +103,6 @@ class DoctorController {
     }
   }
 
-
   static async updateDoctorData(req, res) {
     try {
       const { user, doctorid } = req.headers;

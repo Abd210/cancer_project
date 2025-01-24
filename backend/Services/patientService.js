@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 class PatientService {
-  static async findPatient(patient_id) {
+  static async getPatientData(patient_id) {
     if (!mongoose.isValidObjectId(patient_id)) {
       throw new Error("patientService-find patient: Invalid patient id");
     }
@@ -20,6 +20,10 @@ class PatientService {
     return await Patient.find({});
   }
 
+  static async findAllPatientsByHospital(hospitalId) {
+    // Find all doctors whose `hospital` field matches the given hospitalId
+    return await Patient.find({ hospital: hospitalId });
+  }
 
   static async updatePatient(patientId, updateFields, user) {
     // Validate the patientId as a valid MongoDB ObjectId

@@ -25,7 +25,7 @@ router.get(
   "/patient/personal-data",
   authenticate,
   authorize(["patient", "doctor", "admin", "superadmin"]),
-  patientController.getData
+  patientController.getPatientData
 );
 
 /**

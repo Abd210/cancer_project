@@ -16,40 +16,47 @@ class PatientController {
    * 
    * @returns {Object} A JSON response containing the patient’s data or an error message.
    */
-  static async getData(req, res) {
+  // 
+  
+  static async getPatientData(req, res) {
     try {
       // Destructure _id, user, and role from the request headers
-      const { _id, user, patientid, filter } = req.headers;
-      console.log(filter);
+      const { user, patientid, filter, hospitalid } = req.headers;
 
-      // Check if the _id is provided in the headers, return error if missing
-      if (!_id) {
-        return res.status(400).json({
-          error: "PatientController- Get Patient Data: Missing pers_id", // Specific error for missing _id
-        });
-      }
-
-      let patient_id = _id;
-
-       // If the user's role is "patient", ensure they can only access their own data
+      // If the user's role is "patient", ensure they can only access their own data
       if (user.role === "patient") {
-        // If the _id in the headers doesn't match the logged-in user's _id, return a 403 Forbidden error
-        if (_id !== user._id) {
-          return res.status(403).json({
-            error: "PatientController- Get Patient Data: Unauthorized", // Unauthorized access error
-          });
+        const patient_data = await PatientService.getPatientData(user._id);
+        // Check if the patient data exists
+        if (!patient_data) {
+          return res.status(404).json({ error: "Patient not found" });
         }
-      } else if (user.role === "superadmin" || user.role === "admin") {
-        // If the user is a superadmin
-        if (patientid) {
-          patient_id = patientid; // Retrieve specific patient's data
-        } else {
-          // Retrieve all patients' data if no patientid is provided
-          console.log("Superadmin requesting all patient data");
-          const allPatients = await PatientService.findAllPatients();
 
-          const filtered_data = await SuspendController.filterData(allPatients, user.role, filter);
-          return res.status(200).json(filtered_data); // Return all patient data
+        // Return the fetched patient data with a 200 status code
+        res.status(200).json(patient_data);
+      } else if (user.role === "superadmin") {
+        // If the user is a superadmin and a specific patient's ID was not provided
+        if (!patientid) {
+          if (filter) {
+            if (hospitalid) {
+              console.log("PatientController- Get Patient Data: Fetching patient data by hospital");
+              // Retrieve all patients' data from specified hospital if no patientid is given and hospitalid is provided
+              const allPatients = await PatientService.findAllPatientsByHospital(hospitalid);
+              console.log(allPatients);
+    
+              const filtered_data = await SuspendController.filterData(allPatients, user.role, filter);
+              return res.status(200).json(filtered_data); // Return all patient data
+            } else {
+              // Retrieve all patients' data if no patientid is provided
+              const allPatients = await PatientService.findAllPatients();
+    
+              const filtered_data = await SuspendController.filterData(allPatients, user.role, filter);
+              return res.status(200).json(filtered_data); // Return all patient data
+            }
+          } else {
+            return res.status(400).json({
+              error: "PatientController- Get Patient Data: Please provide either a filter or a patient's id", // Specific error for missing filter
+            });
+          }
         }
       } else {
         // If the role is neither 'patient' nor 'superadmin', deny access
@@ -58,8 +65,9 @@ class PatientController {
         });
       }
 
+      console.log("PatientController- Get Patient Data: Fetching patient data");
       // Call the PatientService to find the patient data based on the _id
-      const patient_data = await PatientService.findPatient(patient_id);
+      const patient_data = await PatientService.getPatientData(patientid);
 
       // Check if the patient data exists
       if (!patient_data) {
