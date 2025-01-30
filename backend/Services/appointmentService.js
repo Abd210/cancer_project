@@ -84,16 +84,8 @@ class AppointmentService {
           );
         }
 
-        // Adjust query based on filterByRole
-        if (filterByRole === "doctor") {
-          query = { doctor: filterById }; // Filter by specific doctor
-        } else if (filterByRole === "patient") {
-          query = { patient: filterById }; // Filter by specific patient
-        } else {
-          throw new Error(
-            "appointmentService-get appointment history: Invalid filterByRole"
-          );
-        }
+        // Adjust query based on filterByRole and filterById
+        query = { [filterByRole]: filterById };
       } else {
         query = {}; // No filter, retrieve all appointments
       }

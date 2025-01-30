@@ -60,18 +60,10 @@ class AppointmentController {
 
   static async getAppointmentHistory(req, res) {
     try {
-      const { _id, user, filterbyid, filterbyrole, suspendfilter } = req.headers;
-
-      // Check if user ID is provided in the request
-      if (!_id) {
-        return res.status(400).json({
-          error:
-            "AppointmentController- Get Appointment History: Missing User ID",
-        });
-      }
+      const { user, filterbyid, filterbyrole, suspendfilter } = req.headers;
 
       // Validate filterByRole if provided
-      if (filterbyrole && !["doctor", "patient"].includes(filterbyrole)) {
+      if ((filterbyrole && !["doctor", "patient"].includes(filterbyrole)) && user.role === "superadmin") {
         return res.status(400).json({
           error: "AppointmentController- Get Appointment History: Invalid filterByRole",
         });
@@ -81,7 +73,7 @@ class AppointmentController {
       const appointmentHistory = await AppointmentService.getAppointmentHistory(
         {
           role: user.role,
-          user_id: _id,
+          user_id: user._id,
           filterById: filterbyid || null, // Use filterById from query parameters, default to null
           filterByRole: filterbyrole || null, // Use filterByRole from query parameters, default to null
         }
