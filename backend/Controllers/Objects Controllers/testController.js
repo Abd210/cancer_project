@@ -22,22 +22,24 @@ class TestController {
    */
   static async getTestDetails(req, res) {
     try {
-      const { _id, user, role, filter } = req.headers;
+      const { user, filterbyid, filterbyrole, suspendfilter } = req.headers;
 
-      // Check if test ID is provided in the request
-      if (!_id) {
+      // Validate filterByRole if provided
+      if ((filterbyrole && !["doctor", "patient"].includes(filterbyrole)) && user.role === "superadmin") {
         return res.status(400).json({
-          error: "TestController-GetTestDetails: Missing user id",
+          error: "AppointmentController- Get Appointment History: Invalid filterByRole",
         });
       }
 
       // Fetch the test data from the TestService
       const test = await TestService.fetchTests({
-        role: role,
-        user_id: _id,
+        role: user.role,
+        user_id: user._id,
+        filterById: filterbyid || null, // Use filterById from query parameters, default to null
+        filterByRole: filterbyrole || null, // Use filterByRole from query parameters, default to null
       });
 
-      const filtered_data = await SuspendController.filterData(test, user.role, filter);
+      const filtered_data = await SuspendController.filterData(test, user.role, suspendfilter);
       // Return the entire test object in the response
       res.status(200).json(filtered_data);
     } catch (fetchTestDetailsError) {

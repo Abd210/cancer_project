@@ -5,18 +5,42 @@ const mongoose = require("mongoose");
 
 class TestService {
 
-  static async fetchTests({ user_id, role }) {
+  static async fetchTests({ user_id, role, filterById, filterByRole }) {
     if (!mongoose.isValidObjectId(user_id)) {
       throw new Error("testService-fetchTests: Invalid user ID");
     }
 
     // Build the query based on the user's role
-    const query = role === "doctor" ? { doctor: user_id } : { patient: user_id };
+    //const query = role === "doctor" ? { doctor: user_id } : { patient: user_id };
+    let query;
+    if (role === "doctor") {
+      query = { doctor: user_id };
+    } else if (role === "patient") {
+      query = { patient: user_id };
+    } else if (role === "superadmin") {
+      // Superadmin can retrieve all appointments or filter by a specific doctor or patient
+      if (filterById && filterByRole) {
+        // Validate filterById
+        if (!mongoose.isValidObjectId(filterById)) {
+          throw new Error(
+            "appointmentService-get appointment history: Invalid filterById"
+          );
+        }
+
+        // Adjust query based on filterByRole and filterById
+        query = { [filterByRole]: filterById };
+      } else {
+        query = {}; // No filter, retrieve all appointments
+      }
+    } else {
+      throw new Error(
+        "testService-get test details: Invalid role"
+      );
+    }
 
     // Fetch tests with the query, apply population and sorting if needed
     const tests = await Test.find({
       ...query,
-      status: { $ne: "completed" }, // Example: Exclude completed tests
     })
       .populate("patient", "name email") // Populate patient details
       .populate("doctor", "name email") // Populate doctor details
