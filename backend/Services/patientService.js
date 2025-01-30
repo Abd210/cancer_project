@@ -14,6 +14,23 @@ class PatientService {
 
     return await Patient.findOne({ _id: patient_id });
   }
+  
+  static async getPatientDiagnosis(patientId) {
+    if (!mongoose.isValidObjectId(patientId)) {
+      throw new Error("patientService-find patient: Invalid patient id");
+    }
+
+    // Fetch the patient document from the database using the patientId
+    const patient = await Patient.findById(patientId).select("diagnosis");
+
+    // If no patient is found, return null or throw an error
+    if (!patient) {
+      throw new Error("Patient not found");
+    }
+
+    // Return the diagnosis field of the patient
+    return patient;
+  }
 
   static async findAllPatients() {
     // Fetch all patient data

@@ -114,7 +114,7 @@ class PatientController {
       }
 
       // Call the PatientService to find the patient data and return their diagnosis
-      const patient_data = await PatientService.findPatient(_id);
+      const patient_data = await PatientService.getPatientDiagnosis(_id);
 
       // Return the patient's diagnosis data with a 200 status code
       res.status(200).json(patient_data.diagnosis);
