@@ -25,7 +25,10 @@ class _HospitalsPageState extends State<HospitalsPage>
 
   bool _isLoading = false;
   String _searchQuery = '';
-  String _filter = 'unsuspended'; // "unsuspended" or "suspended"
+
+  /// Possible values: "unsuspended", "suspended", or you can add "all"
+  /// if you want to handle that scenario. 
+  String _filter = 'unsuspended';
 
   List<HospitalData> _hospitalList = [];
 
@@ -46,20 +49,27 @@ class _HospitalsPageState extends State<HospitalsPage>
     _fetchHospitals();
   }
 
-  /// Fetches hospitals from backend
+  /// Fetches hospitals from backend based on the current _filter
+  /// (and an empty hospitalId, so we expect multiple results).
   Future<void> _fetchHospitals() async {
     setState(() => _isLoading = true);
+
     try {
+      // By passing an empty `hospitalId` and the current filter,
+      // your provider will retrieve a list of hospitals 
+      // (or possibly a single item if the backend decides so).
       final data = await _hospitalProvider.getHospitals(
         token: widget.token,
-        hospitalId: '',
+        hospitalId: '',  // empty => not requesting a specific ID
         filter: _filter,
       );
+
       setState(() {
         _hospitalList = data;
       });
     } catch (e) {
       debugPrint('Error fetching hospitals: $e');
+      // Provide a user-friendly toast message
       Fluttertoast.showToast(msg: 'Failed to load hospitals: $e');
     } finally {
       setState(() => _isLoading = false);
@@ -123,9 +133,10 @@ class _HospitalsPageState extends State<HospitalsPage>
               if (formKey.currentState!.validate()) {
                 formKey.currentState!.save();
 
-                // Close the dialog
+                // Close the dialog first so user doesn't see it linger
                 Navigator.pop(context);
 
+                // Convert comma-separated strings into lists
                 final mobileList = mobileNumbers
                     .split(',')
                     .map((s) => s.trim())
@@ -147,7 +158,8 @@ class _HospitalsPageState extends State<HospitalsPage>
                     emails: emailList,
                   );
 
-                  // Automatically refresh list so newly-created hospital is visible immediately
+                  // Automatically refresh list so newly-created hospital
+                  // is visible immediately
                   await _fetchHospitals();
 
                   Fluttertoast.showToast(msg: 'Hospital added successfully.');
@@ -251,6 +263,7 @@ class _HospitalsPageState extends State<HospitalsPage>
                     .where((s) => s.isNotEmpty)
                     .toList();
 
+                // Construct the updated fields for PUT
                 final updatedFields = <String, dynamic>{
                   'hospital_name': name,
                   'hospital_address': address,
@@ -292,14 +305,16 @@ class _HospitalsPageState extends State<HospitalsPage>
         actions: [
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(context); // close the dialog
               setState(() => _isLoading = true);
+
               try {
                 await _hospitalProvider.deleteHospital(
                   token: widget.token,
                   hospitalId: id,
                 );
                 await _fetchHospitals();
+                // If we just deleted the selected hospital, clear it
                 if (_selectedHospital?.id == id) {
                   _selectedHospital = null;
                 }
@@ -340,7 +355,7 @@ class _HospitalsPageState extends State<HospitalsPage>
 
   @override
   Widget build(BuildContext context) {
-    // Loading spinner if needed
+    // If data is loading, show a loading spinner
     if (_isLoading) {
       return const LoadingIndicator();
     }
@@ -399,7 +414,7 @@ class _HospitalsPageState extends State<HospitalsPage>
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // 1) Row with filter, search, Add button, and now a Refresh button
+            /// Top bar with filter, search, Add button, and Refresh
             Row(
               children: [
                 // Suspended/Unsuspended filter dropdown
@@ -429,6 +444,11 @@ class _HospitalsPageState extends State<HospitalsPage>
                         value: 'suspended',
                         child: Text('Suspended'),
                       ),
+                      // You could add "all" if your backend supports it:
+                      // DropdownMenuItem(
+                      //   value: 'all',
+                      //   child: Text('All Hospitals'),
+                      // ),
                     ],
                   ),
                 ),
@@ -460,9 +480,9 @@ class _HospitalsPageState extends State<HospitalsPage>
 
                 const SizedBox(width: 10),
 
-                // REFRESH button => calls _fetchHospitals() like re-tapping the Hospitals tab
+                // REFRESH button => calls _fetchHospitals()
                 ElevatedButton.icon(
-                  onPressed: _fetchHospitals, // Just call the same method
+                  onPressed: _fetchHospitals,
                   icon: const Icon(Icons.refresh),
                   label: const Text('Refresh'),
                 ),
@@ -471,7 +491,7 @@ class _HospitalsPageState extends State<HospitalsPage>
 
             const SizedBox(height: 20),
 
-            // 2) Hospital list
+            /// Hospital list
             Expanded(
               child: filteredHospitals.isEmpty
                   ? const Center(child: Text('No hospitals found.'))
@@ -506,15 +526,25 @@ class _HospitalsPageState extends State<HospitalsPage>
                               children: [
                                 // Edit
                                 IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () =>
-                                      _showEditHospitalDialog(context, hospital),
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () => _showEditHospitalDialog(
+                                    context,
+                                    hospital,
+                                  ),
                                 ),
                                 // Delete
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () =>
-                                      _deleteHospital(context, hospital.id),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => _deleteHospital(
+                                    context,
+                                    hospital.id,
+                                  ),
                                 ),
                               ],
                             ),

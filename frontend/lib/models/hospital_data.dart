@@ -23,7 +23,6 @@ class HospitalData {
       name: json['hospital_name'] ?? '',
       address: json['hospital_address'] ?? '',
       isSuspended: json['suspended'] ?? false,
-      // Safely parse mobile_numbers and emails if they exist
       mobileNumbers: (json['mobile_numbers'] != null)
           ? List<String>.from(json['mobile_numbers'])
           : <String>[],

@@ -56,10 +56,10 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
     // Rebuild your pages every time build() is called
     final pages = [
       HospitalsPage(token: widget.token), // 0
-      const DoctorsPage(),                // 1
-      const PatientsPage(),               // 2
+      DoctorsPage(token: widget.token),                // 1
+      PatientsPage(token: widget.token),               // 2
       const DevicesPage(),                // 3
-      const AppointmentsPage(),           // 4
+      AppointmentsPage(token: widget.token),           // 4
       const TicketsPage(),                // 5
     ];
 
