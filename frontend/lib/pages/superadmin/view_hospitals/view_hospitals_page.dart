@@ -50,14 +50,10 @@ class _HospitalsPageState extends State<HospitalsPage>
   }
 
   /// Fetches hospitals from backend based on the current _filter
-  /// (and an empty hospitalId, so we expect multiple results).
   Future<void> _fetchHospitals() async {
     setState(() => _isLoading = true);
 
     try {
-      // By passing an empty `hospitalId` and the current filter,
-      // your provider will retrieve a list of hospitals 
-      // (or possibly a single item if the backend decides so).
       final data = await _hospitalProvider.getHospitals(
         token: widget.token,
         hospitalId: '',  // empty => not requesting a specific ID
@@ -69,14 +65,12 @@ class _HospitalsPageState extends State<HospitalsPage>
       });
     } catch (e) {
       debugPrint('Error fetching hospitals: $e');
-      // Provide a user-friendly toast message
       Fluttertoast.showToast(msg: 'Failed to load hospitals: $e');
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  /// Opens a dialog to create a new hospital
   void _showAddHospitalDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
 
@@ -95,28 +89,24 @@ class _HospitalsPageState extends State<HospitalsPage>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Hospital Name
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Hospital Name'),
                   validator: (value) =>
                       (value == null || value.isEmpty) ? 'Enter name' : null,
                   onSaved: (value) => name = value!.trim(),
                 ),
-                // Address
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Address'),
                   validator: (value) =>
                       (value == null || value.isEmpty) ? 'Enter address' : null,
                   onSaved: (value) => address = value!.trim(),
                 ),
-                // Mobile Numbers
                 TextFormField(
                   decoration: const InputDecoration(
                     labelText: 'Mobile Numbers (comma-separated)',
                   ),
                   onSaved: (value) => mobileNumbers = value ?? '',
                 ),
-                // Emails
                 TextFormField(
                   decoration: const InputDecoration(
                     labelText: 'Emails (comma-separated)',
@@ -133,10 +123,8 @@ class _HospitalsPageState extends State<HospitalsPage>
               if (formKey.currentState!.validate()) {
                 formKey.currentState!.save();
 
-                // Close the dialog first so user doesn't see it linger
                 Navigator.pop(context);
 
-                // Convert comma-separated strings into lists
                 final mobileList = mobileNumbers
                     .split(',')
                     .map((s) => s.trim())
@@ -158,8 +146,6 @@ class _HospitalsPageState extends State<HospitalsPage>
                     emails: emailList,
                   );
 
-                  // Automatically refresh list so newly-created hospital
-                  // is visible immediately
                   await _fetchHospitals();
 
                   Fluttertoast.showToast(msg: 'Hospital added successfully.');
@@ -177,11 +163,9 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
-  /// Opens dialog to edit an existing hospital
   void _showEditHospitalDialog(BuildContext context, HospitalData hospital) {
     final formKey = GlobalKey<FormState>();
 
-    // Pre-populate form fields
     String name = hospital.name;
     String address = hospital.address;
     bool isSuspended = hospital.isSuspended;
@@ -227,7 +211,6 @@ class _HospitalsPageState extends State<HospitalsPage>
                   ),
                   onSaved: (value) => emails = value ?? '',
                 ),
-                // Suspended checkbox
                 Row(
                   children: [
                     const Text('Suspended?'),
@@ -263,7 +246,6 @@ class _HospitalsPageState extends State<HospitalsPage>
                     .where((s) => s.isNotEmpty)
                     .toList();
 
-                // Construct the updated fields for PUT
                 final updatedFields = <String, dynamic>{
                   'hospital_name': name,
                   'hospital_address': address,
@@ -295,7 +277,6 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
-  /// Delete a hospital
   void _deleteHospital(BuildContext context, String id) {
     showDialog(
       context: context,
@@ -305,7 +286,7 @@ class _HospitalsPageState extends State<HospitalsPage>
         actions: [
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // close the dialog
+              Navigator.pop(context);
               setState(() => _isLoading = true);
 
               try {
@@ -314,7 +295,6 @@ class _HospitalsPageState extends State<HospitalsPage>
                   hospitalId: id,
                 );
                 await _fetchHospitals();
-                // If we just deleted the selected hospital, clear it
                 if (_selectedHospital?.id == id) {
                   _selectedHospital = null;
                 }
@@ -336,7 +316,6 @@ class _HospitalsPageState extends State<HospitalsPage>
     );
   }
 
-  /// (Optional) Sub-pages for the selected hospital details
   Widget _buildPatientsSection() {
     return const Center(child: Text('No patient data integrated yet.'));
   }
@@ -355,12 +334,10 @@ class _HospitalsPageState extends State<HospitalsPage>
 
   @override
   Widget build(BuildContext context) {
-    // If data is loading, show a loading spinner
     if (_isLoading) {
       return const LoadingIndicator();
     }
 
-    // If a hospital is selected => show detail tabs
     if (_selectedHospital != null) {
       return Scaffold(
         appBar: AppBar(
@@ -402,7 +379,6 @@ class _HospitalsPageState extends State<HospitalsPage>
       );
     }
 
-    // Otherwise => show the main hospital list
     final filteredHospitals = _hospitalList.where((h) {
       final q = _searchQuery.toLowerCase();
       return h.name.toLowerCase().contains(q) ||
@@ -414,10 +390,8 @@ class _HospitalsPageState extends State<HospitalsPage>
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            /// Top bar with filter, search, Add button, and Refresh
             Row(
               children: [
-                // Suspended/Unsuspended filter dropdown
                 Container(
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -444,16 +418,10 @@ class _HospitalsPageState extends State<HospitalsPage>
                         value: 'suspended',
                         child: Text('Suspended'),
                       ),
-                      // You could add "all" if your backend supports it:
-                      // DropdownMenuItem(
-                      //   value: 'all',
-                      //   child: Text('All Hospitals'),
-                      // ),
                     ],
                   ),
                 ),
 
-                // Search bar
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
@@ -471,7 +439,6 @@ class _HospitalsPageState extends State<HospitalsPage>
 
                 const SizedBox(width: 10),
 
-                // Add Hospital button
                 ElevatedButton.icon(
                   onPressed: () => _showAddHospitalDialog(context),
                   icon: const Icon(Icons.add),
@@ -480,7 +447,6 @@ class _HospitalsPageState extends State<HospitalsPage>
 
                 const SizedBox(width: 10),
 
-                // REFRESH button => calls _fetchHospitals()
                 ElevatedButton.icon(
                   onPressed: _fetchHospitals,
                   icon: const Icon(Icons.refresh),
@@ -491,70 +457,41 @@ class _HospitalsPageState extends State<HospitalsPage>
 
             const SizedBox(height: 20),
 
-            /// Hospital list
             Expanded(
               child: filteredHospitals.isEmpty
                   ? const Center(child: Text('No hospitals found.'))
-                  : ListView.builder(
-                      itemCount: filteredHospitals.length,
-                      itemBuilder: (context, index) {
-                        final hospital = filteredHospitals[index];
-                        return Card(
-                          elevation: 3,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(16),
-                            title: Text(
-                              hospital.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              hospital.address,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Edit
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.edit,
-                                    color: Colors.blue,
-                                  ),
-                                  onPressed: () => _showEditHospitalDialog(
-                                    context,
-                                    hospital,
-                                  ),
+                  : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('Hospital Name')),
+                          DataColumn(label: Text('Address')),
+                          DataColumn(label: Text('Actions')),
+                        ],
+                        rows: filteredHospitals.map((hospital) {
+                          return DataRow(
+                            cells: [
+                              DataCell(Text(hospital.name)),
+                              DataCell(Text(hospital.address)),
+                              DataCell(
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, color: Colors.blue),
+                                      onPressed: () => _showEditHospitalDialog(context, hospital),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      onPressed: () => _deleteHospital(context, hospital.id),
+                                    ),
+                                  ],
                                 ),
-                                // Delete
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () => _deleteHospital(
-                                    context,
-                                    hospital.id,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // Tap to see detailed tabs
-                            onTap: () {
-                              setState(() => _selectedHospital = hospital);
-                            },
-                          ),
-                        );
-                      },
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
                     ),
             ),
           ],
