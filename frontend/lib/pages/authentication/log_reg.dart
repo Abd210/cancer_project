@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frontend/pages/patients/patient_page.dart';
 import 'package:frontend/providers/auth_provider.dart'; // <-- Use your AuthProvider
 import 'package:frontend/pages/superadmin/superAdmin_page.dart';
 
@@ -61,7 +62,10 @@ class _LogInState extends State<LogIn> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => SuperAdminDashboard(token: response.token!),
+            builder: (context) => PatientPage(),
+            //the actual page to navigate to
+            // builder: (context) => SuperAdminDashboard(token: response.token!),
+
           ),
         );
         Fluttertoast.showToast(msg: 'Login successful.');
