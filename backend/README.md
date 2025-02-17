@@ -87,32 +87,34 @@ Before you can run this project, you need to have the following installed on you
     ```env
     PORT=3000
     JWT_SECRET=your_jwt_secret_key
-    MONGO_URI=your_mongodb_connection_string
     ```
 
-3. **Create a MongoDB Atlas Cluster and Database**:
-   - **Create an account** on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register).
-   - **Create a new cluster**:
-     - Click on "Build a Cluster."
-     - Choose your preferred cloud provider (e.g., AWS, Azure, or Google Cloud).
-     - Select a region and other settings, then click "Create Cluster."
-     - This process may take a few minutes.
-   - **Create a database user**:
-     - In the Atlas dashboard, go to the "Database Access" tab.
-     - Click "Add New Database User" and set up a username and password.
-     - Save the credentials, as you'll need them later.
-   - **Whitelist your IP address**:
-     - Go to the "Network Access" tab.
-     - Click "Add IP Address," then either allow all IPs (not recommended for production) or specify your own IP.
-   - **Get the connection URI**:
-     - In the "Clusters" tab, click "Connect."
-     - Choose "Connect your application" and copy the connection string.
-     - Replace `<username>` and `<password>` in the connection string with your database user credentials.
-   - **Add the URI to the `.env` file** as `MONGO_URI`.
-   - **Create a database and collection**:
-     - Click "Browse Collections" in the cluster dashboard.
-     - Click "Add My Own Data."
-     - Enter a database name and a collection name to initialize your database.
+3. **Set up Firebase Firestore**:
+   - **Create a Firebase Project**:
+     - Go to [Firebase Console](https://console.firebase.google.com/).
+     - Click on "Add Project" and follow the setup instructions.
+   - **Enable Firestore**:
+     - In the Firebase Console, go to "Firestore Database."
+     - Click "Create Database" and choose a location.
+     - Select a security mode (start in test mode for development, but use rules for production).
+   - **Download Firebase Config**:
+     - Go to "Project Settings" > "Service Accounts."
+     - Click "Generate new private key" and download the JSON file.
+     - Save this file as `firebaseConfig.json` in the root directory.
+   - **Initialize Firestore in your app**:
+     - Create a `firebase.js` file in the `backend` folder and add the following:
+
+       ```javascript
+       const admin = require("firebase-admin");
+       const serviceAccount = require("./firebaseConfig.json");
+
+       admin.initializeApp({
+           credential: admin.credential.cert(serviceAccount),
+       });
+
+       const db = admin.firestore();
+       module.exports = db;
+       ```
 
 ---
 
@@ -129,3 +131,4 @@ npm start
 ## Project Structure
 
 (Provide a description of the project structure here.)
+
