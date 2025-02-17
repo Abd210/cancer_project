@@ -1,84 +1,90 @@
-const Device = require("../Models/Device");
-const mongoose = require("mongoose");
+const admin = require("firebase-admin");
+const db = admin.firestore();
 
 class DeviceService {
+  /**
+   * Creates a new device while ensuring the device ID is unique.
+   */
   static async createDevice(deviceData) {
-    const device = new Device(deviceData);
+    const deviceRef = db.collection("devices");
 
-    const validationError = device.validateSync();
-    if (validationError) {
-      throw new Error(`Validation Error: ${validationError.message}`);
+    // Check if device with the same ID already exists
+    const existingDevice = await deviceRef.doc(deviceData.device_id).get();
+    if (existingDevice.exists) {
+      throw new Error("Device already exists with the same device ID.");
     }
 
-    await device.save();
-    return { message: "Device created successfully", device };
+    // Add new device
+    const newDevice = {
+      ...deviceData,
+      createdAt: admin.firestore.Timestamp.now(),
+    };
+
+    await deviceRef.doc(deviceData.device_id).set(newDevice);
+    return { message: "Device created successfully.", device: newDevice };
   }
 
+  /**
+   * Updates an existing device by ID.
+   */
   static async updateDevice(deviceId, updateFields) {
-    if (!mongoose.isValidObjectId(deviceId)) {
-      throw new Error("Invalid Device ID");
+    const deviceRef = db.collection("devices").doc(deviceId);
+    const deviceDoc = await deviceRef.get();
+
+    if (!deviceDoc.exists) {
+      throw new Error("Device not found.");
     }
 
-    const updatedDevice = await Device.findByIdAndUpdate(
-      deviceId,
-      updateFields,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    if (!updatedDevice) {
-      throw new Error("Device not found");
-    }
-
-    return updatedDevice;
+    await deviceRef.update(updateFields);
+    return { message: "Device updated successfully." };
   }
 
+  /**
+   * Deletes a device by ID.
+   */
   static async deleteDevice(deviceId) {
-    if (!mongoose.isValidObjectId(deviceId)) {
-      throw new Error("Invalid Device ID");
+    const deviceRef = db.collection("devices").doc(deviceId);
+    const deviceDoc = await deviceRef.get();
+
+    if (!deviceDoc.exists) {
+      throw new Error("Device not found.");
     }
 
-    const deletedDevice = await Device.findByIdAndDelete(deviceId);
-
-    if (!deletedDevice) {
-      throw new Error("Device not found");
-    }
-
-    return { message: "Device deleted successfully", deletedDevice };
+    await deviceRef.delete();
+    return { message: "Device deleted successfully." };
   }
 
+  /**
+   * Uploads data for a specific device.
+   */
   static async uploadDeviceData(deviceId, testData) {
-    if (!mongoose.isValidObjectId(deviceId)) {
-      throw new Error("Invalid Device ID");
+    const deviceRef = db.collection("devices").doc(deviceId);
+    const deviceDoc = await deviceRef.get();
+
+    if (!deviceDoc.exists) {
+      throw new Error("Device not found.");
     }
 
-    const device = await Device.findById(deviceId);
+    await deviceRef.update({
+      data: testData,
+      lastUpdated: admin.firestore.Timestamp.now(),
+    });
 
-    if (!device) {
-      throw new Error("Device not found");
-    }
-
-    // Assuming there's a field for device data
-    device.data = testData;
-    await device.save();
-
-    return { message: "Data uploaded successfully", device };
+    return { message: "Data uploaded successfully." };
   }
 
+  /**
+   * Fetches device data by ID.
+   */
   static async getDeviceData(deviceId) {
-    if (!mongoose.isValidObjectId(deviceId)) {
-      throw new Error("Invalid Device ID");
+    const deviceRef = db.collection("devices").doc(deviceId);
+    const deviceDoc = await deviceRef.get();
+
+    if (!deviceDoc.exists) {
+      throw new Error("Device not found.");
     }
 
-    const device = await Device.findById(deviceId);
-
-    if (!device) {
-      throw new Error("Device not found");
-    }
-
-    return device;
+    return { id: deviceDoc.id, ...deviceDoc.data() };
   }
 }
 

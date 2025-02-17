@@ -1,209 +1,177 @@
-const Hospital = require("../Models/Hospital");
-const Patient = require("../Models/Patient");
-const Doctor = require("../Models/Doctor");
-const Appointment = require("../Models/Appointment");
-const Test = require("../Models/Test");
-const Admin = require("../Models/Admin");
-const SuperAdmin = require("../Models/SuperAdmin");
-const mongoose = require("mongoose");
+const admin = require("firebase-admin");
+const db = admin.firestore();
 
 class HospitalService {
+  /**
+   * Registers a new hospital while ensuring uniqueness of name, emails, and mobile numbers.
+   */
   static async register({
     hospital_name,
     hospital_address,
     mobile_numbers,
     emails,
   }) {
-    /**Create a new Hospital instance to validate data*/
-    const hospital = new Hospital({
+    const hospitalRef = db.collection("hospitals");
+
+    // Check if a hospital with the same name and address already exists
+    const existingHospitals = await hospitalRef
+      .where("hospital_name", "==", hospital_name)
+      .where("hospital_address", "==", hospital_address)
+      .get();
+
+    if (!existingHospitals.empty) {
+      throw new Error(
+        "Hospital already exists with the same name and address."
+      );
+    }
+
+    // Check uniqueness of emails and mobile numbers
+    await this._checkUniqueFields("emails", emails);
+    await this._checkUniqueFields("mobile_numbers", mobile_numbers);
+
+    // Add new hospital
+    const newHospital = {
       hospital_name,
       hospital_address,
       mobile_numbers,
       emails,
-    });
+      createdAt: admin.firestore.Timestamp.now(),
+    };
 
-    /**Check if there's any other hospital with the same name and address*/
-    const existingHospital = await Hospital.findOne({
-      hospital_name,
-      hospital_address,
-    });
-
-    if (existingHospital) {
-      throw new Error(
-        "HospitalService-Register: A hospital with the same name and address already exists."
-      );
-    }
-
-    /**Validate the data against the schema*/
-    const validationError = hospital.validateSync();
-    if (validationError) {
-      throw new Error(
-        `HospitalService-Register-Validation Error: ${validationError.message}`
-      );
-    }
-
-    /**Save the hospital to the database*/
-    const result = await hospital.save();
-    return result;
+    const docRef = await hospitalRef.add(newHospital);
+    return { id: docRef.id, ...newHospital };
   }
 
-  static async deleteHospital(hospitalId) {
-    // Validate hospital ID
-    if (!mongoose.isValidObjectId(hospitalId)) {
-      throw new Error("HospitalService-Delete: Invalid hospital ID");
+  /**
+   * Retrieves hospital data by ID.
+   */
+  static async getHospitalData(hospitalId) {
+    const hospitalRef = db.collection("hospitals").doc(hospitalId);
+    const hospitalDoc = await hospitalRef.get();
+
+    if (!hospitalDoc.exists) {
+      throw new Error("Hospital not found.");
     }
 
-    // Check if the hospital exists
-    const hospital = await Hospital.findById(hospitalId);
-    if (!hospital) {
-      throw new Error("HospitalService-Delete: Hospital not found");
+    return { id: hospitalDoc.id, ...hospitalDoc.data() };
+  }
+
+  /**
+   * Updates hospital details, ensuring uniqueness for emails and mobile numbers.
+   */
+  static async updateHospital(hospitalId, updateFields, userRole) {
+    if (userRole !== "superadmin") {
+      throw new Error("Unauthorized: Only superadmins can update hospitals.");
     }
 
-    // Find patients, doctors, and admins associated with the hospital
-    const patients = await Patient.find({ hospital: hospitalId });
-    const doctors = await Doctor.find({ hospital: hospitalId });
-    const admins = await Admin.find({ hospital: hospitalId });
+    const hospitalRef = db.collection("hospitals").doc(hospitalId);
+    const hospitalDoc = await hospitalRef.get();
 
-    // Collect IDs of patients, doctors, and admins
-    const patientIds = patients.map((patient) => patient._id);
-    const doctorIds = doctors.map((doctor) => doctor._id);
-    const adminIds = admins.map((admin) => admin._id);
+    if (!hospitalDoc.exists) {
+      throw new Error("Hospital not found.");
+    }
 
-    // Delete all associated appointments and tests
-    await Appointment.deleteMany({
-      $or: [{ patient: { $in: patientIds } }, { doctor: { $in: doctorIds } }],
-    });
+    // Prevent updating `_id`
+    if (updateFields._id) {
+      throw new Error("Changing '_id' is not allowed.");
+    }
 
-    await Test.deleteMany({
-      $or: [{ patient: { $in: patientIds } }, { doctor: { $in: doctorIds } }],
-    });
+    // Check uniqueness of emails and mobile numbers if updated
+    if (updateFields.emails)
+      await this._checkUniqueFields("emails", updateFields.emails, hospitalId);
+    if (updateFields.mobile_numbers)
+      await this._checkUniqueFields(
+        "mobile_numbers",
+        updateFields.mobile_numbers,
+        hospitalId
+      );
 
-    // Delete all associated patients, doctors, and admins
-    await Patient.deleteMany({ hospital: hospitalId });
-    await Doctor.deleteMany({ hospital: hospitalId });
-    await Admin.deleteMany({ hospital: hospitalId });
+    await hospitalRef.update(updateFields);
+    return { message: "Hospital updated successfully." };
+  }
 
-    // Delete the hospital itself
-    const deletedHospital = await Hospital.findByIdAndDelete(hospitalId);
+  /**
+   * Deletes a hospital and all associated data (patients, doctors, admins, appointments, tests).
+   */
+  static async deleteHospital(hospitalId, userRole) {
+    if (userRole !== "superadmin") {
+      throw new Error("Unauthorized: Only superadmins can delete hospitals.");
+    }
+
+    const hospitalRef = db.collection("hospitals").doc(hospitalId);
+    const hospitalDoc = await hospitalRef.get();
+
+    if (!hospitalDoc.exists) {
+      throw new Error("Hospital not found.");
+    }
+
+    // Start Firestore transaction
+    const batch = db.batch();
+
+    // Delete patients, doctors, and admins linked to this hospital
+    const deleteLinkedRecords = async (collection) => {
+      const snapshot = await db
+        .collection(collection)
+        .where("hospital", "==", hospitalId)
+        .get();
+      snapshot.forEach((doc) => batch.delete(doc.ref));
+    };
+
+    await deleteLinkedRecords("patients");
+    await deleteLinkedRecords("doctors");
+    await deleteLinkedRecords("admins");
+
+    // Delete appointments and tests associated with patients & doctors
+    const deleteAppointmentsAndTests = async (collection) => {
+      const snapshot = await db
+        .collection(collection)
+        .where("hospital", "==", hospitalId)
+        .get();
+      snapshot.forEach((doc) => batch.delete(doc.ref));
+    };
+
+    await deleteAppointmentsAndTests("appointments");
+    await deleteAppointmentsAndTests("tests");
+
+    // Delete hospital itself
+    batch.delete(hospitalRef);
+    await batch.commit();
 
     return {
-      message: "Hospital and all associated data successfully deleted",
-      deletedHospital,
+      message: "Hospital and all associated records successfully deleted.",
     };
   }
 
-  static async getHospitalData(_id) {
-    // Find the hospital and include all fields
-    const hospital = await Hospital.findOne(
-      { _id } // Filter by _id and role
-    );
-
-    // If the hospital is not found, throw an error
-    if (!hospital) {
-        throw new Error("Hospital not found");
-    }
-
-    return hospital; // Returns the full hospital's data
-  }
-
-  static async updateHospital(hospitalId, updateFields, user) {
-    // Validate the hospitalId as a valid MongoDB ObjectId
-    if (!mongoose.isValidObjectId(hospitalId)) {
-      throw new Error("hospitalService-update hospital: Invalid hospitalId");
-    }
-
-    // Prevent updating the _id field
-    if (updateFields._id) {
-        throw new Error("hospitalService-update hospital: Changing the '_id' field is not allowed");
-    }
-
-    // Internal helper function to check uniqueness across collections
-    // const checkUniqueness = async (field, values, hospitalId) => {
-    //   const collections = [Patient, Doctor, Admin, SuperAdmin, Hospital];
-    
-    //   for (const Collection of collections) {
-    //     const query = { [field]: { $in: values } };
-    
-    //     // Exclude the current hospital being updated
-    //     if (Collection.modelName === "Hospital") {
-    //       query._id = { $ne: hospitalId };
-    //     }
-    
-    //     const existingUsers = await Collection.find(query);
-        
-    //     for (const existingUser of existingUsers) {
-    //       if (existingUser._id.toString() !== hospitalId) {
-    //         throw new Error(`hospitalService-update hospital: One of the ${field} is already in use by another user`);
-    //       }
-    //     }
-    //   }
-    // };
-
-    const checkUniqueness = async (field, values, hospitalId) => {
-      const collections = [
-        { model: Patient, isHospital: false },
-        { model: Doctor, isHospital: false },
-        { model: Admin, isHospital: false },
-        { model: SuperAdmin, isHospital: false },
-        { model: Hospital, isHospital: true },
-      ];
-    
-      for (const { model, isHospital } of collections) {
-        let query;
-    
-        if (isHospital) {
-          // For hospitals, check if any of the provided values exist in the arrays
-          query = { [field]: { $in: values }, _id: { $ne: hospitalId } };
-        } else {
-          // For other collections, check if any single value matches the string field
-          query = { [field.slice(0, -1)]: { $in: values } }; // Convert to singular, e.g. 'emails' -> 'email'
-        }
-    
-        const existingUsers = await model.find(query);
-    
-        for (const existingUser of existingUsers) {
-          if (isHospital && existingUser._id.toString() !== hospitalId) {
-            throw new Error(`hospitalService-update hospital: One of the ${field} is already in use by another hospital`);
-          } else if (!isHospital) {
-            throw new Error(`hospitalService-update hospital: One of the ${field} is already in use by another user`);
-          }
-        }
-      }
-    };
-
-    console.log(updateFields);
-    if (updateFields.emails && Array.isArray(updateFields.emails)) {
-      await checkUniqueness("emails", updateFields.emails, hospitalId);
-    }
-    console.log(Array.isArray(updateFields.mobile_numbers));
-    if (updateFields.mobile_numbers && Array.isArray(updateFields.mobile_numbers)) {
-      await checkUniqueness("mobile_numbers", updateFields.mobile_numbers, hospitalId);
-    }
-
-    if (updateFields.suspended) {
-      // Only superadmins can suspend hospitals
-      if (user.role !== "superadmin") {
-        throw new Error("hospitalService-update hospital: Only superadmins can suspend hospitals");
-      }
-    }
-
-    // Perform the update
-    const updatedHospital = await Hospital.findByIdAndUpdate(
-        hospitalId,
-        { $set: updateFields }, // Update only the provided fields
-        { new: true, runValidators: true } // Return the updated document and run schema validators
-    );
-
-    if (!updatedHospital) {
-        throw new Error("hospitalService-update hospital: Hospital not found");
-    }
-
-    return updatedHospital;
-  }
-
+  /**
+   * Retrieves all hospitals.
+   */
   static async findAllHospitals() {
-    // Fetch all hospital data
-    return await Hospital.find({});
+    const snapshot = await db.collection("hospitals").get();
+    if (snapshot.empty) {
+      throw new Error("No hospitals found.");
+    }
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  }
+
+  /**
+   * Internal function to check uniqueness of emails and mobile numbers across collections.
+   */
+  static async _checkUniqueFields(field, values, hospitalId = null) {
+    const collections = ["patients", "doctors", "admins", "hospitals"];
+
+    for (const collection of collections) {
+      const querySnapshot = await db
+        .collection(collection)
+        .where(field, "array-contains-any", values)
+        .get();
+
+      querySnapshot.forEach((doc) => {
+        if (hospitalId && doc.id === hospitalId) return; // Skip the current hospital
+        throw new Error(`One of the ${field} is already in use.`);
+      });
+    }
   }
 }
+
 module.exports = HospitalService;

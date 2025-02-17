@@ -1,58 +1,60 @@
-const mongoose = require("mongoose");
+const { db } = require("../firebase"); // Import shared Firebase instance
+
 const bcrypt = require("bcrypt");
 
-const superAdminSchema = new mongoose.Schema(
-  {
-    pers_id: {
-      type: String,
-      unique: true,
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    }, // SuperAdmin's full name
-    email: {
-      type: String,
-      unique: true,
-      required: true,
-      trim: true,
-    }, // Unique email address
-    mobile_number: {
-      type: String,
-      unique: true,
-      required: true,
-      trim: true,
-    }, // Unique mobile number
-    password: {
-      type: String,
-      required: true,
-    }, // Encrypted password
-    role: {
-      type: String,
-      enum: ["superadmin"],
-      default: "superadmin",
-      required: true,
-    }, // Fixed role as "superadmin"
-  },
-  { timestamps: true }
-);
+const superAdminsCollection = db.collection("superadmins");
 
-// Hash the password before saving the SuperAdmin
-superAdminSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+const ROLES = ["superadmin"];
+
+class SuperAdmin {
+  constructor({
+    pers_id,
+    password,
+    name,
+    email,
+    mobile_number,
+    role = "superadmin",
+  }) {
+    if (typeof pers_id !== "string")
+      throw new Error("Invalid pers_id: must be a string");
+    if (typeof password !== "string")
+      throw new Error("Invalid password: must be a string");
+    if (typeof name !== "string")
+      throw new Error("Invalid name: must be a string");
+    if (typeof email !== "string")
+      throw new Error("Invalid email: must be a string");
+    if (typeof mobile_number !== "string")
+      throw new Error("Invalid mobile_number: must be a string");
+    if (!ROLES.includes(role))
+      throw new Error(`Invalid role: ${role}. Allowed: ${ROLES.join(", ")}`);
+
+    this.pers_id = pers_id;
+    this.password = password;
+    this.name = name;
+    this.email = email;
+    this.mobile_number = mobile_number;
+    this.role = role;
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
-});
 
-// Compare given password with the stored hashed password
-superAdminSchema.methods.comparePassword = function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
+  async save() {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+      this.updatedAt = new Date();
 
-module.exports = mongoose.model("SuperAdmin", superAdminSchema);
+      // Firestore auto-generates the document ID
+      const docRef = await superAdminsCollection.add({ ...this });
+      return docRef.id; // Return the auto-generated ID
+    } catch (error) {
+      throw new Error("Error saving superadmin: " + error.message);
+    }
+  }
+
+  async comparePassword(candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+  }
+}
+
+module.exports = SuperAdmin;

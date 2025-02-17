@@ -1,58 +1,38 @@
-const Appointment = require("../Models/Appointment");
-const mongoose = require("mongoose");
+const admin = require("firebase-admin");
+const db = admin.firestore();
 
-/**
- * AppointmentService provides functionality related to managing appointments.
- * It includes methods for creating, updating, deleting, and fetching appointments.
- * The service ensures that appointment times are valid, doctors and patients are available,
- * and appointments are properly linked to users.
- */
 class AppointmentService {
   /**
    * Fetches upcoming appointments for a specific user based on their role (doctor or patient).
-   * The function filters appointments that are scheduled and in the future,
-   * ensuring that only valid appointments are returned.
-   *
-   * @param {Object} params - The request parameters, including user_id and role.
-   * @param {string} params.user_id - The unique identifier of the user.
-   * @param {string} params.role - The role of the user (either "doctor" or "patient").
-   * @returns {Array} - Returns an array of upcoming appointments for the user.
-   * @throws {Error} - Throws an error if the user_id is invalid or if no appointments are found.
+   * Filters appointments that are scheduled and in the future.
    */
   static async getUpcomingAppointments({ role, user_id }) {
-    // Check if the provided user_id is valid
-    if (!mongoose.isValidObjectId(user_id)) {
+    if (!user_id) {
       throw new Error(
-        "appointmentService-get appointment history:Invalid user_id"
+        "appointmentService-getUpcomingAppointments: Invalid user_id"
       );
     }
 
-    // Build the query based on the user's role
-    const query =
-      role === "doctor" ? { doctor: user_id } : { patient: user_id };
+    const field = role === "doctor" ? "doctor_id" : "patient_id";
 
-    // Fetch upcoming appointments, scheduled in the future
-    const appointments = await Appointment.find({
-      ...query,
-      appointment_date: { $gte: new Date() }, // Only future appointments
-      status: "scheduled", // Ensure the appointment is scheduled
-    })
-      .populate("patient", "name email") // Populate patient details
-      .populate("doctor", "name email") // Populate doctor details
-      .sort("appointment_date"); // Sort appointments by date
+    const snapshot = await db
+      .collection("appointments")
+      .where(field, "==", user_id)
+      .where("appointment_date", ">=", new Date())
+      .where("status", "==", "scheduled")
+      .orderBy("appointment_date")
+      .get();
 
-    return appointments;
+    if (snapshot.empty) {
+      return [];
+    }
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
 
   /**
    * Fetches past appointments for a specific user based on their role (doctor or patient).
-   * The function filters appointments that have already occurred.
-   *
-   * @param {Object} params - The request parameters, including user_id and role.
-   * @param {string} params.user_id - The unique identifier of the user.
-   * @param {string} params.role - The role of the user (either "doctor" or "patient").
-   * @returns {Array} Returns an array of past appointments for the user.
-   * @throws Throws an error if the user_id is invalid or if no appointments are found.
+   * Filters appointments that have already occurred.
    */
   static async getAppointmentHistory({
     user_id,
@@ -60,101 +40,61 @@ class AppointmentService {
     filterById,
     filterByRole,
   }) {
-    // Validate the user_id for correctness
-    if (!mongoose.isValidObjectId(user_id)) {
+    if (!user_id) {
       throw new Error(
-        "appointmentService-get appointment history:Invalid user_id"
+        "appointmentService-getAppointmentHistory: Invalid user_id"
       );
     }
 
-    // Build the query based on the user's role
-    let query;
+    let queryRef = db.collection("appointments");
 
     if (role === "doctor") {
-      query = { doctor: user_id }; // Doctors can only see their own appointments
+      queryRef = queryRef.where("doctor_id", "==", user_id);
     } else if (role === "patient") {
-      query = { patient: user_id }; // Patients can only see their own appointments
-    } else if (role === "superadmin") {
-      // Superadmin can retrieve all appointments or filter by a specific doctor or patient
-      if (filterById && filterByRole) {
-        // Validate filterById
-        if (!mongoose.isValidObjectId(filterById)) {
-          throw new Error(
-            "appointmentService-get appointment history: Invalid filterById"
-          );
-        }
-
-        // Adjust query based on filterByRole and filterById
-        query = { [filterByRole]: filterById };
-      } else {
-        query = {}; // No filter, retrieve all appointments
-      }
-    } else {
-      throw new Error(
-        "appointmentService-get appointment history: Invalid role"
-      );
+      queryRef = queryRef.where("patient_id", "==", user_id);
+    } else if (role === "superadmin" && filterById && filterByRole) {
+      queryRef = queryRef.where(filterByRole, "==", filterById);
     }
 
-    // Fetch past appointments, appointments that are in the past
-    const appointments = await Appointment.find({
-      ...query,
-      appointment_date: { $lt: new Date() }, // Only past appointments
-    })
-      .populate("patient", "name email") // Populate patient details
-      .populate("doctor", "name email") // Populate doctor details
-      .sort("-appointment_date"); // Sort appointments by date in descending order
+    queryRef = queryRef
+      .where("appointment_date", "<", new Date())
+      .orderBy("appointment_date", "desc");
 
-    return appointments;
+    const snapshot = await queryRef.get();
+
+    if (snapshot.empty) {
+      return [];
+    }
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
 
   /**
    * Cancels an appointment by updating its status to 'cancelled'.
-   * The function first checks if the appointment exists, and if so, updates its status.
-   *
-   * @param {string} appointment_id - The unique identifier of the appointment.
-   * @returns {Object} Returns the updated appointment or an error message if the appointment cannot be found.
-   * @throws Throws an error if the appointment does not exist or if the update fails.
    */
   static async cancelAppointment(appointment_id) {
-    // Check if the appointment exists in the database
-    const appointmentExists = await AppointmentService.findAppointment(
-      appointment_id
-    );
-    if (!appointmentExists) {
+    if (!appointment_id) {
       throw new Error(
-        "appointmentService-cancel appointment: Appointment not found"
+        "appointmentService-cancelAppointment: Invalid appointment_id"
       );
     }
 
-    // Update the status of the appointment to 'cancelled'
-    const appointment = await Appointment.findByIdAndUpdate(
-      appointment_id,
-      { status: "cancelled" },
-      { new: true }
-    );
+    const appointmentRef = db.collection("appointments").doc(appointment_id);
+    const appointmentDoc = await appointmentRef.get();
 
-    // If the appointment update fails, return an error
-    if (!appointment) {
+    if (!appointmentDoc.exists) {
       throw new Error(
-        "appointmentService-cancel appointment: Appointment not found"
+        "appointmentService-cancelAppointment: Appointment not found"
       );
     }
 
-    return appointment;
+    await appointmentRef.update({ status: "cancelled" });
+
+    return { message: "Appointment cancelled successfully", appointment_id };
   }
 
   /**
-   * Creates a new appointment by saving the provided data in the database.
-   * The function validates the appointment data and saves it if valid.
-   *
-   * @param {Object} appointmentData - The data required to create a new appointment.
-   * @param {string} appointmentData.patient_id - The ID of the patient.
-   * @param {string} appointmentData.doctor_id - The ID of the doctor.
-   * @param {Date} appointmentData.appointment_date - The date and time of the appointment.
-   * @param {string} appointmentData.purpose - The purpose of the appointment.
-   * @param {string} [appointmentData.status='scheduled'] - The status of the appointment (default is 'scheduled').
-   * @returns {Object} Returns a success message and the newly created appointment object or an error message if the creation fails.
-   * @throws Throws an error if the appointment data is invalid or cannot be saved.
+   * Creates a new appointment.
    */
   static async createAppointment({
     patient_id,
@@ -163,129 +103,113 @@ class AppointmentService {
     purpose,
     status = "scheduled",
   }) {
-    // Create a new appointment object
-    const appointment = new Appointment({
-      patient: patient_id,
-      doctor: doctor_id,
-      appointment_date,
+    const appointmentData = {
+      patient_id,
+      doctor_id,
+      appointment_date: admin.firestore.Timestamp.fromDate(
+        new Date(appointment_date)
+      ),
       purpose,
       status,
-    });
+    };
 
-    // Validate the appointment data before saving
-    const validationError = appointment.validateSync();
-    if (validationError) {
-      throw new Error(
-        `appointmentService-create appointment: ${validationError.message}`
-      );
-    }
+    const newAppointmentRef = await db
+      .collection("appointments")
+      .add(appointmentData);
 
-    // Save the appointment to the database
-    appointment.save();
     return {
       message: "Appointment created successfully",
-      new_appointment: appointment,
+      id: newAppointmentRef.id,
+      ...appointmentData,
     };
   }
 
   /**
    * Finds an appointment by its unique identifier.
-   * The function checks if the provided appointment ID is valid and retrieves the corresponding appointment.
-   *
-   * @param {string} appointment_id - The unique identifier of the appointment.
-   * @returns {Object} Returns the found appointment or an error message if the appointment does not exist.
-   * @throws Throws an error if the appointment ID is invalid.
    */
   static async findAppointment(appointment_id) {
-    // Validate the provided appointment ID
-    if (!mongoose.isValidObjectId(appointment_id)) {
+    if (!appointment_id) {
       throw new Error(
-        "appointmentService-appointment exists: Invalid appointment_id"
+        "appointmentService-findAppointment: Invalid appointment_id"
       );
     }
-    // Fetch the appointment by ID
-    return await Appointment.findOne({ _id: appointment_id });
+
+    const appointmentDoc = await db
+      .collection("appointments")
+      .doc(appointment_id)
+      .get();
+
+    if (!appointmentDoc.exists) {
+      throw new Error(
+        "appointmentService-findAppointment: Appointment not found"
+      );
+    }
+
+    return { id: appointmentDoc.id, ...appointmentDoc.data() };
   }
 
   /**
-   * Deletes an appointment from the database.
-   * The function validates the appointment ID and ensures the appointment exists before deletion.
-   *
-   * @param {string} appointment_id - The unique identifier of the appointment to be deleted.
-   * @returns {Object} Returns a success message and the deleted appointment object or an error message if the appointment cannot be found.
-   * @throws Throws an error if the appointment ID is invalid or the appointment does not exist.
+   * Deletes an appointment from Firestore.
    */
   static async deleteAppointment(appointment_id) {
-    // Validate the provided appointment ID
-    if (!mongoose.isValidObjectId(appointment_id)) {
+    if (!appointment_id) {
       throw new Error(
-        "appointmentService-delete appointment: Invalid appointment_id"
+        "appointmentService-deleteAppointment: Invalid appointment_id"
       );
     }
 
-    // Check if the appointment exists in the database
-    const appointment = await Appointment.findById(appointment_id);
-    if (!appointment) {
+    const appointmentRef = db.collection("appointments").doc(appointment_id);
+    const appointmentDoc = await appointmentRef.get();
+
+    if (!appointmentDoc.exists) {
       throw new Error(
-        "appointmentService-delete appointment: Appointment not found"
+        "appointmentService-deleteAppointment: Appointment not found"
       );
     }
 
-    // Delete the appointment
-    const deletedAppointment = await Appointment.findByIdAndDelete(
-      appointment_id
-    );
+    await appointmentRef.delete();
 
-    if (!deletedAppointment) {
-      throw new Error(
-        "appointmentService-delete appointment: Failed to delete appointment"
-      );
-    }
-
-    return {
-      message: "Appointment successfully deleted",
-      deletedAppointment,
-    };
+    return { message: "Appointment successfully deleted", appointment_id };
   }
 
+  /**
+   * Updates an appointment in Firestore.
+   */
   static async updateAppointment(appointmentId, updateFields, user) {
-    // Validate the appointmentId as a valid MongoDB ObjectId
-    if (!mongoose.isValidObjectId(appointmentId)) {
+    if (!appointmentId) {
       throw new Error(
-        "appointmentService-update appointment: Invalid appointmentId"
+        "appointmentService-updateAppointment: Invalid appointmentId"
       );
     }
 
-    // Prevent updating the _id field
     if (updateFields._id) {
       throw new Error(
-        "appointmentService-update appointment: Changing the '_id' field is not allowed"
+        "appointmentService-updateAppointment: Changing '_id' is not allowed"
       );
     }
 
-    if (updateFields.suspended) {
-      // Only superadmins can suspend appointments
-      if (user.role !== "superadmin") {
-        throw new Error(
-          "appointmentService-update appointment: Only superadmins can suspend appointmnents"
-        );
-      }
-    }
-
-    // Perform the update
-    const updatedAppointment = await Appointment.findByIdAndUpdate(
-      appointmentId,
-      { $set: updateFields }, // Update only the provided fields
-      { new: true, runValidators: true } // Return the updated document and run schema validators
-    );
-
-    if (!updatedAppointment) {
+    if (updateFields.suspended && user.role !== "superadmin") {
       throw new Error(
-        "appointmentService-update appointment: Appointment not found"
+        "appointmentService-updateAppointment: Only superadmins can suspend appointments"
       );
     }
 
-    return updatedAppointment;
+    const appointmentRef = db.collection("appointments").doc(appointmentId);
+    const appointmentDoc = await appointmentRef.get();
+
+    if (!appointmentDoc.exists) {
+      throw new Error(
+        "appointmentService-updateAppointment: Appointment not found"
+      );
+    }
+
+    await appointmentRef.update(updateFields);
+
+    return {
+      message: "Appointment updated successfully",
+      id: appointmentId,
+      ...updateFields,
+    };
   }
 }
 

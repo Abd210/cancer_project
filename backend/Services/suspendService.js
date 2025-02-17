@@ -1,58 +1,101 @@
+const admin = require("firebase-admin");
+const db = admin.firestore();
+
 class SuspendService {
-    /**
-     * Filters data based on the user's role and the "suspended" status of the data.
-     * 
-     * @param {Object|Array} data - The data to filter. Can be a single object or an array of objects.
-     * @param {string} role - The role of the user making the request.
-     * @param {string} filter - The filter criteria for superadmins ("suspended", "unsuspended", "all").
-     * 
-     * @returns {Object|Array} The filtered data based on the role and filter criteria.
-     * @throws {Error} If the filter is invalid for superadmins or if there are no unsuspended records for non-superadmins.
-     */
-    static filterData(data, role, filter) {
-      if (role === "superadmin") {
-        // Validate filter value for superadmins
-        if (!["suspended", "unsuspended", "all"].includes(filter)) {
-          throw new Error(
-            "SuspendService: Invalid filter value. Must be one of 'suspended', 'unsuspended', or 'all'."
-          );
-        }
-  
-        // Apply filter based on the value
-        if (filter === "suspended") {
-          return Array.isArray(data)
-            ? data.filter((item) => item.suspended === true)
-            : data.suspended === true
-            ? data
-            : null;
-        }
-  
-        if (filter === "unsuspended") {
-          return Array.isArray(data)
-            ? data.filter((item) => item.suspended === false)
-            : data.suspended === false
-            ? data
-            : null;
-        }
-  
-        // If filter is "all", return the unfiltered data
-        return data;
-      } else {
-        // Non-superadmins can only see unsuspended data
-        const filteredData = Array.isArray(data)
-          ? data.filter((item) => item.suspended === false)
-          : data.suspended === false
-          ? data
-          : null;
-  
-        if (!filteredData || (Array.isArray(filteredData) && filteredData.length === 0)) {
-          throw new Error("SuspendService: No unsuspended records available.");
-        }
-  
-        return filteredData;
-      }
+  /**
+   * Retrieves and filters data based on the user's role and the "suspended" status of the data.
+   * @param {string} collectionName - The Firestore collection to query.
+   * @param {string} role - The role of the user making the request.
+   * @param {string} filter - The filter criteria for superadmins ("suspended", "unsuspended", "all").
+   */
+  static async getAllByRole(collectionName, role, filter) {
+    if (role !== "superadmin" && filter === "suspended") {
+      throw new Error(
+        "Unauthorized: Only superadmins can view suspended records."
+      );
     }
+
+    // Validate filter options
+    if (!["suspended", "unsuspended", "all"].includes(filter)) {
+      throw new Error(
+        "Invalid filter: Must be 'suspended', 'unsuspended', or 'all'."
+      );
+    }
+
+    let query = db.collection(collectionName);
+
+    // Apply filter if it's not "all"
+    if (filter !== "all") {
+      query = query.where("suspended", "==", filter === "suspended");
+    }
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
+      throw new Error("No records found matching the criteria.");
+    }
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
-  
-  module.exports = SuspendService;
-  
+
+  /**
+   * Retrieves a single document by ID and ensures role-based access control.
+   * @param {string} collectionName - The Firestore collection name.
+   * @param {string} docId - The document ID to fetch.
+   * @param {string} role - The role of the user requesting the document.
+   */
+  static async getById(collectionName, docId, role) {
+    const docRef = db.collection(collectionName).doc(docId);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      throw new Error("Document not found.");
+    }
+
+    const data = docSnap.data();
+
+    // Prevent non-superadmins from accessing suspended records
+    if (data.suspended && role !== "superadmin") {
+      throw new Error("Unauthorized: This record is suspended.");
+    }
+
+    return { id: docSnap.id, ...data };
+  }
+
+  /**
+   * Updates the "suspended" status of a document.
+   * @param {string} collectionName - The Firestore collection name.
+   * @param {string} docId - The document ID to update.
+   * @param {boolean} suspendStatus - The new suspension status.
+   * @param {string} role - The role of the user performing the update.
+   */
+  static async updateSuspensionStatus(
+    collectionName,
+    docId,
+    suspendStatus,
+    role
+  ) {
+    if (role !== "superadmin") {
+      throw new Error(
+        "Unauthorized: Only superadmins can modify suspension status."
+      );
+    }
+
+    const docRef = db.collection(collectionName).doc(docId);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      throw new Error("Document not found.");
+    }
+
+    await docRef.update({ suspended: suspendStatus });
+
+    return {
+      message: `Document ${
+        suspendStatus ? "suspended" : "unsuspended"
+      } successfully.`,
+    };
+  }
+}
+
+module.exports = SuspendService;

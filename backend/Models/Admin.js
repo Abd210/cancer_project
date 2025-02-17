@@ -1,66 +1,70 @@
-const mongoose = require("mongoose");
+const { db } = require("../firebase"); // Import shared Firebase instance
+
 const bcrypt = require("bcrypt");
 
-const adminSchema = new mongoose.Schema(
-  {
-    pers_id: {
-      type: String,
-      unique: true,
-      required: true,
-    }, // Admin's personal ID
-    password: {
-      type: String,
-      required: true,
-    }, // Encrypted password
-    role: {
-      type: String,
-      enum: ["admin"],
-      default: "admin",
-      required: true,
-    }, // Role is fixed as 'admin'
+const adminsCollection = db.collection("admins");
 
-    // Admin-specific fields
-    name: {
-      type: String,
-      required: true,
-    }, // Admin's full name
-    email: {
-      type: String,
-      unique: true,
-      required: true,
-    }, // Email address
-    mobile_number: {
-      type: String,
-      unique: true,
-      required: true,
-    }, // Contact number
-    hospital: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Hospital",
-      required: true,
-    }, // Reference to the hospital the admin is affiliated with
-    suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
-  },
-  {
-    timestamps: true,
+const ROLES = ["admin"];
+
+class Admin {
+  constructor({
+    pers_id,
+    password,
+    name,
+    email,
+    mobile_number,
+    hospital,
+    role = "admin",
+    suspended = false,
+  }) {
+    if (typeof pers_id !== "string")
+      throw new Error("Invalid pers_id: must be a string");
+    if (typeof password !== "string")
+      throw new Error("Invalid password: must be a string");
+    if (typeof name !== "string")
+      throw new Error("Invalid name: must be a string");
+    if (typeof email !== "string")
+      throw new Error("Invalid email: must be a string");
+    if (typeof mobile_number !== "string")
+      throw new Error("Invalid mobile_number: must be a string");
+    if (typeof hospital !== "string")
+      throw new Error(
+        "Invalid hospital: must be a Firestore document reference"
+      );
+    if (!ROLES.includes(role))
+      throw new Error(`Invalid role: ${role}. Allowed: ${ROLES.join(", ")}`);
+    if (typeof suspended !== "boolean")
+      throw new Error("Invalid suspended: must be a boolean");
+
+    this.pers_id = pers_id;
+    this.password = password;
+    this.name = name;
+    this.email = email;
+    this.mobile_number = mobile_number;
+    this.hospital = hospital;
+    this.role = role;
+    this.suspended = suspended;
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
-);
 
-// Hash the password before saving the admin
-adminSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+  async save() {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+      this.updatedAt = new Date();
+
+      // Firestore will auto-generate the document ID
+      const docRef = await adminsCollection.add({ ...this });
+      return docRef.id; // Return the auto-generated ID
+    } catch (error) {
+      throw new Error("Error saving admin: " + error.message);
+    }
   }
-});
 
-// Compare given password with the stored hashed password
-adminSchema.methods.comparePassword = function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
+  async comparePassword(candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+  }
+}
 
-module.exports = mongoose.model("Admin", adminSchema);
+module.exports = Admin;

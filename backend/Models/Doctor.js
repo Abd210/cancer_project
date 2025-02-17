@@ -1,80 +1,83 @@
-const mongoose = require("mongoose");
+const { db } = require("../firebase"); // Import shared Firebase instance
+
 const bcrypt = require("bcrypt");
 
-const doctorSchema = new mongoose.Schema(
-  {
-    pers_id: {
-      type: String,
-      unique: true,
-      required: true,
-    }, // Doctor's personal ID
-    password: {
-      type: String,
-      required: true,
-    }, // Encrypted password
-    role: {
-      type: String,
-      enum: ["doctor"],
-      default: "doctor",
-      required: true,
-    }, // Role is fixed as 'doctor'
+const doctorsCollection = db.collection("doctors");
 
-    // Doctor-specific fields
-    name: {
-      type: String,
-      required: true,
-    }, // Doctor's full name
-    email: {
-      type: String,
-      unique: true,
-      required: true,
-    }, // Email address
-    mobile_number: {
-      type: String,
-      unique: true,
-      required: true,
-    }, // Contact number
-    birth_date: {
-      type: Date,
-      required: true,
-    }, // Doctor's date of birth
-    licenses: [
-      {
-        type: String,
-        required: true,
-      },
-    ], // Array of medical licenses
-    description: {
-      type: String,
-      default: "",
-    }, // Brief description or biography of the doctor
-    hospital: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Hospital",
-      required: true,
-    }, // Reference to the hospital the doctor is affiliated with
-    suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
-  },
-  {
-    timestamps: true,
+const ROLES = ["doctor"];
+
+class Doctor {
+  constructor({
+    _id,
+    pers_id,
+    password,
+    name,
+    email,
+    mobile_number,
+    birth_date,
+    licenses,
+    description = "",
+    hospital,
+    role = "doctor",
+    suspended = false,
+  }) {
+    if (typeof _id !== "string")
+      throw new Error("Invalid _id: must be a string");
+    if (typeof pers_id !== "string")
+      throw new Error("Invalid pers_id: must be a string");
+    if (typeof password !== "string")
+      throw new Error("Invalid password: must be a string");
+    if (typeof name !== "string")
+      throw new Error("Invalid name: must be a string");
+    if (typeof email !== "string")
+      throw new Error("Invalid email: must be a string");
+    if (typeof mobile_number !== "string")
+      throw new Error("Invalid mobile_number: must be a string");
+    if (!(birth_date instanceof Date))
+      throw new Error("Invalid birth_date: must be a Date object");
+    if (!Array.isArray(licenses))
+      throw new Error("Invalid licenses: must be an array of strings");
+    if (typeof description !== "string")
+      throw new Error("Invalid description: must be a string");
+    if (typeof hospital !== "string")
+      throw new Error(
+        "Invalid hospital: must be a Firestore document reference"
+      );
+    if (!ROLES.includes(role))
+      throw new Error(`Invalid role: ${role}. Allowed: ${ROLES.join(", ")}`);
+    if (typeof suspended !== "boolean")
+      throw new Error("Invalid suspended: must be a boolean");
+
+    this._id = _id;
+    this.pers_id = pers_id;
+    this.password = password;
+    this.name = name;
+    this.email = email;
+    this.mobile_number = mobile_number;
+    this.birth_date = birth_date;
+    this.licenses = licenses;
+    this.description = description;
+    this.hospital = hospital;
+    this.role = role;
+    this.suspended = suspended;
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
-);
 
-// Hash the password before saving the user
-doctorSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+  async save() {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+      this.updatedAt = new Date();
+      await doctorsCollection.doc(this._id).set({ ...this });
+    } catch (error) {
+      throw new Error("Error saving doctor: " + error.message);
+    }
   }
-});
 
-// Compare given password with the stored hashed password
-doctorSchema.methods.comparePassword = function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
+  async comparePassword(candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+  }
+}
 
-module.exports = mongoose.model("Doctor", doctorSchema);
+module.exports = Doctor;
