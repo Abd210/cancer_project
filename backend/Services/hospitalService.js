@@ -10,6 +10,7 @@ class HospitalService {
     hospital_address,
     mobile_numbers,
     emails,
+    suspended,
   }) {
     const hospitalRef = db.collection("hospitals");
 
@@ -36,6 +37,7 @@ class HospitalService {
       mobile_numbers,
       emails,
       createdAt: admin.firestore.Timestamp.now(),
+      suspended: suspended || false,
     };
 
     const docRef = await hospitalRef.add(newHospital);

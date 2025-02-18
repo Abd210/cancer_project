@@ -24,7 +24,9 @@ class DoctorService {
    * Get full doctor data
    */
   static async getDoctorData(doctorId) {
+    console.log("doctorId is ", doctorId);
     const doctorDoc = await db.collection("doctors").doc(doctorId).get();
+    console.log("found or not");
     if (!doctorDoc.exists) throw new Error("Doctor not found");
     return { id: doctorDoc.id, ...doctorDoc.data() };
   }
@@ -40,10 +42,10 @@ class DoctorService {
   /**
    * Fetch doctors by hospital ID
    */
-  static async findDoctorsByHospital(hospitalId) {
+  static async findAllDoctorsByHospital(hospitalId) {
     const snapshot = await db
       .collection("doctors")
-      .where("hospitalId", "==", hospitalId)
+      .where("hospital", "==", hospitalId)
       .get();
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }

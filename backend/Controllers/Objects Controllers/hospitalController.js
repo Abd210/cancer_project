@@ -24,7 +24,7 @@ class HospitalController {
   static async register(req, res) {
     try {
       // Destructure the hospital registration details from the request body
-      const { hospital_name, hospital_address, mobile_numbers, emails } =
+      const { hospital_name, hospital_address, mobile_numbers, emails, suspended, } =
         req.body;
 
       // Validate if all required fields are provided
@@ -44,6 +44,7 @@ class HospitalController {
         hospital_address,
         mobile_numbers,
         emails,
+        suspended
       });
 
       // Respond with the hospital data if the registration was successful

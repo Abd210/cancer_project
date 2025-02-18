@@ -2,22 +2,59 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 
 class AppointmentService {
+
+  /**
+   * Get all upcoming appointments.
+   * Upcoming appointments are those with:
+   * - appointment_date greater than or equal to now, and
+   * - status equal to "scheduled".
+   * Results are ordered by appointment_date in ascending order.
+   *
+   * @returns {Promise<Array>} List of upcoming appointment objects.
+   */
+  static async getAllUpcomingAppointments() {
+    try {
+      const snapshot = await db
+        .collection("appointments")
+        .where("appointment_date", ">=", new Date())
+        .where("status", "==", "scheduled")
+        .orderBy("appointment_date")
+        .get();
+
+      if (snapshot.empty) {
+        return [];
+      }
+
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      throw new Error(`AppointmentService: ${error.message}`);
+    }
+  }
+
+
   /**
    * Fetches upcoming appointments for a specific user based on their role (doctor or patient).
    * Filters appointments that are scheduled and in the future.
    */
-  static async getUpcomingAppointments({ role, user_id }) {
-    if (!user_id) {
+  static async getUpcomingAppointmentsForSpecificPatientOrDoctor({ entity_role, entity_id }) {
+    if (!entity_id) {
       throw new Error(
-        "appointmentService-getUpcomingAppointments: Invalid user_id"
+        "appointmentService-getUpcomingAppointments: Invalid entity_id"
       );
     }
 
-    const field = role === "doctor" ? "doctor_id" : "patient_id";
+    const field = entity_role === "doctor" ? "doctor_id" : "patient_id";
+
+    // let queryRef = db.collection("appointments");
+    // queryRef = queryRef.where(field, "==", entity_id);
+    // queryRef = queryRef.where("appointment_date", ">=", new Date());
+    // queryRef = queryRef.where("status", "==", "scheduled");
+    // queryRef = queryRef.orderBy("appointment_date");
+    // const snapshot = await queryRef.get();
 
     const snapshot = await db
       .collection("appointments")
-      .where(field, "==", user_id)
+      .where(field, "==", entity_id)
       .where("appointment_date", ">=", new Date())
       .where("status", "==", "scheduled")
       .orderBy("appointment_date")
@@ -53,7 +90,13 @@ class AppointmentService {
     } else if (role === "patient") {
       queryRef = queryRef.where("patient_id", "==", user_id);
     } else if (role === "superadmin" && filterById && filterByRole) {
-      queryRef = queryRef.where(filterByRole, "==", filterById);
+      if (filterByRole === "patient") {
+        queryRef = queryRef.where("patient_id", "==", filterById);
+      }
+      else {
+        queryRef = queryRef.where("doctor_id", "==", filterById);
+      }
+      // queryRef = queryRef.where(filterByRole, "==", filterById);
     }
 
     queryRef = queryRef
@@ -102,6 +145,7 @@ class AppointmentService {
     appointment_date,
     purpose,
     status = "scheduled",
+    suspended = false,
   }) {
     const appointmentData = {
       patient_id,
@@ -111,6 +155,7 @@ class AppointmentService {
       ),
       purpose,
       status,
+      suspended,
     };
 
     const newAppointmentRef = await db
@@ -182,15 +227,22 @@ class AppointmentService {
       );
     }
 
-    if (updateFields._id) {
+    if (updateFields.id) {
       throw new Error(
-        "appointmentService-updateAppointment: Changing '_id' is not allowed"
+        "appointmentService-updateAppointment: Changing 'id' is not allowed"
       );
     }
 
     if (updateFields.suspended && user.role !== "superadmin") {
       throw new Error(
         "appointmentService-updateAppointment: Only superadmins can suspend appointments"
+      );
+    }
+
+    // If appointment_date is present, convert it to a Firestore Timestamp.
+    if (updateFields.appointment_date) {
+      updateFields.appointment_date = admin.firestore.Timestamp.fromDate(
+        new Date(updateFields.appointment_date)
       );
     }
 

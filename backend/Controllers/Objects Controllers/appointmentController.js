@@ -12,6 +12,25 @@ const SuspendController = require("../suspendController");
 class AppointmentController {
 
   /**
+   * Retrieves all upcoming appointments (ignores specific patient/doctor filtering).
+   */
+  static async getAllUpcomingAppointments(req, res) {
+    try {
+      const { suspendfilter, user } = req.headers;
+
+      // Fetch all upcoming appointments using the AppointmentService
+      const appointments = await AppointmentService.getAllUpcomingAppointments();
+
+      // Filter the data if the user is a superadmin
+      const filteredResult = await SuspendController.filterData(appointments, user.role, suspendfilter);
+
+      return res.status(200).json(filteredResult);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
    * Retrieves upcoming appointments for the authenticated user.
    * It checks the user's role and permissions before fetching the appointments.
    * 
@@ -21,21 +40,20 @@ class AppointmentController {
    * @returns {Object} Returns a JSON response with a list of upcoming appointments or an error message.
    */
 
-  static async getUpcomingAppointments(req, res) {
+  static async getUpcomingAppointmentsForSpecificPatientOrDoctor(req, res) {
     try {
-      const { _id, role, suspendfilter, user } = req.headers;
+      const { entity_role, suspendfilter, user, entity_id } = req.headers;
 
-      // Check if user ID is provided in the request
-      if (!_id) {
+      if (!entity_role || !entity_id) {
         return res.status(400).json({
-          error: "AppointmentController- Get Upcoming Appointments Data: Missing _id",
+          error: "AppointmentController-Get Upcoming Appointments: Missing entity role or entity id",
         });
       }
 
       // Fetch upcoming appointments using the AppointmentService
-      const appointments = await AppointmentService.getUpcomingAppointments({
-        role: role,
-        user_id: _id,
+      const appointments = await AppointmentService.getUpcomingAppointmentsForSpecificPatientOrDoctor({
+        entity_role,
+        entity_id,
       });
 
       const filteredResult = await SuspendController.filterData(appointments, user.role, suspendfilter);
@@ -73,7 +91,7 @@ class AppointmentController {
       const appointmentHistory = await AppointmentService.getAppointmentHistory(
         {
           role: user.role,
-          user_id: user._id,
+          user_id: user.id,
           filterById: filterbyid || null, // Use filterById from query parameters, default to null
           filterByRole: filterbyrole || null, // Use filterByRole from query parameters, default to null
         }
@@ -159,7 +177,7 @@ class AppointmentController {
 
   static async createAppointment(req, res) {
     try {
-      const { patient, doctor, appointment_date, purpose, status } = req.body;
+      const { patient, doctor, appointment_date, purpose, status, suspended, } = req.body;
 
       // Validate required fields
       if (!patient || !doctor || !appointment_date || !purpose) {
@@ -211,6 +229,7 @@ class AppointmentController {
         appointment_date,
         purpose,
         status,
+        suspended
       });
 
       // Return the created appointment details

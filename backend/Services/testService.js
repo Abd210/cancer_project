@@ -11,12 +11,17 @@ class TestService {
     let query;
 
     if (role === "doctor") {
-      query = db.collection("tests").where("doctorId", "==", user_id);
+      query = db.collection("tests").where("doctor_id", "==", user_id);
     } else if (role === "patient") {
-      query = db.collection("tests").where("patientId", "==", user_id);
+      query = db.collection("tests").where("patient_id", "==", user_id);
     } else if (role === "superadmin") {
       if (filterById && filterByRole) {
-        query = db.collection("tests").where(filterByRole, "==", filterById);
+        if (filterByRole === "patient") {
+          query = db.collection("tests").where("patient_id", "==", filterById);
+        } else {
+          query = db.collection("tests").where("doctor_id", "==", filterById);
+        }
+        // query = db.collection("tests").where(filterByRole, "==", filterById);
       } else {
         query = db.collection("tests"); // Fetch all tests
       }
@@ -32,8 +37,8 @@ class TestService {
       let testData = doc.data();
 
       // Fetch related data
-      const doctor = await DoctorService.getDoctorById(testData.doctorId);
-      const patient = await PatientService.getPatientById(testData.patientId);
+      const doctor = await DoctorService.getDoctorData(testData.doctor_id);
+      const patient = await PatientService.getPatientData(testData.patient_id);
 
       tests.push({
         id: doc.id, // Firestore-generated ID
@@ -50,16 +55,19 @@ class TestService {
    * Create a new test record
    */
   static async createTest({
-    patientId,
-    doctorId,
-    deviceId,
-    resultDate,
+    patient_id,
+    doctor_id,
+    device_id = null, // Have not implemented devices yet
+    result_date,
     purpose,
     status = "in progress",
     review,
+    suspended = false,
   }) {
-    const doctor = await DoctorService.getDoctorById(doctorId);
-    const patient = await PatientService.getPatientById(patientId);
+    console.log("doctor_id is ", doctor_id);
+    const doctor = await DoctorService.getDoctorData(doctor_id);
+    console.log("found");
+    const patient = await PatientService.getPatientData(patient_id);
 
     if (!doctor || !patient) {
       throw new Error("testService-createTest: Invalid doctor or patient ID");
@@ -67,14 +75,15 @@ class TestService {
 
     const newTestRef = db.collection("tests").doc();
     const testData = {
-      doctorId,
-      patientId,
-      deviceId,
-      resultDate,
+      doctor_id,
+      patient_id,
+      device_id,
+      result_date,
       purpose,
       status,
       review,
       createdAt: new Date(),
+      suspended,
     };
 
     await newTestRef.set(testData);
@@ -96,8 +105,8 @@ class TestService {
     let testData = testDoc.data();
 
     // Fetch related doctor and patient details
-    testData.doctor = await DoctorService.getDoctorById(testData.doctorId);
-    testData.patient = await PatientService.getPatientById(testData.patientId);
+    testData.doctor = await DoctorService.getDoctorData(testData.doctor_id);
+    testData.patient = await PatientService.getPatientData(testData.patient_id);
 
     return { id: testDoc.id, ...testData };
   }

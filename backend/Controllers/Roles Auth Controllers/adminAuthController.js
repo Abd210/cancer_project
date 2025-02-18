@@ -26,6 +26,7 @@ class AdminAuthController {
         email,
         mobile_number,
         hospital,
+        suspended,
       } = req.body;
 
       // Check for required fields for Admin registration
@@ -55,6 +56,7 @@ class AdminAuthController {
         email,
         mobile_number,
         hospital,
+        suspended
       });
 
       // Return the result of the registration

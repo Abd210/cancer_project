@@ -44,11 +44,18 @@ router.get(
  *   - Internal Server Error (500): If any unexpected server error occurs.
  */
 router.get(
-  "/appointment/upcoming",
+  "/appointment/upcoming/specific",
   authenticate,
   authorize(["patient", "doctor", "admin", "superadmin"]),
-  appointmentController.getUpcomingAppointments
+  appointmentController.getUpcomingAppointmentsForSpecificPatientOrDoctor
 );
+
+router.get(
+  "/appointment/upcoming/all",
+  authenticate,
+  authorize(["patient", "doctor", "admin", "superadmin"]),
+  appointmentController.getAllUpcomingAppointments
+)
 
 /**
  * Route: POST /appointment/cancel

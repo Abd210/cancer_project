@@ -38,7 +38,7 @@ class PatientService {
   static async findAllPatientsByHospital(hospitalId) {
     const snapshot = await db
       .collection("patients")
-      .where("hospitalId", "==", hospitalId)
+      .where("hospital", "==", hospitalId)
       .get();
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }

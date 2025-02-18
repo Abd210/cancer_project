@@ -93,20 +93,20 @@ class PatientController {
    */
   static async getDiagnosis(req, res) {
     try {
-      // Destructure _id, user, and role from the request headers
-      const { _id, user, role } = req.headers;
+      // Destructure patientid, user, and role from the request headers
+      const { patientid, user, } = req.headers;
 
-      // Check if the _id is provided in the headers, return error if missing
-      if (!_id) {
+      // Check if the patientid is provided in the headers, return error if missing
+      if (!patientid) {
         return res.status(400).json({
-          error: "PatientController- Get Patient Diagnosis: Missing pers_id", // Error for missing _id
+          error: "PatientController- Get Patient Diagnosis: Missing patientid", // Error for missing patientid
         });
       }
 
        // If the user's role is "patient", ensure they can only access their own diagnosis data
       if (user.role === "patient") {
-        // If the _id in the headers doesn't match the logged-in user's _id, return a 403 Forbidden error
-        if (_id !== user._id) {
+        // If the patientid in the headers doesn't match the logged-in user's patientid, return a 403 Forbidden error
+        if (patientid !== user.id) {
           return res.status(403).json({
             error: "PatientController- Get Patient Diagnosis: Unauthorized",
           });
@@ -114,7 +114,7 @@ class PatientController {
       }
 
       // Call the PatientService to find the patient data and return their diagnosis
-      const patient_data = await PatientService.getPatientDiagnosis(_id);
+      const patient_data = await PatientService.getPatientDiagnosis(patientid);
 
       // Return the patient's diagnosis data with a 200 status code
       res.status(200).json(patient_data.diagnosis);

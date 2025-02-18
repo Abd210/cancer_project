@@ -37,6 +37,17 @@ class AdminService {
   }
 
   /**
+   * Fetch admins by hospital ID
+   */
+  static async findAllAdminsByHospital(hospitalId) {
+    const snapshot = await db
+      .collection("admins")
+      .where("hospital", "==", hospitalId)
+      .get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  }
+
+  /**
    * Deletes an admin account using their Firestore document ID.
    * @param {string} adminId - The Firestore document ID of the admin to be deleted.
    * @returns {Object} A success message or an error if the admin is not found.

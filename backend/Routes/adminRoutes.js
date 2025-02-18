@@ -10,7 +10,7 @@ router.get(
   "/admin/data",
   authenticate,
   authorize(["admin", "superadmin"]),
-  adminController.getData
+  adminController.getAdminData
 );
 /**
  * Route: DELETE /admin/delete

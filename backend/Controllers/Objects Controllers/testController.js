@@ -67,6 +67,7 @@ class TestController {
         purpose,
         review,
         status,
+        suspended,
       } = req.body;
 
       const { user } = req.headers;
@@ -99,6 +100,8 @@ class TestController {
         req.body.status = "reviewed";
       }
 
+      console.log("doctor_id", doctor_id);
+
       // Create the test record using the TestService
       const test = await TestService.createTest({
         patient_id,
@@ -108,6 +111,7 @@ class TestController {
         purpose,
         status,
         review,
+        suspended,
       });
 
       // Return the created test record in the response

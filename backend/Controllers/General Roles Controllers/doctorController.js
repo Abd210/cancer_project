@@ -2,34 +2,34 @@ const DoctorService = require("../../Services/doctorService");
 const SuspendController = require("../suspendController");
 
 /**
- * Fetches public data for a doctor using their unique identifier (_id) from the request headers.
- * Handles missing _id error and interacts with the DoctorService to retrieve the data.
+ * Fetches public data for a doctor using their unique identifier (doctorid) from the request headers.
+ * Handles missing doctorid error and interacts with the DoctorService to retrieve the data.
  */
 class DoctorController {
 
   /**
-   * Fetches public data for a doctor using their unique identifier (_id) from the request headers.
-   * Handles missing _id error and interacts with the DoctorService to retrieve the data.
+   * Fetches public data for a doctor using their unique identifier (doctorid) from the request headers.
+   * Handles missing doctorid error and interacts with the DoctorService to retrieve the data.
    * 
-   * @param {Object} req - The Express request object, containing the _id in the headers.
+   * @param {Object} req - The Express request object, containing the doctorid in the headers.
    * @param {Object} res - The Express response object used to send the result or errors.
    * 
    * @returns {Object} A JSON response containing the doctor’s public data or an error message.
    */
   static async getPublicData(req, res) {
     try {
-      // Extract the _id from the request headers
-      const { _id } = req.headers;
+      // Extract the doctorid from the request headers
+      const { doctorid } = req.headers;
 
-      // Check if the _id is provided in the headers, otherwise return an error
-      if (!_id) {
+      // Check if the doctorid is provided in the headers, otherwise return an error
+      if (!doctorid) {
         return res.status(400).json({
-          error: "DoctorController- Get Doctor Public Data: Missing _id",
+          error: "DoctorController- Get Doctor Public Data: Missing doctorid",
         });
       }
 
       // Call the DoctorService to fetch the public data for the doctor
-      const public_data = await DoctorService.getPublicData({ _id });
+      const public_data = await DoctorService.getPublicData( doctorid );
 
       // Respond with the doctor’s public data and a 200 status
       res.status(200).json(public_data);
