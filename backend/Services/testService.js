@@ -73,8 +73,8 @@ class TestService {
   static async createTest({
     patient,
     doctor,
-    device_id = null, // Have not implemented devices yet
-    result_date,
+    device = null, // Have not implemented devices yet
+    resultDate,
     purpose,
     status = "in progress",
     review,
@@ -96,8 +96,8 @@ class TestService {
     const testData = {
       doctor,
       patient,
-      device_id,
-      result_date,
+      device,
+      resultDate,
       purpose,
       status,
       review,

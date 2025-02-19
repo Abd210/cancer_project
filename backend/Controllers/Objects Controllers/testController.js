@@ -70,8 +70,8 @@ class TestController {
       const {
         patient,
         doctor,
-        device_id,
-        result_date,
+        device,
+        resultDate,
         purpose,
         review,
         status,
@@ -97,12 +97,10 @@ class TestController {
       }
 
       if (status === "reviewed" && !review) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "TestController-Create: Review is required when status is reviewed",
-          });
+        return res.status(400).json({
+          error:
+            "TestController-Create: Review is required when status is reviewed",
+        });
       }
 
       if (review && !status) {
@@ -115,8 +113,8 @@ class TestController {
       const test = await TestService.createTest({
         patient,
         doctor,
-        device_id,
-        result_date,
+        device,
+        resultDate,
         purpose,
         status,
         review,
