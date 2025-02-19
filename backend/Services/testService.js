@@ -159,6 +159,24 @@ class TestService {
       );
     }
 
+    // Check if the doctor ID is valid
+    if (updateFields.doctor) {
+      const doctorDoc = await DoctorService.getDoctorData(updateFields.doctor);
+      if (!doctorDoc) {
+        throw new Error("testService-updateTest: Invalid doctor ID");
+      }
+    }
+
+    // Check if the patient ID is valid
+    if (updateFields.patient) {
+      const patientDoc = await PatientService.getPatientData(
+        updateFields.patient
+      );
+      if (!patientDoc) {
+        throw new Error("testService-updateTest: Invalid patient ID");
+      }
+    }
+
     if (updateFields.suspended && user.role !== "superadmin") {
       throw new Error(
         "testService-updateTest: Only superadmins can suspend tests"
