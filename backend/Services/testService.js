@@ -7,19 +7,35 @@ class TestService {
   /**
    * Fetch tests based on role (doctor, patient, superadmin)
    */
+
+  /**
+   * Check if a given patient ID or doctor ID is valid
+   */
+  static async checkEntityExists(entityRole, entityId) {
+    if (entityRole === "doctor") {
+      const doctor = await DoctorService.getDoctorData(entityId);
+      return !!doctor;
+    } else if (entityRole === "patient") {
+      const patient = await PatientService.getPatientData(entityId);
+      return !!patient;
+    } else {
+      throw new Error("testService-isValidUser: Invalid role");
+    }
+  }
+
   static async fetchTests({ user_id, role, filterById, filterByRole }) {
     let query;
 
     if (role === "doctor") {
-      query = db.collection("tests").where("doctor_id", "==", user_id);
+      query = db.collection("tests").where("doctor", "==", user_id);
     } else if (role === "patient") {
-      query = db.collection("tests").where("patient_id", "==", user_id);
+      query = db.collection("tests").where("patient", "==", user_id);
     } else if (role === "superadmin") {
       if (filterById && filterByRole) {
         if (filterByRole === "patient") {
-          query = db.collection("tests").where("patient_id", "==", filterById);
+          query = db.collection("tests").where("patient", "==", filterById);
         } else {
-          query = db.collection("tests").where("doctor_id", "==", filterById);
+          query = db.collection("tests").where("doctor", "==", filterById);
         }
         // query = db.collection("tests").where(filterByRole, "==", filterById);
       } else {
@@ -37,8 +53,8 @@ class TestService {
       let testData = doc.data();
 
       // Fetch related data
-      const doctor = await DoctorService.getDoctorData(testData.doctor_id);
-      const patient = await PatientService.getPatientData(testData.patient_id);
+      const doctor = await DoctorService.getDoctorData(testData.doctor);
+      const patient = await PatientService.getPatientData(testData.patient);
 
       tests.push({
         id: doc.id, // Firestore-generated ID
@@ -55,8 +71,8 @@ class TestService {
    * Create a new test record
    */
   static async createTest({
-    patient_id,
-    doctor_id,
+    patient,
+    doctor,
     device_id = null, // Have not implemented devices yet
     result_date,
     purpose,
@@ -64,19 +80,22 @@ class TestService {
     review,
     suspended = false,
   }) {
-    console.log("doctor_id is ", doctor_id);
-    const doctor = await DoctorService.getDoctorData(doctor_id);
+    console.log("doctor is ", doctor);
+    const doctorDoc = await DoctorService.getDoctorData(doctor);
     console.log("found");
-    const patient = await PatientService.getPatientData(patient_id);
+    const patientDoc = await PatientService.getPatientData(patient);
 
-    if (!doctor || !patient) {
+    if (
+      !(await this.checkEntityExists("patient", patient)) ||
+      !(await this.checkEntityExists("doctor", doctor))
+    ) {
       throw new Error("testService-createTest: Invalid doctor or patient ID");
     }
 
     const newTestRef = db.collection("tests").doc();
     const testData = {
-      doctor_id,
-      patient_id,
+      doctor,
+      patient,
       device_id,
       result_date,
       purpose,
@@ -105,8 +124,8 @@ class TestService {
     let testData = testDoc.data();
 
     // Fetch related doctor and patient details
-    testData.doctor = await DoctorService.getDoctorData(testData.doctor_id);
-    testData.patient = await PatientService.getPatientData(testData.patient_id);
+    testData.doctor = await DoctorService.getDoctorData(testData.doctor);
+    testData.patient = await PatientService.getPatientData(testData.patient);
 
     return { id: testDoc.id, ...testData };
   }

@@ -3,14 +3,13 @@ const SuspendController = require("../suspendController");
 
 /**
  * AppointmentController checks the input in the request to validate it and make sure that the users have the permission to receive this data
- * It includes functionalities for retrieving upcoming appointments, appointment history, 
- * creating new appointments, and canceling existing ones. Each method ensures proper role-based 
+ * It includes functionalities for retrieving upcoming appointments, appointment history,
+ * creating new appointments, and canceling existing ones. Each method ensures proper role-based
  * authorization and validates required fields before performing actions like appointment creation or cancellation.
- * 
+ *
  * The controller ensures that only authorized users (patients, doctors, or admins) can access or modify appointment data.
  */
 class AppointmentController {
-
   /**
    * Retrieves all upcoming appointments (ignores specific patient/doctor filtering).
    */
@@ -19,10 +18,15 @@ class AppointmentController {
       const { suspendfilter, user } = req.headers;
 
       // Fetch all upcoming appointments using the AppointmentService
-      const appointments = await AppointmentService.getAllUpcomingAppointments();
+      const appointments =
+        await AppointmentService.getAllUpcomingAppointments();
 
       // Filter the data if the user is a superadmin
-      const filteredResult = await SuspendController.filterData(appointments, user.role, suspendfilter);
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        suspendfilter
+      );
 
       return res.status(200).json(filteredResult);
     } catch (error) {
@@ -33,10 +37,10 @@ class AppointmentController {
   /**
    * Retrieves upcoming appointments for the authenticated user.
    * It checks the user's role and permissions before fetching the appointments.
-   * 
+   *
    * @param {Object} req - The HTTP request object containing the user's ID and role in the headers.
    * @param {Object} res - The HTTP response object used to send back the list of upcoming appointments or errors.
-   * 
+   *
    * @returns {Object} Returns a JSON response with a list of upcoming appointments or an error message.
    */
 
@@ -46,17 +50,25 @@ class AppointmentController {
 
       if (!entity_role || !entity_id) {
         return res.status(400).json({
-          error: "AppointmentController-Get Upcoming Appointments: Missing entity role or entity id",
+          error:
+            "AppointmentController-Get Upcoming Appointments: Missing entity role or entity id",
         });
       }
 
       // Fetch upcoming appointments using the AppointmentService
-      const appointments = await AppointmentService.getUpcomingAppointmentsForSpecificPatientOrDoctor({
-        entity_role,
-        entity_id,
-      });
+      const appointments =
+        await AppointmentService.getUpcomingAppointmentsForSpecificPatientOrDoctor(
+          {
+            entity_role,
+            entity_id,
+          }
+        );
 
-      const filteredResult = await SuspendController.filterData(appointments, user.role, suspendfilter);
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        suspendfilter
+      );
 
       // Return the fetched appointments
       res.status(200).json(filteredResult);
@@ -69,10 +81,10 @@ class AppointmentController {
   /**
    * Retrieves the appointment history for the authenticated user.
    * It checks the user's role and permissions before fetching the history.
-   * 
+   *
    * @param {Object} req - The HTTP request object containing the user's ID and role in the headers.
    * @param {Object} res - The HTTP response object used to send back the appointment history or errors.
-   * 
+   *
    * @returns {Object} Returns a JSON response with the user's appointment history or an error message.
    */
 
@@ -81,9 +93,14 @@ class AppointmentController {
       const { user, filterbyid, filterbyrole, suspendfilter } = req.headers;
 
       // Validate filterByRole if provided
-      if ((filterbyrole && !["doctor", "patient"].includes(filterbyrole)) && user.role === "superadmin") {
+      if (
+        filterbyrole &&
+        !["doctor", "patient"].includes(filterbyrole) &&
+        user.role === "superadmin"
+      ) {
         return res.status(400).json({
-          error: "AppointmentController- Get Appointment History: Invalid filterByRole",
+          error:
+            "AppointmentController- Get Appointment History: Invalid filterByRole",
         });
       }
 
@@ -97,8 +114,11 @@ class AppointmentController {
         }
       );
 
-
-      const filteredResult = await SuspendController.filterData(appointmentHistory, user.role, suspendfilter);
+      const filteredResult = await SuspendController.filterData(
+        appointmentHistory,
+        user.role,
+        suspendfilter
+      );
 
       // Return the fetched appointment history
       res.status(200).json(filteredResult);
@@ -111,16 +131,16 @@ class AppointmentController {
   /**
    * Cancels an appointment if the authenticated user is authorized to do so.
    * Checks for user role and authorization before proceeding with cancellation.
-   * 
+   *
    * @param {Object} req - The HTTP request object containing the appointment ID in the body and user role in the headers.
    * @param {Object} res - The HTTP response object used to send back the result of the cancellation or errors.
-   * 
+   *
    * @returns {Object} Returns a JSON response with the cancelled appointment details or an error message.
    */
 
   static async cancelAppointment(req, res) {
     try {
-      const { user, appointment_id} = req.headers;
+      const { user, appointment_id } = req.headers;
 
       // Check if appointment ID is provided in the request
       if (!appointment_id) {
@@ -168,16 +188,17 @@ class AppointmentController {
   /**
    * Creates a new appointment if the necessary fields are valid.
    * Validates fields like patient, doctor, appointment date, and purpose before creating the appointment. Status is an optional field.
-   * 
+   *
    * @param {Object} req - The HTTP request object containing the appointment details in the body.
    * @param {Object} res - The HTTP response object used to send back the created appointment or errors.
-   * 
+   *
    * @returns {Object} Returns a JSON response with the created appointment details or an error message.
    */
 
   static async createAppointment(req, res) {
     try {
-      const { patient, doctor, appointment_date, purpose, status, suspended, } = req.body;
+      const { patient, doctor, appointment_date, purpose, status, suspended } =
+        req.body;
 
       // Validate required fields
       if (!patient || !doctor || !appointment_date || !purpose) {
@@ -191,7 +212,10 @@ class AppointmentController {
       }
 
       // Verify the user role and authorization before creating the appointment
-      if (req.headers.user.role !== "admin" && req.headers.user.role !== "superadmin") {
+      if (
+        req.headers.user.role !== "admin" &&
+        req.headers.user.role !== "superadmin"
+      ) {
         if (req.headers.user.role === "patient") {
           if (patient !== req.headers.user._id) {
             return res.status(403).json({
@@ -224,12 +248,12 @@ class AppointmentController {
 
       // Call the AppointmentService to create the appointment
       const appointment = await AppointmentService.createAppointment({
-        patient_id: patient,
-        doctor_id: doctor,
+        patient: patient,
+        doctor: doctor,
         appointment_date,
         purpose,
         status,
-        suspended
+        suspended,
       });
 
       // Return the created appointment details
@@ -261,7 +285,9 @@ class AppointmentController {
       }
 
       // Proceed with the deletion process using the AppointmentService
-      const deletedAppointment = await AppointmentService.deleteAppointment(appointment_id);
+      const deletedAppointment = await AppointmentService.deleteAppointment(
+        appointment_id
+      );
 
       // Return the details of the deleted appointment
       res.status(200).json({
@@ -284,27 +310,34 @@ class AppointmentController {
       // Validate if appointmentId is provided
       if (!appointmentid) {
         return res.status(400).json({
-          error: "AppointmentController-update appointment: Missing appointmentId",
+          error:
+            "AppointmentController-update appointment: Missing appointmentId",
         });
       }
-  
+
       // Validate if updateFields are provided
       if (!updateFields || Object.keys(updateFields).length === 0) {
         return res.status(400).json({
-          error: "AppointmentController-update appointment: No fields provided to update",
+          error:
+            "AppointmentController-update appointment: No fields provided to update",
         });
       }
-  
+
       // Call the AppointmentService to perform the update
-      const updatedAppointment = await AppointmentService.updateAppointment(appointmentid, updateFields, user);
-  
+      const updatedAppointment = await AppointmentService.updateAppointment(
+        appointmentid,
+        updateFields,
+        user
+      );
+
       // Check if the patient was found and updated
       if (!updatedAppointment) {
         return res.status(404).json({
-          error: "AppointmentController- Update Appointment Data: Appointment not found",
+          error:
+            "AppointmentController- Update Appointment Data: Appointment not found",
         });
       }
-  
+
       // Respond with the updated appointment data
       return res.status(200).json(updatedAppointment);
     } catch (updateAppointmentError) {
@@ -314,7 +347,6 @@ class AppointmentController {
       });
     }
   }
-
 }
 
 module.exports = AppointmentController;

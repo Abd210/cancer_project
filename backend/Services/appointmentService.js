@@ -2,7 +2,6 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 
 class AppointmentService {
-
   /**
    * Get all upcoming appointments.
    * Upcoming appointments are those with:
@@ -31,19 +30,21 @@ class AppointmentService {
     }
   }
 
-
   /**
    * Fetches upcoming appointments for a specific user based on their role (doctor or patient).
    * Filters appointments that are scheduled and in the future.
    */
-  static async getUpcomingAppointmentsForSpecificPatientOrDoctor({ entity_role, entity_id }) {
+  static async getUpcomingAppointmentsForSpecificPatientOrDoctor({
+    entity_role,
+    entity_id,
+  }) {
     if (!entity_id) {
       throw new Error(
         "appointmentService-getUpcomingAppointments: Invalid entity_id"
       );
     }
 
-    const field = entity_role === "doctor" ? "doctor_id" : "patient_id";
+    const field = entity_role === "doctor" ? "doctor" : "patient";
 
     // let queryRef = db.collection("appointments");
     // queryRef = queryRef.where(field, "==", entity_id);
@@ -86,15 +87,14 @@ class AppointmentService {
     let queryRef = db.collection("appointments");
 
     if (role === "doctor") {
-      queryRef = queryRef.where("doctor_id", "==", user_id);
+      queryRef = queryRef.where("doctor", "==", user_id);
     } else if (role === "patient") {
-      queryRef = queryRef.where("patient_id", "==", user_id);
+      queryRef = queryRef.where("patient", "==", user_id);
     } else if (role === "superadmin" && filterById && filterByRole) {
       if (filterByRole === "patient") {
-        queryRef = queryRef.where("patient_id", "==", filterById);
-      }
-      else {
-        queryRef = queryRef.where("doctor_id", "==", filterById);
+        queryRef = queryRef.where("patient", "==", filterById);
+      } else {
+        queryRef = queryRef.where("doctor", "==", filterById);
       }
       // queryRef = queryRef.where(filterByRole, "==", filterById);
     }
@@ -137,19 +137,48 @@ class AppointmentService {
   }
 
   /**
+   * Checks if a doctor or patient exists in the database by their ID.
+   */
+  static async checkEntityExists(entityRole, entityId) {
+    if (!entityId) {
+      throw new Error(
+        "appointmentService-checkEntityExists: Invalid entity_id"
+      );
+    }
+
+    const collection = entityRole === "doctor" ? "doctors" : "patients";
+    const entityDoc = await db.collection(collection).doc(entityId).get();
+
+    if (!entityDoc.exists) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Creates a new appointment.
    */
   static async createAppointment({
-    patient_id,
-    doctor_id,
+    patient,
+    doctor,
     appointment_date,
     purpose,
     status = "scheduled",
     suspended = false,
   }) {
+    if (
+      !(await this.checkEntityExists("doctor", doctor)) ||
+      !(await this.checkEntityExists("patient", patient))
+    ) {
+      throw new Error(
+        "appointmentService-createAppointment: Doctor or Patient not found"
+      );
+    }
+
     const appointmentData = {
-      patient_id,
-      doctor_id,
+      patient,
+      doctor,
       appointment_date: admin.firestore.Timestamp.fromDate(
         new Date(appointment_date)
       ),
@@ -239,19 +268,35 @@ class AppointmentService {
       );
     }
 
-    // If appointment_date is present, convert it to a Firestore Timestamp.
-    if (updateFields.appointment_date) {
-      updateFields.appointment_date = admin.firestore.Timestamp.fromDate(
-        new Date(updateFields.appointment_date)
-      );
-    }
-
     const appointmentRef = db.collection("appointments").doc(appointmentId);
     const appointmentDoc = await appointmentRef.get();
 
     if (!appointmentDoc.exists) {
       throw new Error(
         "appointmentService-updateAppointment: Appointment not found"
+      );
+    }
+
+    if (updateFields.patient) {
+      if (!(await this.checkEntityExists("patient", updateFields.patient))) {
+        throw new Error(
+          "appointmentService-updateAppointment: Patient not found"
+        );
+      }
+    }
+
+    if (updateFields.doctor) {
+      if (!(await this.checkEntityExists("doctor", updateFields.doctor))) {
+        throw new Error(
+          "appointmentService-updateAppointment: Doctor not found"
+        );
+      }
+    }
+
+    // If appointment_date is present, convert it to a Firestore Timestamp.
+    if (updateFields.appointment_date) {
+      updateFields.appointment_date = admin.firestore.Timestamp.fromDate(
+        new Date(updateFields.appointment_date)
       );
     }
 

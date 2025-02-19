@@ -12,8 +12,15 @@ class AuthService {
    */
   static async register(userRegistrationData) {
     let newUser, msg;
-    const { role, email, mobile_number, pers_id, deviceId, password } =
-      userRegistrationData;
+    const {
+      role,
+      email,
+      mobile_number,
+      pers_id,
+      deviceId,
+      password,
+      hospital,
+    } = userRegistrationData;
 
     // Function to check for duplicates across Firestore collections
     const checkForDuplicates = async (field, value) => {
@@ -33,6 +40,15 @@ class AuthService {
       }
       return false;
     };
+
+    // Check if hospital exists
+    if (hospital) {
+      const hospitalRef = db.collection("hospitals").doc(hospital);
+      const hospitalSnapshot = await hospitalRef.get();
+      if (!hospitalSnapshot.exists) {
+        throw new Error("authService-Register: Hospital not found");
+      }
+    }
 
     // Check for existing email, mobile number, and personal ID across collections
     if (email && (await checkForDuplicates("email", email))) {
