@@ -81,7 +81,18 @@ class AdminService {
       throw new Error("adminService-updateAdmin: Invalid adminId");
     }
 
-    if (updateFields._id) {
+    // Check if Hospital ID is valid
+    if (updateFields.hospital) {
+      const hospitalDoc = await db
+        .collection("hospitals")
+        .doc(updateFields.hospital)
+        .get();
+      if (!hospitalDoc.exists) {
+        throw new Error("adminService-updateAdmin: Hospital not found");
+      }
+    }
+
+    if (updateFields.id) {
       throw new Error(
         "adminService-updateAdmin: Changing '_id' is not allowed"
       );
