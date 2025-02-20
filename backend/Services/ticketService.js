@@ -75,7 +75,7 @@ class TicketService {
     }
 
     await ticketRef.delete();
-    return { message: "Ticket successfully deleted" };
+    return;
   }
 
   /**

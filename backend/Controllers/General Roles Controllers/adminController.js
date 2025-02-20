@@ -80,7 +80,7 @@ class AdminController {
       }
 
       // Respond with success
-      return res.status(200).json(result);
+      return res.status(200).json({ message: "Admin deleted successfully" });
     } catch (deleteAdminError) {
       // Catch and return errors
       return res.status(500).json({

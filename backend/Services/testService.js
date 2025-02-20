@@ -138,7 +138,7 @@ class TestService {
     }
 
     await db.collection("tests").doc(testId).delete();
-    return { message: "Test successfully deleted" };
+    return;
   }
 
   /**

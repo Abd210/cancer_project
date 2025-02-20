@@ -132,10 +132,7 @@ class DoctorService {
     // Commit batch
     await batch.commit();
 
-    return {
-      message:
-        "Doctor and all related appointments/tests successfully deleted.",
-    };
+    return;
   }
 }
 

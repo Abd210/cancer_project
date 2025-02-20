@@ -107,8 +107,6 @@ class TestController {
         req.body.status = "reviewed";
       }
 
-      console.log("doctor", doctor);
-
       // Create the test record using the TestService
       const test = await TestService.createTest({
         patient,
@@ -158,7 +156,7 @@ class TestController {
       }
 
       // Respond with success
-      return res.status(200).json(result);
+      return res.status(200).json({ message: "Test deleted successfully" });
     } catch (deleteTestError) {
       // Catch and return errors
       res.status(500).json({

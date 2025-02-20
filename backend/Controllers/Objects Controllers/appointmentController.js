@@ -197,15 +197,15 @@ class AppointmentController {
 
   static async createAppointment(req, res) {
     try {
-      const { patient, doctor, appointment_date, purpose, status, suspended } =
+      const { patient, doctor, appointmentDate, purpose, status, suspended } =
         req.body;
 
       // Validate required fields
-      if (!patient || !doctor || !appointment_date || !purpose) {
+      if (!patient || !doctor || !appointmentDate || !purpose) {
         return res.status(400).json({
           error: `Missing required fields: ${!patient ? "patient, " : ""}${
             !doctor ? "doctor, " : ""
-          }${!appointment_date ? "appointment_date, " : ""}${
+          }${!appointmentDate ? "appointmentDate, " : ""}${
             !purpose ? "purpose" : ""
           }`.slice(0, -2),
         });
@@ -239,7 +239,7 @@ class AppointmentController {
       }
 
       // Check if the appointment date is not in the past
-      // if (new Date(appointment_date) < new Date()) {
+      // if (new Date(appointmentDate) < new Date()) {
       //   return res.status(400).json({
       //     error:
       //       "AppointmentController-Create: Appointment date cannot be in the past",
@@ -250,7 +250,7 @@ class AppointmentController {
       const appointment = await AppointmentService.createAppointment({
         patient: patient,
         doctor: doctor,
-        appointment_date,
+        appointmentDate,
         purpose,
         status,
         suspended,
@@ -292,7 +292,6 @@ class AppointmentController {
       // Return the details of the deleted appointment
       res.status(200).json({
         message: "Appointment successfully deleted",
-        deletedAppointment,
       });
     } catch (deleteAppointmentError) {
       // Handle errors in deleting the appointment

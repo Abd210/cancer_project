@@ -134,10 +134,7 @@ class PatientService {
     // Commit batch
     await batch.commit();
 
-    return {
-      message:
-        "Patient and all related appointments/tests successfully deleted.",
-    };
+    return;
   }
 }
 

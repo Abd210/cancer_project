@@ -6,14 +6,13 @@ const SuspendController = require("../suspendController");
  * Handles missing doctorid error and interacts with the DoctorService to retrieve the data.
  */
 class DoctorController {
-
   /**
    * Fetches public data for a doctor using their unique identifier (doctorid) from the request headers.
    * Handles missing doctorid error and interacts with the DoctorService to retrieve the data.
-   * 
+   *
    * @param {Object} req - The Express request object, containing the doctorid in the headers.
    * @param {Object} res - The Express response object used to send the result or errors.
-   * 
+   *
    * @returns {Object} A JSON response containing the doctor’s public data or an error message.
    */
   static async getPublicData(req, res) {
@@ -29,7 +28,7 @@ class DoctorController {
       }
 
       // Call the DoctorService to fetch the public data for the doctor
-      const public_data = await DoctorService.getPublicData( doctorid );
+      const public_data = await DoctorService.getPublicData(doctorid);
 
       // Respond with the doctor’s public data and a 200 status
       res.status(200).json(public_data);
@@ -59,23 +58,36 @@ class DoctorController {
         if (!doctorid) {
           if (filter) {
             if (hospitalid) {
-              console.log("DoctorController- Get Doctor Data: Fetching doctor data by hospital");
+              console.log(
+                "DoctorController- Get Doctor Data: Fetching doctor data by hospital"
+              );
               // Retrieve all doctors' data from specified hospital if no doctorid is given and hospitalid is provided
-              const allDoctors = await DoctorService.findAllDoctorsByHospital(hospitalid);
+              const allDoctors = await DoctorService.findAllDoctorsByHospital(
+                hospitalid
+              );
               console.log(allDoctors);
-    
-              const filtered_data = await SuspendController.filterData(allDoctors, user.role, filter);
+
+              const filtered_data = await SuspendController.filterData(
+                allDoctors,
+                user.role,
+                filter
+              );
               return res.status(200).json(filtered_data); // Return all doctor data
             } else {
               // Retrieve all doctors' data if no doctorid is provided
               const allDoctors = await DoctorService.findAllDoctors();
-    
-              const filtered_data = await SuspendController.filterData(allDoctors, user.role, filter);
+
+              const filtered_data = await SuspendController.filterData(
+                allDoctors,
+                user.role,
+                filter
+              );
               return res.status(200).json(filtered_data); // Return all doctor data
             }
           } else {
             return res.status(400).json({
-              error: "DoctorController- Get Doctor Data: Please provide either a filter or a doctor's id", // Specific error for missing filter
+              error:
+                "DoctorController- Get Doctor Data: Please provide either a filter or a doctor's id", // Specific error for missing filter
             });
           }
         }
@@ -109,7 +121,7 @@ class DoctorController {
 
       // Destructure the fields to update from the request body
       const updateFields = req.body;
-  
+
       // Check if the role is superadmin
       if (user.role !== "superadmin") {
         return res.status(403).json({
@@ -123,24 +135,28 @@ class DoctorController {
           error: "DoctorController-update doctor: Missing doctorId",
         });
       }
-  
+
       // Validate if updateFields are provided
       if (!updateFields || Object.keys(updateFields).length === 0) {
         return res.status(400).json({
           error: "DoctorController-update doctor: No fields provided to update",
         });
       }
-  
+
       // Call the DoctorService to perform the update
-      const updatedDoctor = await DoctorService.updateDoctor(doctorid, updateFields, user);
-  
+      const updatedDoctor = await DoctorService.updateDoctor(
+        doctorid,
+        updateFields,
+        user
+      );
+
       // Check if the doctor was found and updated
       if (!updatedDoctor) {
         return res.status(404).json({
           error: "DoctorController- Update Doctor Data: Doctor not found",
         });
       }
-  
+
       // Respond with the updated doctor data
       return res.status(200).json(updatedDoctor);
     } catch (updateDoctorError) {
@@ -150,36 +166,35 @@ class DoctorController {
       });
     }
   }
-  
+
   static async deleteDoctorData(req, res) {
     try {
       const { doctorid } = req.headers;
-  
+
       // Validate if doctorId is provided
       if (!doctorid) {
         return res.status(400).json({
           error: "DoctorController-delete doctor: Missing doctorId",
         });
       }
-  
+
       // Call the DoctorService to perform the deletion
       const result = await DoctorService.deleteDoctor(doctorid);
-  
+
       // Check if the service returned an error
       if (result.error) {
         return res.status(400).json({ error: result.error });
       }
-  
+
       // Respond with success
-      return res.status(200).json(result);
+      return res.status(200).json({ message: "Doctor deleted successfully" });
     } catch (deleteDoctorError) {
       // Catch and return errors
       return res.status(500).json({
         error: `DoctorController-delete doctor: ${deleteDoctorError.message}`,
       });
     }
-  }  
-
+  }
 }
 
 module.exports = DoctorController;

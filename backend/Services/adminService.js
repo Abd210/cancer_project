@@ -50,7 +50,6 @@ class AdminService {
   /**
    * Deletes an admin account using their Firestore document ID.
    * @param {string} adminId - The Firestore document ID of the admin to be deleted.
-   * @returns {Object} A success message or an error if the admin is not found.
    */
   static async deleteAdmin(adminId) {
     if (!adminId) {
@@ -66,7 +65,7 @@ class AdminService {
 
     await adminRef.delete();
 
-    return { message: "Admin successfully deleted" };
+    return;
   }
 
   /**

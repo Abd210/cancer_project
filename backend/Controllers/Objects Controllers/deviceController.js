@@ -41,7 +41,7 @@ class DeviceController {
       }
 
       const result = await DeviceService.deleteDevice(deviceId);
-      res.status(200).json(result);
+      res.status(200).json({ message: "Device deleted successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

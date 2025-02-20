@@ -51,7 +51,7 @@ class DeviceService {
     }
 
     await deviceRef.delete();
-    return { message: "Device deleted successfully." };
+    return;
   }
 
   /**

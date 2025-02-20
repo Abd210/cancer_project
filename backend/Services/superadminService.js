@@ -65,7 +65,7 @@ class SuperAdminService {
 
     await superAdminRef.delete();
 
-    return { message: "Superadmin successfully deleted", superAdminId };
+    return;
   }
 
   /**

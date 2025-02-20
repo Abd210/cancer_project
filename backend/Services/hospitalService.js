@@ -165,9 +165,7 @@ class HospitalService {
     batch.delete(hospitalRef);
     await batch.commit();
 
-    return {
-      message: "Hospital and all associated records successfully deleted.",
-    };
+    return;
   }
 
   /**

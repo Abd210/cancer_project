@@ -5,9 +5,9 @@ class AppointmentService {
   /**
    * Get all upcoming appointments.
    * Upcoming appointments are those with:
-   * - appointment_date greater than or equal to now, and
+   * - appointmentDate greater than or equal to now, and
    * - status equal to "scheduled".
-   * Results are ordered by appointment_date in ascending order.
+   * Results are ordered by appointmentDate in ascending order.
    *
    * @returns {Promise<Array>} List of upcoming appointment objects.
    */
@@ -15,9 +15,9 @@ class AppointmentService {
     try {
       const snapshot = await db
         .collection("appointments")
-        .where("appointment_date", ">=", new Date())
+        .where("appointmentDate", ">=", new Date())
         .where("status", "==", "scheduled")
-        .orderBy("appointment_date")
+        .orderBy("appointmentDate")
         .get();
 
       if (snapshot.empty) {
@@ -48,17 +48,17 @@ class AppointmentService {
 
     // let queryRef = db.collection("appointments");
     // queryRef = queryRef.where(field, "==", entity_id);
-    // queryRef = queryRef.where("appointment_date", ">=", new Date());
+    // queryRef = queryRef.where("appointmentDate", ">=", new Date());
     // queryRef = queryRef.where("status", "==", "scheduled");
-    // queryRef = queryRef.orderBy("appointment_date");
+    // queryRef = queryRef.orderBy("appointmentDate");
     // const snapshot = await queryRef.get();
 
     const snapshot = await db
       .collection("appointments")
       .where(field, "==", entity_id)
-      .where("appointment_date", ">=", new Date())
+      .where("appointmentDate", ">=", new Date())
       .where("status", "==", "scheduled")
-      .orderBy("appointment_date")
+      .orderBy("appointmentDate")
       .get();
 
     if (snapshot.empty) {
@@ -100,8 +100,8 @@ class AppointmentService {
     }
 
     queryRef = queryRef
-      .where("appointment_date", "<", new Date())
-      .orderBy("appointment_date", "desc");
+      .where("appointmentDate", "<", new Date())
+      .orderBy("appointmentDate", "desc");
 
     const snapshot = await queryRef.get();
 
@@ -162,7 +162,7 @@ class AppointmentService {
   static async createAppointment({
     patient,
     doctor,
-    appointment_date,
+    appointmentDate,
     purpose,
     status = "scheduled",
     suspended = false,
@@ -179,8 +179,8 @@ class AppointmentService {
     const appointmentData = {
       patient,
       doctor,
-      appointment_date: admin.firestore.Timestamp.fromDate(
-        new Date(appointment_date)
+      appointmentDate: admin.firestore.Timestamp.fromDate(
+        new Date(appointmentDate)
       ),
       purpose,
       status,
@@ -243,7 +243,7 @@ class AppointmentService {
 
     await appointmentRef.delete();
 
-    return { message: "Appointment successfully deleted" };
+    return;
   }
 
   /**
@@ -293,10 +293,10 @@ class AppointmentService {
       }
     }
 
-    // If appointment_date is present, convert it to a Firestore Timestamp.
-    if (updateFields.appointment_date) {
-      updateFields.appointment_date = admin.firestore.Timestamp.fromDate(
-        new Date(updateFields.appointment_date)
+    // If appointmentDate is present, convert it to a Firestore Timestamp.
+    if (updateFields.appointmentDate) {
+      updateFields.appointmentDate = admin.firestore.Timestamp.fromDate(
+        new Date(updateFields.appointmentDate)
       );
     }
 
