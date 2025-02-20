@@ -8,7 +8,7 @@ class Appointment {
   constructor({
     patient,
     doctor,
-    appointment_date,
+    appointmentDate,
     purpose,
     status = "scheduled",
     suspended = false,
@@ -19,8 +19,8 @@ class Appointment {
       );
     if (typeof doctor !== "string")
       throw new Error("Invalid doctor: must be a Firestore document reference");
-    if (!(appointment_date instanceof Date))
-      throw new Error("Invalid appointment_date: must be a Date object");
+    if (!(appointmentDate instanceof Date))
+      throw new Error("Invalid appointmentDate: must be a Date object");
     if (typeof purpose !== "string")
       throw new Error("Invalid purpose: must be a string");
     if (!STATUSES.includes(status))
@@ -32,7 +32,7 @@ class Appointment {
 
     this.patient = patient;
     this.doctor = doctor;
-    this.appointment_date = appointment_date;
+    this.appointmentDate = appointmentDate;
     this.purpose = purpose;
     this.status = status;
     this.suspended = suspended;

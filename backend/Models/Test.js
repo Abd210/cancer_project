@@ -9,7 +9,7 @@ class Test {
     patient,
     doctor,
     device = null,
-    result_date = null,
+    resultDate = null,
     status = "pending",
     purpose,
     review = "",
@@ -24,8 +24,8 @@ class Test {
       throw new Error("Invalid doctor: must be a Firestore document reference");
     if (device !== null && typeof device !== "string")
       throw new Error("Invalid device: must be a Firestore document reference");
-    if (result_date !== null && !(result_date instanceof Date))
-      throw new Error("Invalid result_date: must be a Date object");
+    if (resultDate !== null && !(resultDate instanceof Date))
+      throw new Error("Invalid resultDate: must be a Date object");
     if (!STATUSES.includes(status))
       throw new Error(
         `Invalid status: ${status}. Allowed: ${STATUSES.join(", ")}`
@@ -42,7 +42,7 @@ class Test {
     this.patient = patient;
     this.doctor = doctor;
     this.device = device;
-    this.result_date = result_date;
+    this.resultDate = resultDate;
     this.status = status;
     this.purpose = purpose;
     this.review = review;
