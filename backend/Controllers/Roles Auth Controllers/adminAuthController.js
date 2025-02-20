@@ -20,7 +20,7 @@ class AdminAuthController {
     try {
       // Destructure the required fields from the request body
       const {
-        pers_id,
+        persId,
         name,
         password,
         email,
@@ -31,7 +31,7 @@ class AdminAuthController {
 
       // Check for required fields for Admin registration
       if (
-        !pers_id ||
+        !persId ||
         !name ||
         !password ||
         !email ||
@@ -39,7 +39,7 @@ class AdminAuthController {
         !hospital
       ) {
         return res.status(400).json({
-          error: `Missing required fields: ${!pers_id ? "pers. id, " : ""}${
+          error: `Missing required fields: ${!persId ? "pers. id, " : ""}${
             !name ? "name, " : ""
           }${!password ? "password, " : ""}${!email ? "email, " : ""}${
             !mobileNumber ? "mobile number, " : ""
@@ -49,7 +49,7 @@ class AdminAuthController {
 
       // Call the AuthService to handle the admin registration logic
       const result = await AuthService.register({
-        pers_id,
+        persId,
         name,
         password,
         role: "admin", // Set the role as 'admin'
@@ -70,7 +70,7 @@ class AdminAuthController {
   }
 
   /**
-   * Logs in an admin by verifying the provided credentials (either pers_id, email, or mobileNumber, along with password).
+   * Logs in an admin by verifying the provided credentials (either persId, email, or mobileNumber, along with password).
    * Calls the AuthService to authenticate the admin and return an authentication token.
    *
    * @param {Object} req - The Express request object, containing the login credentials.
@@ -81,15 +81,15 @@ class AdminAuthController {
   static async login(req, res) {
     try {
       // Destructure the login credentials from the request body
-      const { pers_id, email, mobileNumber, password } = req.body;
+      const { persId, email, mobileNumber, password } = req.body;
 
-      // Determine the login identifier (could be pers_id, email, or mobileNumber)
-      const identifier = pers_id || email || mobileNumber;
+      // Determine the login identifier (could be persId, email, or mobileNumber)
+      const identifier = persId || email || mobileNumber;
 
       // Check for required fields for login
       if (!identifier || !password) {
         return res.status(400).json({
-          error: `Missing required fields: ${!pers_id ? "pers_id, " : ""}${
+          error: `Missing required fields: ${!persId ? "persId, " : ""}${
             !email ? "email, " : ""
           }${!mobileNumber ? "mobileNumber, " : ""}${
             !password ? "password" : ""

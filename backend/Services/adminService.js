@@ -119,8 +119,8 @@ class AdminService {
       }
     };
 
-    if (updateFields.pers_id) {
-      await checkUniqueness("pers_id", updateFields.pers_id);
+    if (updateFields.persId) {
+      await checkUniqueness("persId", updateFields.persId);
     }
     if (updateFields.email) {
       await checkUniqueness("email", updateFields.email);

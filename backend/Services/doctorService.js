@@ -12,7 +12,7 @@ class DoctorService {
 
     const doctorData = doctorDoc.data();
     delete doctorData.password; // Remove sensitive data
-    delete doctorData.pers_id;
+    delete doctorData.persId;
     delete doctorData.role;
     delete doctorData.createdAt;
     delete doctorData.updatedAt;
@@ -86,8 +86,8 @@ class DoctorService {
         updateFields.mobileNumber,
         doctorId
       );
-    if (updateFields.pers_id)
-      await this.checkUniqueness("pers_id", updateFields.pers_id, doctorId);
+    if (updateFields.persId)
+      await this.checkUniqueness("persId", updateFields.persId, doctorId);
 
     if (updateFields.password) {
       const salt = await bcrypt.genSalt(10);

@@ -45,7 +45,7 @@ class PatientService {
 
   /**
    * Ensures uniqueness across collections (patients, doctors, admins, superadmins).
-   * @param {string} field - The field to check (e.g., email, pers_id, mobileNumber).
+   * @param {string} field - The field to check (e.g., email, persId, mobileNumber).
    * @param {string} value - The value to check for uniqueness.
    * @param {string} excludeId - (Optional) The ID to exclude (for updates).
    */
@@ -87,8 +87,8 @@ class PatientService {
         updateFields.mobileNumber,
         patientId
       );
-    if (updateFields.pers_id)
-      await this.checkUniqueness("pers_id", updateFields.pers_id, patientId);
+    if (updateFields.persId)
+      await this.checkUniqueness("persId", updateFields.persId, patientId);
 
     if (updateFields.password) {
       const salt = await bcrypt.genSalt(10);

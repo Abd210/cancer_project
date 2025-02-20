@@ -12,7 +12,7 @@ class AuthService {
    */
   static async register(userRegistrationData) {
     let newUser, msg;
-    const { role, email, mobileNumber, pers_id, deviceId, password, hospital } =
+    const { role, email, mobileNumber, persId, deviceId, password, hospital } =
       userRegistrationData;
 
     // Function to check for duplicates across Firestore collections
@@ -53,7 +53,7 @@ class AuthService {
     ) {
       throw new Error("authService-Register: Mobile number already registered");
     }
-    if (pers_id && (await checkForDuplicates("pers_id", pers_id))) {
+    if (persId && (await checkForDuplicates("persId", persId))) {
       throw new Error("authService-Register: Personal ID already registered");
     }
     if (
@@ -129,7 +129,7 @@ class AuthService {
     const [emailQuery, phoneQuery, persIdQuery] = await Promise.all([
       db.collection(collection).where("email", "==", identifier).get(),
       db.collection(collection).where("mobileNumber", "==", identifier).get(),
-      db.collection(collection).where("pers_id", "==", identifier).get(),
+      db.collection(collection).where("persId", "==", identifier).get(),
     ]);
 
     let userSnapshot;

@@ -9,7 +9,7 @@ const ROLES = ["doctor"];
 class Doctor {
   constructor({
     _id,
-    pers_id,
+    persId,
     password,
     name,
     email,
@@ -23,8 +23,8 @@ class Doctor {
   }) {
     if (typeof _id !== "string")
       throw new Error("Invalid _id: must be a string");
-    if (typeof pers_id !== "string")
-      throw new Error("Invalid pers_id: must be a string");
+    if (typeof persId !== "string")
+      throw new Error("Invalid persId: must be a string");
     if (typeof password !== "string")
       throw new Error("Invalid password: must be a string");
     if (typeof name !== "string")
@@ -49,7 +49,7 @@ class Doctor {
       throw new Error("Invalid suspended: must be a boolean");
 
     this._id = _id;
-    this.pers_id = pers_id;
+    this.persId = persId;
     this.password = password;
     this.name = name;
     this.email = email;

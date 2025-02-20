@@ -8,7 +8,7 @@ const ROLES = ["admin"];
 
 class Admin {
   constructor({
-    pers_id,
+    persId,
     password,
     name,
     email,
@@ -17,8 +17,8 @@ class Admin {
     role = "admin",
     suspended = false,
   }) {
-    if (typeof pers_id !== "string")
-      throw new Error("Invalid pers_id: must be a string");
+    if (typeof persId !== "string")
+      throw new Error("Invalid persId: must be a string");
     if (typeof password !== "string")
       throw new Error("Invalid password: must be a string");
     if (typeof name !== "string")
@@ -36,7 +36,7 @@ class Admin {
     if (typeof suspended !== "boolean")
       throw new Error("Invalid suspended: must be a boolean");
 
-    this.pers_id = pers_id;
+    this.persId = persId;
     this.password = password;
     this.name = name;
     this.email = email;

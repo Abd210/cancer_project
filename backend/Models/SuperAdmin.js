@@ -8,15 +8,15 @@ const ROLES = ["superadmin"];
 
 class SuperAdmin {
   constructor({
-    pers_id,
+    persId,
     password,
     name,
     email,
     mobileNumber,
     role = "superadmin",
   }) {
-    if (typeof pers_id !== "string")
-      throw new Error("Invalid pers_id: must be a string");
+    if (typeof persId !== "string")
+      throw new Error("Invalid persId: must be a string");
     if (typeof password !== "string")
       throw new Error("Invalid password: must be a string");
     if (typeof name !== "string")
@@ -28,7 +28,7 @@ class SuperAdmin {
     if (!ROLES.includes(role))
       throw new Error(`Invalid role: ${role}. Allowed: ${ROLES.join(", ")}`);
 
-    this.pers_id = pers_id;
+    this.persId = persId;
     this.password = password;
     this.name = name;
     this.email = email;

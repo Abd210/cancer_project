@@ -22,12 +22,12 @@ class SuperAdminAuthController {
   static async register(req, res) {
     try {
       // Destructure the required fields from the request body
-      const { pers_id, name, password, mobileNumber, email } = req.body;
+      const { persId, name, password, mobileNumber, email } = req.body;
 
       // Check for required fields for SuperAdmin registration
-      if (!pers_id || !name || !password || !mobileNumber || !email) {
+      if (!persId || !name || !password || !mobileNumber || !email) {
         return res.status(400).json({
-          error: `Missing required fields: ${!pers_id ? "personal id, " : ""}${
+          error: `Missing required fields: ${!persId ? "personal id, " : ""}${
             !name ? "name, " : ""
           }${!password ? "password, " : ""}${
             !mobileNumber ? "mobile number, " : ""
@@ -37,7 +37,7 @@ class SuperAdminAuthController {
 
       // Call the AuthService to handle the SuperAdmin registration logic
       const result = await AuthService.register({
-        pers_id,
+        persId,
         name,
         password,
         role: "superadmin", // Ensure the role is 'superadmin'
@@ -56,7 +56,7 @@ class SuperAdminAuthController {
   }
 
   /**
-   * Logs in a SuperAdmin by verifying the provided credentials (either pers_id, email, or mobileNumber, along with password).
+   * Logs in a SuperAdmin by verifying the provided credentials (either persId, email, or mobileNumber, along with password).
    * Calls the AuthService to authenticate the SuperAdmin and return an authentication token.
    *
    * @param {Object} req - The Express request object, containing the login credentials.
@@ -66,17 +66,17 @@ class SuperAdminAuthController {
    */
   static async login(req, res) {
     try {
-      const { pers_id, email, mobileNumber, password } = req.body;
+      const { persId, email, mobileNumber, password } = req.body;
 
       // Determine the login identifier
-      const identifier = pers_id || email || mobileNumber;
+      const identifier = persId || email || mobileNumber;
 
       // Check for required fields for login
       if (!identifier || !password) {
         return res.status(400).json({
           error:
             `SuperAdminAuthController - Login SuperAdmin: Missing required fields:${
-              !pers_id ? "personal id, " : ""
+              !persId ? "personal id, " : ""
             }${!email ? "email, " : ""}${
               !mobileNumber ? "mobile number, " : ""
             }${!password ? "password, " : ""}`.split(0, -2),

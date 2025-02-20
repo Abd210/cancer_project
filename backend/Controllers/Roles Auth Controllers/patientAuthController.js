@@ -22,7 +22,7 @@ class PatientAuthController {
     try {
       // Destructure the required fields from the request body
       const {
-        pers_id,
+        persId,
         name,
         password,
         mobileNumber,
@@ -37,7 +37,7 @@ class PatientAuthController {
 
       // Check for required fields for Patient
       if (
-        !pers_id ||
+        !persId ||
         !name ||
         !password ||
         !mobileNumber ||
@@ -49,7 +49,7 @@ class PatientAuthController {
         !hospital
       ) {
         return res.status(400).json({
-          error: `Missing required fields: ${!pers_id ? "pers. id, " : ""}${
+          error: `Missing required fields: ${!persId ? "pers. id, " : ""}${
             !name ? "name, " : ""
           }${!password ? "password, " : ""}${
             !mobileNumber ? "mobile number, " : ""
@@ -63,7 +63,7 @@ class PatientAuthController {
 
       // Call the AuthService to handle the patient registration logic
       const result = await AuthService.register({
-        pers_id,
+        persId,
         name,
         password,
         role: "patient", // Ensure the role is 'patient'
@@ -88,7 +88,7 @@ class PatientAuthController {
   }
 
   /**
-   * Logs in a patient by verifying the provided credentials (either pers_id, email, name, phone_number, or device_id, along with password).
+   * Logs in a patient by verifying the provided credentials (either persId, email, name, phone_number, or device_id, along with password).
    * Calls the AuthService to authenticate the patient and return an authentication token.
    *
    * @param {Object} req - The Express request object, containing the login credentials.
@@ -99,16 +99,16 @@ class PatientAuthController {
   static async login(req, res) {
     try {
       // Destructure the login credentials from the request body
-      const { pers_id, name, phone_number, email, device_id, password } =
+      const { persId, name, phone_number, email, device_id, password } =
         req.body;
 
-      // Determine the login identifier (could be pers_id, email, name, phone_number, or device_id)
-      const identifier = pers_id || email || name || phone_number || device_id;
+      // Determine the login identifier (could be persId, email, name, phone_number, or device_id)
+      const identifier = persId || email || name || phone_number || device_id;
 
       // Check for required fields for login
       if (!identifier | !password) {
         return res.status(400).json({
-          error: `Missing required fields: ${!pers_id ? "ID, " : ""}${
+          error: `Missing required fields: ${!persId ? "ID, " : ""}${
             !email ? "email, " : ""
           }${!name ? "name " : ""}${!phone_number ? "phone number, " : ""}${
             !password ? "password" : ""

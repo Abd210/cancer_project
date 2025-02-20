@@ -8,7 +8,7 @@ class Device {
   constructor({
     hospital,
     patient = null,
-    device_code,
+    deviceCode,
     purpose = "",
     status,
     suspended = false,
@@ -21,8 +21,8 @@ class Device {
       throw new Error(
         "Invalid patient: must be a Firestore document reference"
       );
-    if (typeof device_code !== "string")
-      throw new Error("Invalid device_code: must be a string");
+    if (typeof deviceCode !== "string")
+      throw new Error("Invalid deviceCode: must be a string");
     if (typeof purpose !== "string")
       throw new Error("Invalid purpose: must be a string");
     if (!STATUSES.includes(status))
@@ -34,7 +34,7 @@ class Device {
 
     this.hospital = hospital;
     this.patient = patient;
-    this.device_code = device_code;
+    this.deviceCode = deviceCode;
     this.purpose = purpose;
     this.status = status;
     this.suspended = suspended;
