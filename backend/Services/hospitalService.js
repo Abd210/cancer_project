@@ -5,27 +5,21 @@ class HospitalService {
   /**
    * Registers a new hospital while ensuring uniqueness of name, emails, and mobile numbers.
    * @param {Object} hospitalData - The hospital data.
-   * @param {string} hospitalData.hospital_name - The name of the hospital.
-   * @param {string} hospitalData.hospital_address - The address of the hospital.
+   * @param {string} hospitalData.name - The name of the hospital.
+   * @param {string} hospitalData.address - The address of the hospital.
    * @param {Array<string>} hospitalData.mobileNumbers - The mobile numbers of the hospital.
    * @param {Array<string>} hospitalData.emails - The emails of the hospital.
    * @param {boolean} [hospitalData.suspended] - The suspended status of the hospital.
    * @returns {Promise<Object>} The newly registered hospital data including its ID.
    * @throws {Error} If a hospital with the same name and address already exists or if emails/mobile numbers are not unique.
    */
-  static async register({
-    hospital_name,
-    hospital_address,
-    mobileNumbers,
-    emails,
-    suspended,
-  }) {
+  static async register({ name, address, mobileNumbers, emails, suspended }) {
     const hospitalRef = db.collection("hospitals");
 
     // Check if a hospital with the same name and address already exists
     const existingHospitals = await hospitalRef
-      .where("hospital_name", "==", hospital_name)
-      .where("hospital_address", "==", hospital_address)
+      .where("name", "==", name)
+      .where("address", "==", address)
       .get();
 
     if (!existingHospitals.empty) {
@@ -40,8 +34,8 @@ class HospitalService {
 
     // Add new hospital
     const newHospital = {
-      hospital_name,
-      hospital_address,
+      name,
+      address,
       mobileNumbers,
       emails,
       createdAt: admin.firestore.Timestamp.now(),

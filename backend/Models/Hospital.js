@@ -3,17 +3,11 @@ const { db } = require("../firebase"); // Import shared Firebase instance
 const hospitalsCollection = db.collection("hospitals");
 
 class Hospital {
-  constructor({
-    hospital_name,
-    hospital_address,
-    mobileNumbers,
-    emails,
-    suspended = false,
-  }) {
-    if (typeof hospital_name !== "string")
-      throw new Error("Invalid hospital_name: must be a string");
-    if (typeof hospital_address !== "string")
-      throw new Error("Invalid hospital_address: must be a string");
+  constructor({ name, address, mobileNumbers, emails, suspended = false }) {
+    if (typeof name !== "string")
+      throw new Error("Invalid name: must be a string");
+    if (typeof address !== "string")
+      throw new Error("Invalid address: must be a string");
     if (
       !Array.isArray(mobileNumbers) ||
       !mobileNumbers.every((num) => typeof num === "string")
@@ -29,8 +23,8 @@ class Hospital {
     if (typeof suspended !== "boolean")
       throw new Error("Invalid suspended: must be a boolean");
 
-    this.hospital_name = hospital_name;
-    this.hospital_address = hospital_address;
+    this.name = name;
+    this.address = address;
     this.mobileNumbers = mobileNumbers;
     this.emails = emails;
     this.suspended = suspended;

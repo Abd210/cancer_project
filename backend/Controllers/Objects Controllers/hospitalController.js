@@ -23,29 +23,23 @@ class HospitalController {
   static async register(req, res) {
     try {
       // Destructure the hospital registration details from the request body
-      const {
-        hospital_name,
-        hospital_address,
-        mobileNumbers,
-        emails,
-        suspended,
-      } = req.body;
+      const { name, address, mobileNumbers, emails, suspended } = req.body;
 
       // Validate if all required fields are provided
-      if (!hospital_name || !hospital_address || !mobileNumbers || !emails) {
+      if (!name || !address || !mobileNumbers || !emails) {
         return res.status(400).json({
-          error: `Missing required fields: ${
-            !hospital_name ? "hospital_name, " : ""
-          }${!hospital_address ? "hospital_address, " : ""}${
-            !mobileNumbers ? "mobileNumbers, " : ""
-          }${!emails ? "emails, " : ""}`.slice(0, -2), // Generate a dynamic error message listing missing fields
+          error: `Missing required fields: ${!name ? "name, " : ""}${
+            !address ? "address, " : ""
+          }${!mobileNumbers ? "mobileNumbers, " : ""}${
+            !emails ? "emails, " : ""
+          }`.slice(0, -2), // Generate a dynamic error message listing missing fields
         });
       }
 
       // Call the HospitalService to process the hospital registration
       const hospital = await HospitalService.register({
-        hospital_name,
-        hospital_address,
+        name,
+        address,
         mobileNumbers,
         emails,
         suspended,
