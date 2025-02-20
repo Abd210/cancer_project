@@ -13,7 +13,7 @@ class Patient {
     password,
     name,
     email,
-    mobile_number,
+    mobileNumber,
     birthDate,
     hospital,
     status = "active",
@@ -30,8 +30,8 @@ class Patient {
       throw new Error("Invalid name: must be a string");
     if (typeof email !== "string")
       throw new Error("Invalid email: must be a string");
-    if (typeof mobile_number !== "string")
-      throw new Error("Invalid mobile_number: must be a string");
+    if (typeof mobileNumber !== "string")
+      throw new Error("Invalid mobileNumber: must be a string");
     if (!(birthDate instanceof Date))
       throw new Error("Invalid birthDate: must be a Date object");
     if (typeof hospital !== "string")
@@ -55,7 +55,7 @@ class Patient {
     this.password = password;
     this.name = name;
     this.email = email;
-    this.mobile_number = mobile_number;
+    this.mobileNumber = mobileNumber;
     this.birthDate = birthDate;
     this.hospital = hospital;
     this.status = status;

@@ -6,7 +6,7 @@ class Hospital {
   constructor({
     hospital_name,
     hospital_address,
-    mobile_numbers,
+    mobileNumbers,
     emails,
     suspended = false,
   }) {
@@ -15,10 +15,10 @@ class Hospital {
     if (typeof hospital_address !== "string")
       throw new Error("Invalid hospital_address: must be a string");
     if (
-      !Array.isArray(mobile_numbers) ||
-      !mobile_numbers.every((num) => typeof num === "string")
+      !Array.isArray(mobileNumbers) ||
+      !mobileNumbers.every((num) => typeof num === "string")
     ) {
-      throw new Error("Invalid mobile_numbers: must be an array of strings");
+      throw new Error("Invalid mobileNumbers: must be an array of strings");
     }
     if (
       !Array.isArray(emails) ||
@@ -31,7 +31,7 @@ class Hospital {
 
     this.hospital_name = hospital_name;
     this.hospital_address = hospital_address;
-    this.mobile_numbers = mobile_numbers;
+    this.mobileNumbers = mobileNumbers;
     this.emails = emails;
     this.suspended = suspended;
     this.createdAt = new Date();

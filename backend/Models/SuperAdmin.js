@@ -12,7 +12,7 @@ class SuperAdmin {
     password,
     name,
     email,
-    mobile_number,
+    mobileNumber,
     role = "superadmin",
   }) {
     if (typeof pers_id !== "string")
@@ -23,8 +23,8 @@ class SuperAdmin {
       throw new Error("Invalid name: must be a string");
     if (typeof email !== "string")
       throw new Error("Invalid email: must be a string");
-    if (typeof mobile_number !== "string")
-      throw new Error("Invalid mobile_number: must be a string");
+    if (typeof mobileNumber !== "string")
+      throw new Error("Invalid mobileNumber: must be a string");
     if (!ROLES.includes(role))
       throw new Error(`Invalid role: ${role}. Allowed: ${ROLES.join(", ")}`);
 
@@ -32,7 +32,7 @@ class SuperAdmin {
     this.password = password;
     this.name = name;
     this.email = email;
-    this.mobile_number = mobile_number;
+    this.mobileNumber = mobileNumber;
     this.role = role;
     this.createdAt = new Date();
     this.updatedAt = new Date();

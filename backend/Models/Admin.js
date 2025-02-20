@@ -12,7 +12,7 @@ class Admin {
     password,
     name,
     email,
-    mobile_number,
+    mobileNumber,
     hospital,
     role = "admin",
     suspended = false,
@@ -25,8 +25,8 @@ class Admin {
       throw new Error("Invalid name: must be a string");
     if (typeof email !== "string")
       throw new Error("Invalid email: must be a string");
-    if (typeof mobile_number !== "string")
-      throw new Error("Invalid mobile_number: must be a string");
+    if (typeof mobileNumber !== "string")
+      throw new Error("Invalid mobileNumber: must be a string");
     if (typeof hospital !== "string")
       throw new Error(
         "Invalid hospital: must be a Firestore document reference"
@@ -40,7 +40,7 @@ class Admin {
     this.password = password;
     this.name = name;
     this.email = email;
-    this.mobile_number = mobile_number;
+    this.mobileNumber = mobileNumber;
     this.hospital = hospital;
     this.role = role;
     this.suspended = suspended;
