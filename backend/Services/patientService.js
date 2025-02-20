@@ -45,7 +45,7 @@ class PatientService {
 
   /**
    * Ensures uniqueness across collections (patients, doctors, admins, superadmins).
-   * @param {string} field - The field to check (e.g., email, pers_id, mobile_number).
+   * @param {string} field - The field to check (e.g., email, pers_id, mobileNumber).
    * @param {string} value - The value to check for uniqueness.
    * @param {string} excludeId - (Optional) The ID to exclude (for updates).
    */
@@ -81,10 +81,10 @@ class PatientService {
 
     if (updateFields.email)
       await this.checkUniqueness("email", updateFields.email, patientId);
-    if (updateFields.mobile_number)
+    if (updateFields.mobileNumber)
       await this.checkUniqueness(
-        "mobile_number",
-        updateFields.mobile_number,
+        "mobileNumber",
+        updateFields.mobileNumber,
         patientId
       );
     if (updateFields.pers_id)

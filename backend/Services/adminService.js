@@ -125,8 +125,8 @@ class AdminService {
     if (updateFields.email) {
       await checkUniqueness("email", updateFields.email);
     }
-    if (updateFields.mobile_number) {
-      await checkUniqueness("mobile_number", updateFields.mobile_number);
+    if (updateFields.mobileNumber) {
+      await checkUniqueness("mobileNumber", updateFields.mobileNumber);
     }
 
     if (updateFields.password) {

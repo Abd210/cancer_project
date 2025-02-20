@@ -25,7 +25,7 @@ class PatientAuthController {
         pers_id,
         name,
         password,
-        mobile_number,
+        mobileNumber,
         email,
         status,
         diagnosis,
@@ -40,7 +40,7 @@ class PatientAuthController {
         !pers_id ||
         !name ||
         !password ||
-        !mobile_number ||
+        !mobileNumber ||
         !email ||
         !status ||
         !diagnosis ||
@@ -52,7 +52,7 @@ class PatientAuthController {
           error: `Missing required fields: ${!pers_id ? "pers. id, " : ""}${
             !name ? "name, " : ""
           }${!password ? "password, " : ""}${
-            !mobile_number ? "mobile number, " : ""
+            !mobileNumber ? "mobile number, " : ""
           }${!email ? "email, " : ""}${!status ? "status, " : ""}${
             !diagnosis ? "diagnosis, " : ""
           }${!birthDate ? "date of birth, " : ""}${
@@ -67,7 +67,7 @@ class PatientAuthController {
         name,
         password,
         role: "patient", // Ensure the role is 'patient'
-        mobile_number,
+        mobileNumber,
         email,
         status,
         diagnosis,

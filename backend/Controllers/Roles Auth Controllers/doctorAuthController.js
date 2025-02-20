@@ -25,7 +25,7 @@ class DoctorAuthController {
         name,
         password,
         email,
-        mobile_number,
+        mobileNumber,
         birthDate,
         licenses,
         description,
@@ -39,7 +39,7 @@ class DoctorAuthController {
         !name ||
         !password ||
         !email ||
-        !mobile_number ||
+        !mobileNumber ||
         !birthDate ||
         !licenses ||
         !hospital
@@ -48,7 +48,7 @@ class DoctorAuthController {
           error: `Missing required fields: ${!pers_id ? "pers. id, " : ""}${
             !name ? "name, " : ""
           }${!password ? "password, " : ""}${!email ? "email, " : ""}${
-            !mobile_number ? "mobile number, " : ""
+            !mobileNumber ? "mobile number, " : ""
           }${!birthDate ? "birth date, " : ""}${!licenses ? "licenses, " : ""}${
             !hospital ? "hospital" : ""
           }`.slice(0, -2),
@@ -62,7 +62,7 @@ class DoctorAuthController {
         password,
         role: "doctor", // Set the role as 'doctor'
         email,
-        mobile_number,
+        mobileNumber,
         birthDate,
         licenses,
         description,
@@ -81,7 +81,7 @@ class DoctorAuthController {
   }
 
   /**
-   * Logs in a doctor by verifying the provided credentials (either pers_id, email, or mobile_number, along with password).
+   * Logs in a doctor by verifying the provided credentials (either pers_id, email, or mobileNumber, along with password).
    * Calls the AuthService to authenticate the doctor and return an authentication token.
    *
    * @param {Object} req - The Express request object, containing the login credentials.
@@ -92,17 +92,17 @@ class DoctorAuthController {
   static async login(req, res) {
     try {
       // Destructure the login credentials from the request body
-      const { pers_id, email, mobile_number, password } = req.body;
+      const { pers_id, email, mobileNumber, password } = req.body;
 
-      // Determine the login identifier (could be pers_id, email, or mobile_number)
-      const identifier = pers_id || email || mobile_number;
+      // Determine the login identifier (could be pers_id, email, or mobileNumber)
+      const identifier = pers_id || email || mobileNumber;
 
       // Check for required fields for login
       if (!identifier || !password) {
         return res.status(400).json({
           error: `Missing required fields: ${!pers_id ? "pers_id, " : ""}${
             !email ? "email, " : ""
-          }${!mobile_number ? "mobile_number, " : ""}${
+          }${!mobileNumber ? "mobileNumber, " : ""}${
             !password ? "password" : ""
           }`.slice(0, -2),
         });

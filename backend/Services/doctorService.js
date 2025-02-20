@@ -80,10 +80,10 @@ class DoctorService {
 
     if (updateFields.email)
       await this.checkUniqueness("email", updateFields.email, doctorId);
-    if (updateFields.mobile_number)
+    if (updateFields.mobileNumber)
       await this.checkUniqueness(
-        "mobile_number",
-        updateFields.mobile_number,
+        "mobileNumber",
+        updateFields.mobileNumber,
         doctorId
       );
     if (updateFields.pers_id)

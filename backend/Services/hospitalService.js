@@ -7,7 +7,7 @@ class HospitalService {
    * @param {Object} hospitalData - The hospital data.
    * @param {string} hospitalData.hospital_name - The name of the hospital.
    * @param {string} hospitalData.hospital_address - The address of the hospital.
-   * @param {Array<string>} hospitalData.mobile_numbers - The mobile numbers of the hospital.
+   * @param {Array<string>} hospitalData.mobileNumbers - The mobile numbers of the hospital.
    * @param {Array<string>} hospitalData.emails - The emails of the hospital.
    * @param {boolean} [hospitalData.suspended] - The suspended status of the hospital.
    * @returns {Promise<Object>} The newly registered hospital data including its ID.
@@ -16,7 +16,7 @@ class HospitalService {
   static async register({
     hospital_name,
     hospital_address,
-    mobile_numbers,
+    mobileNumbers,
     emails,
     suspended,
   }) {
@@ -36,13 +36,13 @@ class HospitalService {
 
     // Check uniqueness of emails and mobile numbers
     await this._checkUniqueFields("emails", emails);
-    await this._checkUniqueFields("mobile_numbers", mobile_numbers);
+    await this._checkUniqueFields("mobileNumbers", mobileNumbers);
 
     // Add new hospital
     const newHospital = {
       hospital_name,
       hospital_address,
-      mobile_numbers,
+      mobileNumbers,
       emails,
       createdAt: admin.firestore.Timestamp.now(),
       suspended: suspended || false,
@@ -74,7 +74,7 @@ class HospitalService {
    * @param {string} hospitalId - The ID of the hospital to update.
    * @param {Object} updateFields - The fields to update.
    * @param {Array<string>} [updateFields.emails] - The new emails of the hospital.
-   * @param {Array<string>} [updateFields.mobile_numbers] - The new mobile numbers of the hospital.
+   * @param {Array<string>} [updateFields.mobileNumbers] - The new mobile numbers of the hospital.
    * @returns {Promise<Object>} A message indicating the hospital was updated successfully.
    * @throws {Error} If the hospital is not found or if emails/mobile numbers are not unique.
    */
@@ -94,10 +94,10 @@ class HospitalService {
     // Check uniqueness of emails and mobile numbers if updated
     if (updateFields.emails)
       await this._checkUniqueFields("emails", updateFields.emails, hospitalId);
-    if (updateFields.mobile_numbers)
+    if (updateFields.mobileNumbers)
       await this._checkUniqueFields(
-        "mobile_numbers",
-        updateFields.mobile_numbers,
+        "mobileNumbers",
+        updateFields.mobileNumbers,
         hospitalId
       );
 
@@ -184,7 +184,7 @@ class HospitalService {
 
   /**
    * Internal function to check uniqueness of emails and mobile numbers across collections.
-   * @param {string} field - The field to check for uniqueness (e.g., "emails" or "mobile_numbers").
+   * @param {string} field - The field to check for uniqueness (e.g., "emails" or "mobileNumbers").
    * @param {Array<string>} values - The values to check for uniqueness.
    * @param {string} [hospitalId] - The ID of the current hospital (to exclude from uniqueness check).
    * @returns {Promise<void>}

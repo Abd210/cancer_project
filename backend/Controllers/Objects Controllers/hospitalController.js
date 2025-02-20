@@ -26,18 +26,18 @@ class HospitalController {
       const {
         hospital_name,
         hospital_address,
-        mobile_numbers,
+        mobileNumbers,
         emails,
         suspended,
       } = req.body;
 
       // Validate if all required fields are provided
-      if (!hospital_name || !hospital_address || !mobile_numbers || !emails) {
+      if (!hospital_name || !hospital_address || !mobileNumbers || !emails) {
         return res.status(400).json({
           error: `Missing required fields: ${
             !hospital_name ? "hospital_name, " : ""
           }${!hospital_address ? "hospital_address, " : ""}${
-            !mobile_numbers ? "mobile_numbers, " : ""
+            !mobileNumbers ? "mobileNumbers, " : ""
           }${!emails ? "emails, " : ""}`.slice(0, -2), // Generate a dynamic error message listing missing fields
         });
       }
@@ -46,7 +46,7 @@ class HospitalController {
       const hospital = await HospitalService.register({
         hospital_name,
         hospital_address,
-        mobile_numbers,
+        mobileNumbers,
         emails,
         suspended,
       });
@@ -175,11 +175,9 @@ class HospitalController {
       }
 
       // Respond with success
-      return res
-        .status(200)
-        .json({
-          message: "Hospital and all associated data successfully deleted",
-        });
+      return res.status(200).json({
+        message: "Hospital and all associated data successfully deleted",
+      });
     } catch (deleteHospitalError) {
       // Handle unexpected errors
       return res.status(500).json({
