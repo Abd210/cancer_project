@@ -16,8 +16,6 @@ class SuperAdminService {
       );
     }
 
-    console.log(`Getting the SuperAdmin with ID: ${superAdminId}`);
-
     const superAdminDoc = await db
       .collection("superadmins")
       .doc(superAdminId)

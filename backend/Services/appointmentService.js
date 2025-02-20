@@ -243,7 +243,7 @@ class AppointmentService {
 
     await appointmentRef.delete();
 
-    return { message: "Appointment successfully deleted", appointment_id };
+    return { message: "Appointment successfully deleted" };
   }
 
   /**

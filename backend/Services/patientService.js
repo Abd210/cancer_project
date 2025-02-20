@@ -113,8 +113,31 @@ class PatientService {
 
     if (!patientDoc.exists) throw new Error("Patient not found");
 
-    await patientRef.delete();
-    return { message: "Patient successfully deleted" };
+    // Start Firestore batch operation
+    const batch = db.batch();
+
+    // 🔹 Delete all appointments and tests where "patient" field matches patientId
+    const deleteAppointmentsAndTests = async (collection) => {
+      const snapshot = await db
+        .collection(collection)
+        .where("patient", "==", patientId)
+        .get();
+      snapshot.forEach((doc) => batch.delete(doc.ref));
+    };
+
+    await deleteAppointmentsAndTests("appointments");
+    await deleteAppointmentsAndTests("tests");
+
+    // 🔹 Delete the patient itself
+    batch.delete(patientRef);
+
+    // Commit batch
+    await batch.commit();
+
+    return {
+      message:
+        "Patient and all related appointments/tests successfully deleted.",
+    };
   }
 }
 

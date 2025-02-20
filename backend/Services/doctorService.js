@@ -24,9 +24,7 @@ class DoctorService {
    * Get full doctor data
    */
   static async getDoctorData(doctorId) {
-    console.log("doctorId is ", doctorId);
     const doctorDoc = await db.collection("doctors").doc(doctorId).get();
-    console.log("found or not");
     if (!doctorDoc.exists) throw new Error("Doctor not found");
     return { id: doctorDoc.id, ...doctorDoc.data() };
   }
@@ -113,8 +111,31 @@ class DoctorService {
 
     if (!doctorDoc.exists) throw new Error("Doctor not found");
 
-    await doctorRef.delete();
-    return { message: "Doctor successfully deleted" };
+    // Start Firestore batch operation
+    const batch = db.batch();
+
+    // 🔹 Delete all appointments and tests where "doctor" field matches doctorId
+    const deleteAppointmentsAndTests = async (collection) => {
+      const snapshot = await db
+        .collection(collection)
+        .where("doctor", "==", doctorId)
+        .get();
+      snapshot.forEach((doc) => batch.delete(doc.ref));
+    };
+
+    await deleteAppointmentsAndTests("appointments");
+    await deleteAppointmentsAndTests("tests");
+
+    // 🔹 Delete the doctor itself
+    batch.delete(doctorRef);
+
+    // Commit batch
+    await batch.commit();
+
+    return {
+      message:
+        "Doctor and all related appointments/tests successfully deleted.",
+    };
   }
 }
 

@@ -66,7 +66,7 @@ class AdminService {
 
     await adminRef.delete();
 
-    return { message: "Admin successfully deleted", adminId };
+    return { message: "Admin successfully deleted" };
   }
 
   /**

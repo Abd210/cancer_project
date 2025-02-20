@@ -122,7 +122,19 @@ class HospitalService {
     // Start Firestore transaction
     const batch = db.batch();
 
-    // Delete patients, doctors, and admins linked to this hospital
+    // 🔹 Collect IDs of Patients and Doctors linked to the hospital
+    const collectIds = async (collection) => {
+      const snapshot = await db
+        .collection(collection)
+        .where("hospital", "==", hospitalId)
+        .get();
+      return snapshot.docs.map((doc) => doc.id);
+    };
+
+    const patientIds = await collectIds("patients");
+    const doctorIds = await collectIds("doctors");
+
+    // 🔹 Delete Patients, Doctors, and Admins linked to this hospital
     const deleteLinkedRecords = async (collection) => {
       const snapshot = await db
         .collection(collection)
@@ -135,19 +147,21 @@ class HospitalService {
     await deleteLinkedRecords("doctors");
     await deleteLinkedRecords("admins");
 
-    // Delete appointments and tests associated with patients & doctors
-    const deleteAppointmentsAndTests = async (collection) => {
+    // 🔹 Delete Appointments linked to collected patient & doctor IDs
+    const deleteAppointmentsAndTests = async (collection, field) => {
       const snapshot = await db
         .collection(collection)
-        .where("hospital", "==", hospitalId)
+        .where(field, "in", [...patientIds, ...doctorIds])
         .get();
       snapshot.forEach((doc) => batch.delete(doc.ref));
     };
 
-    await deleteAppointmentsAndTests("appointments");
-    await deleteAppointmentsAndTests("tests");
+    await deleteAppointmentsAndTests("appointments", "patient");
+    await deleteAppointmentsAndTests("appointments", "doctor");
+    await deleteAppointmentsAndTests("tests", "patient");
+    await deleteAppointmentsAndTests("tests", "doctor");
 
-    // Delete hospital itself
+    // 🔹 Delete the hospital itself
     batch.delete(hospitalRef);
     await batch.commit();
 

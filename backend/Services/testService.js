@@ -80,9 +80,7 @@ class TestService {
     review,
     suspended = false,
   }) {
-    console.log("doctor is ", doctor);
     const doctorDoc = await DoctorService.getDoctorData(doctor);
-    console.log("found");
     const patientDoc = await PatientService.getPatientData(patient);
 
     if (
