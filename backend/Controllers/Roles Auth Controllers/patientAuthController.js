@@ -29,7 +29,7 @@ class PatientAuthController {
         email,
         status,
         diagnosis,
-        birth_date,
+        birthDate,
         medicalHistory,
         hospital,
         suspended,
@@ -44,7 +44,7 @@ class PatientAuthController {
         !email ||
         !status ||
         !diagnosis ||
-        !birth_date ||
+        !birthDate ||
         !medicalHistory ||
         !hospital
       ) {
@@ -55,7 +55,7 @@ class PatientAuthController {
             !mobile_number ? "mobile number, " : ""
           }${!email ? "email, " : ""}${!status ? "status, " : ""}${
             !diagnosis ? "diagnosis, " : ""
-          }${!birth_date ? "date of birth, " : ""}${
+          }${!birthDate ? "date of birth, " : ""}${
             !medicalHistory ? "medical history, " : ""
           }${!hospital ? "hospital id" : ""}`.slice(0, -2),
         });
@@ -71,7 +71,7 @@ class PatientAuthController {
         email,
         status,
         diagnosis,
-        birth_date,
+        birthDate,
         medicalHistory,
         hospital: hospital,
         suspended,

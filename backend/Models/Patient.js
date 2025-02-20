@@ -14,7 +14,7 @@ class Patient {
     name,
     email,
     mobile_number,
-    birth_date,
+    birthDate,
     hospital,
     status = "active",
     diagnosis = "Not Diagnosed",
@@ -32,8 +32,8 @@ class Patient {
       throw new Error("Invalid email: must be a string");
     if (typeof mobile_number !== "string")
       throw new Error("Invalid mobile_number: must be a string");
-    if (!(birth_date instanceof Date))
-      throw new Error("Invalid birth_date: must be a Date object");
+    if (!(birthDate instanceof Date))
+      throw new Error("Invalid birthDate: must be a Date object");
     if (typeof hospital !== "string")
       throw new Error(
         "Invalid hospital: must be a Firestore document reference"
@@ -56,7 +56,7 @@ class Patient {
     this.name = name;
     this.email = email;
     this.mobile_number = mobile_number;
-    this.birth_date = birth_date;
+    this.birthDate = birthDate;
     this.hospital = hospital;
     this.status = status;
     this.diagnosis = diagnosis;

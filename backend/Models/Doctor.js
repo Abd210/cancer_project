@@ -14,7 +14,7 @@ class Doctor {
     name,
     email,
     mobile_number,
-    birth_date,
+    birthDate,
     licenses,
     description = "",
     hospital,
@@ -33,8 +33,8 @@ class Doctor {
       throw new Error("Invalid email: must be a string");
     if (typeof mobile_number !== "string")
       throw new Error("Invalid mobile_number: must be a string");
-    if (!(birth_date instanceof Date))
-      throw new Error("Invalid birth_date: must be a Date object");
+    if (!(birthDate instanceof Date))
+      throw new Error("Invalid birthDate: must be a Date object");
     if (!Array.isArray(licenses))
       throw new Error("Invalid licenses: must be an array of strings");
     if (typeof description !== "string")
@@ -54,7 +54,7 @@ class Doctor {
     this.name = name;
     this.email = email;
     this.mobile_number = mobile_number;
-    this.birth_date = birth_date;
+    this.birthDate = birthDate;
     this.licenses = licenses;
     this.description = description;
     this.hospital = hospital;

@@ -7,13 +7,13 @@ const AuthService = require("../../Services/authService");
  * The controller communicates with the AuthService to process the registration and login logic.
  */
 class DoctorAuthController {
-   /**
+  /**
    * Registers a new doctor by verifying and saving the provided details.
    * It checks if all required fields are present and then calls the AuthService to handle registration logic.
-   * 
+   *
    * @param {Object} req - The Express request object, containing the details to register the doctor.
    * @param {Object} res - The Express response object, used to send the result or error message.
-   * 
+   *
    * @returns {Object} A JSON response containing either the result of the registration or an error message.
    */
 
@@ -26,7 +26,7 @@ class DoctorAuthController {
         password,
         email,
         mobile_number,
-        birth_date,
+        birthDate,
         licenses,
         description,
         hospital,
@@ -40,7 +40,7 @@ class DoctorAuthController {
         !password ||
         !email ||
         !mobile_number ||
-        !birth_date ||
+        !birthDate ||
         !licenses ||
         !hospital
       ) {
@@ -49,9 +49,9 @@ class DoctorAuthController {
             !name ? "name, " : ""
           }${!password ? "password, " : ""}${!email ? "email, " : ""}${
             !mobile_number ? "mobile number, " : ""
-          }${!birth_date ? "birth date, " : ""}${
-            !licenses ? "licenses, " : ""
-          }${!hospital ? "hospital" : ""}`.slice(0, -2),
+          }${!birthDate ? "birth date, " : ""}${!licenses ? "licenses, " : ""}${
+            !hospital ? "hospital" : ""
+          }`.slice(0, -2),
         });
       }
 
@@ -63,11 +63,11 @@ class DoctorAuthController {
         role: "doctor", // Set the role as 'doctor'
         email,
         mobile_number,
-        birth_date,
+        birthDate,
         licenses,
         description,
         hospital,
-        suspended
+        suspended,
       });
 
       // Return the result of the registration
@@ -83,10 +83,10 @@ class DoctorAuthController {
   /**
    * Logs in a doctor by verifying the provided credentials (either pers_id, email, or mobile_number, along with password).
    * Calls the AuthService to authenticate the doctor and return an authentication token.
-   * 
+   *
    * @param {Object} req - The Express request object, containing the login credentials.
    * @param {Object} res - The Express response object, used to send the authentication result or error message.
-   * 
+   *
    * @returns {Object} A JSON response containing either the login result (token) or an error message.
    */
   static async login(req, res) {
