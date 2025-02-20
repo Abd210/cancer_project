@@ -36,7 +36,8 @@ class DeviceService {
     }
 
     await deviceRef.update(updateFields);
-    return { message: "Device updated successfully." };
+    const updatedDevice = await deviceRef.get();
+    return { id: updatedDevice.id, ...updatedDevice.data() };
   }
 
   /**

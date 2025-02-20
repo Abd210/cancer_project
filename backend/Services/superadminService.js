@@ -137,7 +137,6 @@ class SuperAdminService {
     await superAdminRef.update(updateFields);
 
     return {
-      message: "Superadmin updated successfully",
       id: superAdminId,
       ...updateFields,
     };

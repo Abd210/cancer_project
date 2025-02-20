@@ -100,7 +100,8 @@ class PatientService {
     }
 
     await patientRef.update(updateFields);
-    return { message: "Patient updated successfully" };
+    const updatedPatient = await patientRef.get();
+    return { id: updatedPatient.id, ...updatedPatient.data() };
   }
 
   /**
