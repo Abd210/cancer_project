@@ -1,44 +1,60 @@
-// models/Ticket.js
-const mongoose = require("mongoose");
+const { db } = require("../firebase"); // Import shared Firebase instance
 
-const ticketSchema = new mongoose.Schema({
-  role: {
-    type: String,
-    required: true,
-    enum: ["patient", "doctor", "admin", "superadmin"], // Adjust roles as needed
-  },
-  issue: {
-    type: String,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ["open", "in_progress", "resolved", "closed"],
-    default: "open",
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  solvedAt: {
-    type: Date,
-    default: null, // Optional field
-  },
-  review: {
-    type: String,
-    default: null, // Optional review field
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    refPath: "role",
-    required: true,
-  },
-  visibleTo: {
-    type: [String],
-    enum: ["patient", "doctor", "admin", "superadmin"],
-    default: ["patient, doctor, admin", "superadmin"], // Optional field
-  },
-  suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
-});
+const ticketsCollection = db.collection("tickets");
 
-module.exports = mongoose.model("Ticket", ticketSchema);
+const ROLES = ["patient", "doctor", "admin", "superadmin"];
+const STATUSES = ["open", "in_progress", "resolved", "closed"];
+
+class Ticket {
+  constructor({
+    user,
+    issue,
+    status = "open",
+    role,
+    solvedAt = null,
+    review = "",
+    visibleTo = ["patient", "doctor", "admin", "superadmin"],
+    suspended = false,
+  }) {
+    if (typeof user !== "string")
+      throw new Error("Invalid user: must be a Firestore document reference");
+    if (typeof issue !== "string")
+      throw new Error("Invalid issue: must be a string");
+    if (!STATUSES.includes(status))
+      throw new Error(
+        `Invalid status: ${status}. Allowed: ${STATUSES.join(", ")}`
+      );
+    if (!ROLES.includes(role))
+      throw new Error(`Invalid role: ${role}. Allowed: ${ROLES.join(", ")}`);
+    if (solvedAt !== null && !(solvedAt instanceof Date))
+      throw new Error("Invalid solvedAt: must be a Date object or null");
+    if (typeof review !== "string")
+      throw new Error("Invalid review: must be a string");
+    if (!Array.isArray(visibleTo))
+      throw new Error("Invalid visibleTo: must be an array of strings");
+    if (typeof suspended !== "boolean")
+      throw new Error("Invalid suspended: must be a boolean");
+
+    this.user = user;
+    this.issue = issue;
+    this.status = status;
+    this.role = role;
+    this.solvedAt = solvedAt;
+    this.review = review;
+    this.visibleTo = visibleTo;
+    this.suspended = suspended;
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
+  }
+
+  async save() {
+    try {
+      const docRef = await ticketsCollection.add({ ...this });
+      return docRef.id;
+    } catch (error) {
+      throw new Error("Error saving ticket: " + error.message);
+    }
+  }
+}
+
+module.exports = Ticket;

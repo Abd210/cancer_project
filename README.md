@@ -28,3 +28,6 @@ A Platform for the study and detection of breast cancer
 | ![Popout Navbar 1](updates_pics/popout_navbar_1.png) ![Popout Navbar 2](updates_pics/popout_navbar2.png) | ![Persistent Navbar 1](updates_pics/persistent_navbar1.png) ![Persistent Navbar 2](updates_pics/persistent_navbar2.png) |
 
 
+### 17/02/2025
+
+- Started migrating database from MongoDB to Firestore (Firebase)

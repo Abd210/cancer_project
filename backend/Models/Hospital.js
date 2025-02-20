@@ -1,13 +1,46 @@
-const mongoose = require("mongoose");
+const { db } = require("../firebase"); // Import shared Firebase instance
 
-const hospitalSchema = new mongoose.Schema({
-  hospital_name: { type: String, required: true },
-  hospital_address: { type: String, required: true },
-  mobile_numbers: [{ type: String, required: true }],
-  emails: [{ type: String, required: true }],
-  suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
-});
+const hospitalsCollection = db.collection("hospitals");
 
-hospitalSchema.index({ hospital_name: 1, hospital_address: 1 }); // For efficient queries
+class Hospital {
+  constructor({ name, address, mobileNumbers, emails, suspended = false }) {
+    if (typeof name !== "string")
+      throw new Error("Invalid name: must be a string");
+    if (typeof address !== "string")
+      throw new Error("Invalid address: must be a string");
+    if (
+      !Array.isArray(mobileNumbers) ||
+      !mobileNumbers.every((num) => typeof num === "string")
+    ) {
+      throw new Error("Invalid mobileNumbers: must be an array of strings");
+    }
+    if (
+      !Array.isArray(emails) ||
+      !emails.every((email) => typeof email === "string")
+    ) {
+      throw new Error("Invalid emails: must be an array of strings");
+    }
+    if (typeof suspended !== "boolean")
+      throw new Error("Invalid suspended: must be a boolean");
 
-module.exports = mongoose.model("Hospital", hospitalSchema);
+    this.name = name;
+    this.address = address;
+    this.mobileNumbers = mobileNumbers;
+    this.emails = emails;
+    this.suspended = suspended;
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
+  }
+
+  async save() {
+    try {
+      this.updatedAt = new Date();
+      const docRef = await hospitalsCollection.add({ ...this });
+      return docRef.id;
+    } catch (error) {
+      throw new Error("Error saving hospital: " + error.message);
+    }
+  }
+}
+
+module.exports = Hospital;

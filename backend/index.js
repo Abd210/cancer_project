@@ -1,7 +1,7 @@
-require("dotenv").config(".env");
+require("dotenv").config();
 
 const express = require("express");
-const mongoose = require("mongoose");
+const { db } = require("./firebase"); // Import shared Firebase instance
 const authRoutes = require("./Routes/authRoutes");
 const patientRoutes = require("./Routes/patientRoutes");
 const hospitalRoutes = require("./Routes/hospitalRoutes");
@@ -17,6 +17,7 @@ const cors = require("cors");
 
 const app = express();
 
+// Middleware setup
 app.use(helmet());
 app.use(cors());
 app.use(bodyParser.json());
@@ -24,8 +25,7 @@ app.use(bodyParser.json());
 // Auth Routes
 app.use("/api/auth", authRoutes);
 
-// Patient Routes
-// All patient endpoints prefixed by /api
+// API Routes
 app.use("/api", patientRoutes);
 app.use("/api", hospitalRoutes);
 app.use("/api", appointmentRoutes);
@@ -33,12 +33,6 @@ app.use("/api", doctorRoutes);
 app.use("/api", testRoutes);
 app.use("/api", ticketRoutes);
 app.use("/api", adminRoutes);
-
-// Connect to MongoDB Atlas
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log("MongoDB connection error:", err));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

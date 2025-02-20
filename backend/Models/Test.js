@@ -1,44 +1,66 @@
-// models/Test.js
-const mongoose = require("mongoose");
+const { db } = require("../firebase"); // Import shared Firebase instance
 
-const testSchema = new mongoose.Schema({
-  patient: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Patient",
-    required: true,
-  },
-  doctor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Doctor",
-    required: true,
-  },
-  device: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Device",
-  },
-  result_date: {
-    type: Date,
-  },
-  status: {
-    type: String,
-    enum: ["reviewed", "in progress", "pending"],
-    default: "pending",
-  },
-  purpose: {
-    type: String,
-    required: true,
-  },
-  review: {
-    type: String,
-  },
-  results: [
-    {
-      type: String,
-    },
-  ],
-  suspended: { type: Boolean, default: false }, // New field indicating if the patient is suspended
-});
+const testsCollection = db.collection("tests");
 
-testSchema.index({ patient_id: 1, test_result_date: 1 }); // For efficient queries
+const STATUSES = ["reviewed", "in_progress", "pending"];
 
-module.exports = mongoose.model("Test", testSchema);
+class Test {
+  constructor({
+    patient,
+    doctor,
+    device = null,
+    resultDate = null,
+    status = "pending",
+    purpose,
+    review = "",
+    results = [],
+    suspended = false,
+  }) {
+    if (typeof patient !== "string")
+      throw new Error(
+        "Invalid patient: must be a Firestore document reference"
+      );
+    if (typeof doctor !== "string")
+      throw new Error("Invalid doctor: must be a Firestore document reference");
+    if (device !== null && typeof device !== "string")
+      throw new Error("Invalid device: must be a Firestore document reference");
+    if (resultDate !== null && !(resultDate instanceof Date))
+      throw new Error("Invalid resultDate: must be a Date object");
+    if (!STATUSES.includes(status))
+      throw new Error(
+        `Invalid status: ${status}. Allowed: ${STATUSES.join(", ")}`
+      );
+    if (typeof purpose !== "string")
+      throw new Error("Invalid purpose: must be a string");
+    if (typeof review !== "string")
+      throw new Error("Invalid review: must be a string");
+    if (!Array.isArray(results))
+      throw new Error("Invalid results: must be an array of strings");
+    if (typeof suspended !== "boolean")
+      throw new Error("Invalid suspended: must be a boolean");
+
+    this.patient = patient;
+    this.doctor = doctor;
+    this.device = device;
+    this.resultDate = resultDate;
+    this.status = status;
+    this.purpose = purpose;
+    this.review = review;
+    this.results = results;
+    this.suspended = suspended;
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
+  }
+
+  async save() {
+    try {
+      this.updatedAt = new Date();
+      const docRef = await testsCollection.add({ ...this });
+      return docRef.id;
+    } catch (error) {
+      throw new Error("Error saving test result: " + error.message);
+    }
+  }
+}
+
+module.exports = Test;

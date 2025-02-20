@@ -1,124 +1,158 @@
-// Ensure all models are imported
-const Patient = require("../Models/Patient");
-const Doctor = require("../Models/Doctor");
-const Admin = require("../Models/Admin");
-const SuperAdmin = require("../Models/SuperAdmin");
-const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
+const admin = require("firebase-admin");
+const db = admin.firestore();
 
-/**
- * AdminService provides functionality related to managing admin data.
- * This includes methods for retrieving and managing admin accounts.
- */
 class AdminService {
-
-    static async findAdmin(admin_id) {
-        if (!mongoose.isValidObjectId(admin_id)) {
-            throw new Error("adminService-find admin: Invalid admin id");
-        }
-
-        return await Admin.findOne({ _id: admin_id });
-    }
-
-    static async findAllAdmins() {
-        // Fetch all admin data
-        return await Admin.find({});
-    }
-
   /**
-   * Deletes an admin account using their unique identifier (adminId).
-   * 
-   * @param {string} adminId - The ID of the admin to be deleted.
-   * @returns {Object} A success message or an error if the admin is not found.
-   * @throws Throws an error if the adminId is invalid or the admin is not found.
+   * Finds an admin by their Firestore document ID.
+   * @param {string} admin_id - The Firestore document ID of the admin.
+   * @returns {Object} The found admin data.
+   * @throws Throws an error if the admin is not found or the ID is invalid.
    */
-  static async deleteAdmin(adminId) {
-    // Validate the adminId as a valid MongoDB ObjectId
-    if (!mongoose.isValidObjectId(adminId)) {
-      throw new Error("adminService-delete admin: Invalid adminId");
+  static async findAdmin(admin_id) {
+    if (!admin_id) {
+      throw new Error("adminService-findAdmin: Invalid admin id");
     }
 
-    // Find and delete the admin by ID
-    const deletedAdmin = await Admin.findByIdAndDelete(adminId);
+    const adminDoc = await db.collection("admins").doc(admin_id).get();
 
-    if (!deletedAdmin) {
-      throw new Error("adminService-delete admin: Admin not found");
+    if (!adminDoc.exists) {
+      throw new Error("adminService-findAdmin: Admin not found");
     }
 
-    return {
-      message: "Admin successfully deleted",
-      deletedAdmin, // Optionally return the deleted admin data
-    };
+    return { id: adminDoc.id, ...adminDoc.data() };
   }
 
-    static async updateAdmin(adminId, updateFields, user) {
-        // Validate the adminId as a valid MongoDB ObjectId
-        if (!mongoose.isValidObjectId(adminId)) {
-        throw new Error("adminService-update admin: Invalid adminId");
-        }
+  /**
+   * Fetches all admin accounts.
+   * @returns {Array} A list of all admins in Firestore.
+   */
+  static async findAllAdmins() {
+    const snapshot = await db.collection("admins").get();
 
-        // Prevent updating the _id field
-        if (updateFields._id) {
-            throw new Error("adminService-update admin: Changing the '_id' field is not allowed");
-        }
-
-        // Prevent updating the role field
-        if (updateFields.role) {
-            throw new Error("adminService-update admin: Changing the 'role' field is not allowed");
-        }
-
-        // Internal helper function to check uniqueness across collections
-        const checkUniqueness = async (field, value) => {
-        const collections = [Patient, Doctor, Admin, SuperAdmin];
-        for (const Collection of collections) {
-            const existingUser = await Collection.findOne({ [field]: value });
-            if (existingUser && existingUser._id.toString() !== adminId) {
-            throw new Error(`adminService-update admin: The ${field} '${value}' is already in use by another user`);
-            }
-        }
-        };
-
-        // Check `pers_id` uniqueness if it is being updated
-        if (updateFields.pers_id) {
-        await checkUniqueness("pers_id", updateFields.pers_id);
-        }
-
-        // Check `email` uniqueness if it is being updated
-        if (updateFields.email) {
-        await checkUniqueness("email", updateFields.email);
-        }
-
-        // Check `mobile_number` uniqueness if it is being updated
-        if (updateFields.mobile_number) {
-        await checkUniqueness("mobile_number", updateFields.mobile_number);
-        }
-
-        // Check if the password is being updated and hash it
-        if (updateFields.password) {
-            const salt = await bcrypt.genSalt(10);
-            updateFields.password = await bcrypt.hash(updateFields.password, salt);
-        }
-
-        if (updateFields.suspended) {
-            // Only superadmins can suspend admins
-            if (user.role !== "superadmin") {
-                throw new Error("adminService-update admin: Only superadmins can suspend admins");
-            }
-        }
-
-        // Perform the update
-        const updatedAdmin = await Admin.findByIdAndUpdate(
-            adminId,
-            { $set: updateFields }, // Update only the provided fields
-            { new: true, runValidators: true } // Return the updated document and run schema validators
-        );
-
-        if (!updatedAdmin) {
-            throw new Error("adminService-update admin: admin not found");
-        }
-
-        return updatedAdmin;
+    if (snapshot.empty) {
+      return [];
     }
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  }
+
+  /**
+   * Fetch admins by hospital ID
+   */
+  static async findAllAdminsByHospital(hospitalId) {
+    const snapshot = await db
+      .collection("admins")
+      .where("hospital", "==", hospitalId)
+      .get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  }
+
+  /**
+   * Deletes an admin account using their Firestore document ID.
+   * @param {string} adminId - The Firestore document ID of the admin to be deleted.
+   */
+  static async deleteAdmin(adminId) {
+    if (!adminId) {
+      throw new Error("adminService-deleteAdmin: Invalid adminId");
+    }
+
+    const adminRef = db.collection("admins").doc(adminId);
+    const adminDoc = await adminRef.get();
+
+    if (!adminDoc.exists) {
+      throw new Error("adminService-deleteAdmin: Admin not found");
+    }
+
+    await adminRef.delete();
+
+    return;
+  }
+
+  /**
+   * Updates an admin account in Firestore.
+   * @param {string} adminId - The Firestore document ID of the admin.
+   * @param {Object} updateFields - Fields to update.
+   * @param {Object} user - The current user making the update.
+   * @returns {Object} The updated admin data.
+   */
+  static async updateAdmin(adminId, updateFields, user) {
+    if (!adminId) {
+      throw new Error("adminService-updateAdmin: Invalid adminId");
+    }
+
+    // Check if Hospital ID is valid
+    if (updateFields.hospital) {
+      const hospitalDoc = await db
+        .collection("hospitals")
+        .doc(updateFields.hospital)
+        .get();
+      if (!hospitalDoc.exists) {
+        throw new Error("adminService-updateAdmin: Hospital not found");
+      }
+    }
+
+    if (updateFields.id) {
+      throw new Error(
+        "adminService-updateAdmin: Changing '_id' is not allowed"
+      );
+    }
+
+    if (updateFields.role) {
+      throw new Error(
+        "adminService-updateAdmin: Changing 'role' is not allowed"
+      );
+    }
+
+    // Internal helper function to check uniqueness across collections
+    const checkUniqueness = async (field, value) => {
+      const collections = ["patients", "doctors", "admins", "superadmins"];
+      for (const collection of collections) {
+        const snapshot = await db
+          .collection(collection)
+          .where(field, "==", value)
+          .get();
+        if (!snapshot.empty) {
+          throw new Error(
+            `adminService-updateAdmin: The ${field} '${value}' is already in use by another user`
+          );
+        }
+      }
+    };
+
+    if (updateFields.persId) {
+      await checkUniqueness("persId", updateFields.persId);
+    }
+    if (updateFields.email) {
+      await checkUniqueness("email", updateFields.email);
+    }
+    if (updateFields.mobileNumber) {
+      await checkUniqueness("mobileNumber", updateFields.mobileNumber);
+    }
+
+    if (updateFields.password) {
+      const salt = await bcrypt.genSalt(10);
+      updateFields.password = await bcrypt.hash(updateFields.password, salt);
+    }
+
+    if (updateFields.suspended && user.role !== "superadmin") {
+      throw new Error(
+        "adminService-updateAdmin: Only superadmins can suspend admins"
+      );
+    }
+
+    const adminRef = db.collection("admins").doc(adminId);
+    const adminDoc = await adminRef.get();
+
+    if (!adminDoc.exists) {
+      throw new Error("adminService-updateAdmin: Admin not found");
+    }
+
+    await adminRef.update(updateFields);
+
+    const updatedAdminDoc = await adminRef.get();
+    const updatedAdmin = { id: updatedAdminDoc.id, ...updatedAdminDoc.data() };
+    return updatedAdmin;
+  }
 }
 
 module.exports = AdminService;
