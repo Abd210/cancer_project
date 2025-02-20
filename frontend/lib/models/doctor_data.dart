@@ -31,13 +31,13 @@ class DoctorData {
   /// Factory to build DoctorData from JSON returned by the backend.
   factory DoctorData.fromJson(Map<String, dynamic> json) {
     return DoctorData(
-      id: json['_id'] ?? '',
-      persId: json['pers_id'] ?? '',
+      id: json['id'] ?? '',
+      persId: json['persId'] ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       password: json['password'] ?? '',  // or omit if the backend does not return it
-      mobileNumber: json['mobile_number'] ?? '',
-      birthDate: json['birth_date'] ?? '',
+      mobileNumber: json['mobileNumber'] ?? '',
+      birthDate: json['birthDate'] ?? '',
       licenses: (json['licenses'] != null)
           ? List<String>.from(json['licenses'])
           : <String>[],

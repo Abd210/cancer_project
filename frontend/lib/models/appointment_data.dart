@@ -54,11 +54,11 @@ class AppointmentData {
     }
 
     return AppointmentData(
-      id: json["_id"] ?? '',
-      patientId: patientObj["_id"] ?? '',
+      id: json["id"] ?? '',
+      patientId: patientObj["id"] ?? '',
       patientName: patientObj["name"] ?? '',
       patientEmail: patientObj["email"] ?? '',
-      doctorId: doctorObj["_id"] ?? '',
+      doctorId: doctorObj["id"] ?? '',
       doctorName: doctorObj["name"] ?? '',
       doctorEmail: doctorObj["email"] ?? '',
       date: parsedDate,

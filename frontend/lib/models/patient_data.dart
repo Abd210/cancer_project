@@ -33,20 +33,20 @@ class PatientData {
 
   factory PatientData.fromJson(Map<String, dynamic> json) {
     return PatientData(
-      id: json['_id'] ?? '',
-      persId: json['pers_id'] ?? '',
+      id: json['id'] ?? '',
+      persId: json['persId'] ?? '',
       name: json['name'] ?? '',
       password: json['password'] ?? '',
       role: json['role'] ?? 'patient', // or default to "patient"
-      mobileNumber: json['mobile_number'] ?? '',
+      mobileNumber: json['mobileNumber'] ?? '',
       email: json['email'] ?? '',
       status: json['status'] ?? '',
       diagnosis: json['diagnosis'] ?? '',
-      birthDate: json['birth_date'] ?? '',
+      birthDate: json['birthDate'] ?? '',
       medicalHistory: (json['medicalHistory'] != null)
           ? List<String>.from(json['medicalHistory'])
           : <String>[],
-      hospitalId: json['hospital_id'] ?? '',
+      hospitalId: json['hospital'] ?? '',
       suspended: json['suspended'] ?? false,
     );
   }

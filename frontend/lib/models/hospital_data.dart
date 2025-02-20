@@ -19,12 +19,12 @@ class HospitalData {
 
   factory HospitalData.fromJson(Map<String, dynamic> json) {
     return HospitalData(
-      id: json['_id'] ?? '',
-      name: json['hospital_name'] ?? '',
-      address: json['hospital_address'] ?? '',
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      address: json['address'] ?? '',
       isSuspended: json['suspended'] ?? false,
-      mobileNumbers: (json['mobile_numbers'] != null)
-          ? List<String>.from(json['mobile_numbers'])
+      mobileNumbers: (json['mobileNumbers'] != null)
+          ? List<String>.from(json['mobileNumbers'])
           : <String>[],
       emails: (json['emails'] != null)
           ? List<String>.from(json['emails'])

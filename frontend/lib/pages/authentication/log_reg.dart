@@ -15,7 +15,7 @@ class LogIn extends StatefulWidget {
 
 class _LogInState extends State<LogIn> {
   final TextEditingController _emailController =
-      TextEditingController(text: 'Azzam@example.com'); // example default
+      TextEditingController(text: 'mario@example.com'); // example default
   final TextEditingController _passwordController =
       TextEditingController(text: '123'); // example default
 
@@ -62,9 +62,9 @@ class _LogInState extends State<LogIn> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => PatientPage(),
+            //builder: (context) => PatientPage(),
             //the actual page to navigate to
-            // builder: (context) => SuperAdminDashboard(token: response.token!),
+             builder: (context) => SuperAdminDashboard(token: response.token!),
 
           ),
         );
