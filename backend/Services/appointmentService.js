@@ -302,11 +302,12 @@ class AppointmentService {
 
     await appointmentRef.update(updateFields);
 
-    return {
-      message: "Appointment updated successfully",
-      id: appointmentId,
-      ...updateFields,
+    const updatedAppointmentDoc = await appointmentRef.get();
+    const updatedAppointment = {
+      id: updatedAppointmentDoc.id,
+      ...updatedAppointmentDoc.data(),
     };
+    return updatedAppointment;
   }
 }
 

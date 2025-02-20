@@ -150,11 +150,9 @@ class AdminService {
 
     await adminRef.update(updateFields);
 
-    return {
-      message: "Admin updated successfully",
-      id: adminId,
-      ...updateFields,
-    };
+    const updatedAdminDoc = await adminRef.get();
+    const updatedAdmin = { id: updatedAdminDoc.id, ...updatedAdminDoc.data() };
+    return updatedAdmin;
   }
 }
 
