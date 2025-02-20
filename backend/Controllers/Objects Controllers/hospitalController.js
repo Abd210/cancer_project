@@ -175,7 +175,11 @@ class HospitalController {
       }
 
       // Respond with success
-      return res.status(200).json({ message: "Hospital deleted successfully" });
+      return res
+        .status(200)
+        .json({
+          message: "Hospital and all associated data successfully deleted",
+        });
     } catch (deleteHospitalError) {
       // Handle unexpected errors
       return res.status(500).json({
