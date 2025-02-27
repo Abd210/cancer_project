@@ -31,3 +31,11 @@ A Platform for the study and detection of breast cancer
 ### 17/02/2025
 
 - Started migrating database from MongoDB to Firestore (Firebase)
+
+### 21/02/2025
+
+- Updated all services to make use of the firebase_admin module in order to interact with the firestore DB
+- Updated the models and adapted them to firestore
+- Fixed bugs and improved some functions in services
+
+### 27/02/2025
