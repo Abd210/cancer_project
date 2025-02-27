@@ -190,6 +190,17 @@ class PatientService {
     // Start Firestore batch operation
     const batch = db.batch();
 
+    const patientData = patientDoc.data();
+        const doctorId = patientData?.doctor; // Safely get doctor ID
+
+    // 🔹 Remove patient from doctor's patients array before deletion
+    if (doctorId && typeof doctorId === "string" && doctorId.trim() !== "") {
+      const doctorRef = db.collection("doctors").doc(doctorId);
+      batch.update(doctorRef, {
+          patients: admin.firestore.FieldValue.arrayRemove(patientId),
+      });
+    }
+
     // 🔹 Delete all appointments and tests where "patient" field matches patientId
     const deleteAppointmentsAndTests = async (collection) => {
       const snapshot = await db
@@ -208,7 +219,7 @@ class PatientService {
     // Commit batch
     await batch.commit();
 
-    return;
+    return { message: "Patient deleted successfully" };
   }
 }
 
