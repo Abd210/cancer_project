@@ -138,30 +138,39 @@ class DoctorService {
 
     const currentDoctorData = doctorDoc.data(); // Get current doctor data
 
-    let oldPatients = currentDoctorData.patients || [];
-    let newPatients = updateFields.patients || oldPatients; // If no update to patients array, keep the old list
+    if (updateFields.patients) {
+      let oldPatients = currentDoctorData.patients || [];
+      let newPatients = updateFields.patients || oldPatients; // If no update to patients array, keep the old list
 
-    if (!Array.isArray(newPatients)) {
-        throw new Error("updateDoctor: patients field must be an array");
+      if (!Array.isArray(newPatients)) {
+          throw new Error("updateDoctor: patients field must be an array");
+      }
+
+      // Identify removed and added patients
+      const removedPatients = oldPatients.filter(patientId => !newPatients.includes(patientId));
+      const addedPatients = newPatients.filter(patientId => !oldPatients.includes(patientId));
+
+      // Update removed patients (set their doctor attribute to an empty string or null)
+      await Promise.all(
+          removedPatients.map(async (patientId) => {
+              await PatientService.updatePatient(patientId, { doctor: null }, { role: "superadmin" });
+          })
+      );
+
+      // Update added patients (set their doctor attribute to the new doctor's ID)
+      await Promise.all(
+          addedPatients.map(async (patientId) => {
+              await PatientService.updatePatient(patientId, { doctor: doctorId }, { role: "superadmin" });
+          })
+      );
     }
 
-    // Identify removed and added patients
-    const removedPatients = oldPatients.filter(patientId => !newPatients.includes(patientId));
-    const addedPatients = newPatients.filter(patientId => !oldPatients.includes(patientId));
-
-    // Update removed patients (set their doctor attribute to an empty string or null)
-    await Promise.all(
-        removedPatients.map(async (patientId) => {
-            await PatientService.updatePatient(patientId, { doctor: null }, { role: "superadmin" });
-        })
-    );
-
-    // Update added patients (set their doctor attribute to the new doctor's ID)
-    await Promise.all(
-        addedPatients.map(async (patientId) => {
-            await PatientService.updatePatient(patientId, { doctor: doctorId }, { role: "superadmin" });
-        })
-    );
+    // 🔹 Remove any undefined values before updating Firestore
+    Object.keys(updateFields).forEach((key) => {
+      if (updateFields[key] === undefined) {
+          delete updateFields[key];  // ✅ Removes undefined fields
+      }
+    });
 
     await doctorRef.update(updateFields);
     return { message: "Doctor updated successfully" };
@@ -178,6 +187,21 @@ class DoctorService {
 
     // Start Firestore batch operation
     const batch = db.batch();
+
+    const doctorData = doctorDoc.data();
+    const patients = doctorData?.patients || []; // Ensure the patients array exists
+
+    // 🔹 Set `doctor` field to null for all patients in the doctor's list
+    const updatePatientDoctorField = async () => {
+      if (patients.length > 0) {
+          const patientRefs = patients.map(patientId => db.collection("patients").doc(patientId));
+          patientRefs.forEach(patientRef => {
+              batch.update(patientRef, { doctor: null });
+          });
+      }
+    };
+
+    await updatePatientDoctorField();
 
     // 🔹 Delete all appointments and tests where "doctor" field matches doctorId
     const deleteAppointmentsAndTests = async (collection) => {
@@ -197,7 +221,7 @@ class DoctorService {
     // Commit batch
     await batch.commit();
 
-    return;
+    return { message: "Doctor deleted successfully" };
   }
 }
 
