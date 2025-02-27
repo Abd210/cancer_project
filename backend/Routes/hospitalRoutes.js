@@ -2,8 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const hospitalController = require("../Controllers/Objects Controllers/hospitalController");
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
-
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize } = require("../middlewares/roleAuth");
 /**
  * Route: POST /hospital/register
  * Description: Allows a superadmin to register a new hospital. The request validates the provided data and ensures that no duplicate hospital with the same name and address exists.

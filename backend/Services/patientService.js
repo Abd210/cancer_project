@@ -23,6 +23,42 @@ class PatientService {
     return { diagnosis: patient.diagnosis || "Not Diagnosed" };
   }
 
+  static async findPatient(patientId, email, mobileNumber) {
+    if (!patientId && !email && !mobileNumber) {
+      throw new Error("patientService-findPatient: Invalid input parameters");
+    }
+
+    let patientDoc;
+
+    if (patientId) {
+      patientDoc = await db.collection("patients").doc(patientId).get();
+      if (!patientDoc.exists) {
+        return null;
+      }
+      return patientDoc.data();
+    } else {
+      let querySnapshot;
+
+      if (email) {
+        querySnapshot = await db
+          .collection("patients")
+          .where("email", "==", email)
+          .get();
+      } else if (mobileNumber) {
+        querySnapshot = await db
+          .collection("patients")
+          .where("mobileNumber", "==", mobileNumber)
+          .get();
+      }
+
+      if (querySnapshot.empty) {
+        return null;
+      }
+
+      return querySnapshot.docs[0].data();
+    }
+  }
+
   /**
    * Fetch all patients from Firestore.
    */

@@ -2,7 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const appointmentController = require("../Controllers/Objects Controllers/appointmentController");
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize } = require("../middlewares/roleAuth");
 
 /**
  * Route: GET /appointment/history
@@ -55,7 +56,7 @@ router.get(
   authenticate,
   authorize(["patient", "doctor", "admin", "superadmin"]),
   appointmentController.getAllUpcomingAppointments
-)
+);
 
 router.get(
   "/appointment/bydate",
@@ -118,7 +119,6 @@ router.post(
   authorize(["patient", "doctor", "admin", "superadmin"]),
   appointmentController.createAppointment
 );
-
 
 router.delete(
   "/appointment/delete",

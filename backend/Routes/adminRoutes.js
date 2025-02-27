@@ -2,9 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../Controllers/General Roles Controllers/adminController");
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
-
-
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize } = require("../middlewares/roleAuth");
 
 router.get(
   "/admin/data",
