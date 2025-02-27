@@ -129,6 +129,37 @@ class AppointmentController {
   }
 
   /**
+   * Retrieves appointments for a specific date.
+   *
+   * @param {Object} req - The HTTP request object containing the date in query parameters.
+   * @param {Object} res - The HTTP response object used to send back the appointments or errors.
+   *
+   * @returns {Object} Returns a JSON response with a list of appointments on the specified date or an error message.
+   */
+  static async getAppointmentsByDate(req, res) {
+    try {
+      const { user, date, filter } = req.headers; // Date should be in 'YYYY-MM-DD' format
+
+      if (!date) {
+        return res.status(400).json({ error: "AppointmentController-GetAppointmentsByDate: Missing date parameter" });
+      }
+
+      // Call the AppointmentService to fetch appointments for the given date
+      const appointments = await AppointmentService.getAppointmentsByDate(date);
+
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        filter
+      );
+
+      return res.status(200).json(filteredResult);
+    } catch (error) {
+      return res.status(500).json({ error: `AppointmentController-GetAppointmentsByDate: ${error.message}` });
+    }
+  }
+
+  /**
    * Cancels an appointment if the authenticated user is authorized to do so.
    * Checks for user role and authorization before proceeding with cancellation.
    *

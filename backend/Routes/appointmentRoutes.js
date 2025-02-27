@@ -57,6 +57,13 @@ router.get(
   appointmentController.getAllUpcomingAppointments
 )
 
+router.get(
+  "/appointment/bydate",
+  authenticate,
+  authorize(["patient", "doctor", "admin", "superadmin"]),
+  appointmentController.getAppointmentsByDate
+);
+
 /**
  * Route: POST /appointment/cancel
  * Description: Cancels an appointment for the authenticated user.

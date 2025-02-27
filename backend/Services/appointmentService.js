@@ -113,6 +113,34 @@ class AppointmentService {
   }
 
   /**
+   * Retrieves appointments for a specific date.
+   *
+   * @param {String} date - The date in 'YYYY-MM-DD' format.
+   *
+   * @returns {Promise<Array>} Returns a list of appointments scheduled for the given date.
+   */
+  static async getAppointmentsByDate(date) {
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0); // Beginning of the day
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999); // End of the day
+
+    const snapshot = await db
+      .collection("appointments")
+      .where("appointmentDate", ">=", admin.firestore.Timestamp.fromDate(startDate))
+      .where("appointmentDate", "<=", admin.firestore.Timestamp.fromDate(endDate))
+      .orderBy("appointmentDate")
+      .get();
+
+    if (snapshot.empty) {
+      return [];
+    }
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  }
+
+
+  /**
    * Cancels an appointment by updating its status to 'cancelled'.
    */
   static async cancelAppointment(appointment_id) {
