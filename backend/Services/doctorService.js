@@ -22,6 +22,42 @@ class DoctorService {
     return { id: doctorDoc.id, ...doctorData };
   }
 
+  static async findDoctor(doctorId, email, mobileNumber) {
+    if (!doctorId && !email && !mobileNumber) {
+      throw new Error("doctorService-findDoctor: Invalid input parameters");
+    }
+
+    let doctorDoc;
+
+    if (doctorId) {
+      doctorDoc = await db.collection("doctors").doc(doctorId).get();
+      if (!doctorDoc.exists) {
+        return null;
+      }
+      return doctorDoc.data();
+    } else {
+      let querySnapshot;
+
+      if (email) {
+        querySnapshot = await db
+          .collection("doctors")
+          .where("email", "==", email)
+          .get();
+      } else if (mobileNumber) {
+        querySnapshot = await db
+          .collection("doctors")
+          .where("mobileNumber", "==", mobileNumber)
+          .get();
+      }
+
+      if (querySnapshot.empty) {
+        return null;
+      }
+
+      return querySnapshot.docs[0].data();
+    }
+  }
+
   /**
    * Get full doctor data
    */

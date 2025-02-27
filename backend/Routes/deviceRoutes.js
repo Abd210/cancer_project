@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const deviceController = require("../Controllers/Objects Controllers/deviceController");
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
-
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize } = require("../middlewares/roleAuth");
 router.post(
   "/device/new",
   authenticate,

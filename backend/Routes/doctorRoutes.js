@@ -2,8 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const doctorController = require("../Controllers/General Roles Controllers/doctorController");
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
-
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize } = require("../middlewares/roleAuth");
 /**
  * Route: GET /doctor/public-data
  * Description: Fetches the public data of a doctor based on the provided doctor ID.
@@ -28,7 +28,6 @@ router.get(
   doctorController.getPublicData
 );
 
-
 router.get(
   "/doctor/data",
   authenticate,
@@ -50,6 +49,5 @@ router.delete(
   authorize("superadmin"), // Middleware to allow only superadmins
   doctorController.deleteDoctorData // Controller function
 );
-
 
 module.exports = router;
