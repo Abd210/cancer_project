@@ -1,6 +1,8 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
 const bcrypt = require("bcrypt");
+const PatientService = require("./patientService");
+
 
 class DoctorService {
   /**
@@ -133,6 +135,33 @@ class DoctorService {
     if (updateFields.suspended && user.role !== "superadmin") {
       throw new Error("Only superadmins can suspend doctors");
     }
+
+    const currentDoctorData = doctorDoc.data(); // Get current doctor data
+
+    let oldPatients = currentDoctorData.patients || [];
+    let newPatients = updateFields.patients || oldPatients; // If no update to patients array, keep the old list
+
+    if (!Array.isArray(newPatients)) {
+        throw new Error("updateDoctor: patients field must be an array");
+    }
+
+    // Identify removed and added patients
+    const removedPatients = oldPatients.filter(patientId => !newPatients.includes(patientId));
+    const addedPatients = newPatients.filter(patientId => !oldPatients.includes(patientId));
+
+    // Update removed patients (set their doctor attribute to an empty string or null)
+    await Promise.all(
+        removedPatients.map(async (patientId) => {
+            await PatientService.updatePatient(patientId, { doctor: null }, { role: "superadmin" });
+        })
+    );
+
+    // Update added patients (set their doctor attribute to the new doctor's ID)
+    await Promise.all(
+        addedPatients.map(async (patientId) => {
+            await PatientService.updatePatient(patientId, { doctor: doctorId }, { role: "superadmin" });
+        })
+    );
 
     await doctorRef.update(updateFields);
     return { message: "Doctor updated successfully" };

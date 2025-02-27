@@ -1,5 +1,6 @@
 // controllers/doctorAuthController.js
 const AuthService = require("../../Services/authService");
+const PatientService = require("../../Services/patientService");
 
 /**
  * DoctorAuthController handles the authentication-related actions for doctors.
@@ -19,6 +20,9 @@ class DoctorAuthController {
 
   static async register(req, res) {
     try {
+
+      const { user } = req.headers;
+
       // Destructure the required fields from the request body
       const {
         persId,
@@ -31,6 +35,7 @@ class DoctorAuthController {
         description,
         hospital,
         suspended,
+        patients = [], //
       } = req.body;
 
       // Check for required fields for Doctor registration
@@ -68,7 +73,25 @@ class DoctorAuthController {
         description,
         hospital,
         suspended,
+        patients,
       });
+
+      // Correctly extract `id` from `registeredDoctor.user`
+      const doctorId = result.user.id;
+      console.log(doctorId);
+
+      // If the patients array is not empty, update each patient's doctor field
+      if (patients && Array.isArray(patients) && patients.length > 0) {
+        await Promise.all(
+          patients.map(async (patientId) => {
+            await PatientService.updatePatient(
+              patientId,
+              { doctor: doctorId },
+              { role: user.role } // Ensuring proper role for permission
+            );
+          })
+        );
+      }
 
       // Return the result of the registration
       res.status(201).json(result);

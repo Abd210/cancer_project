@@ -112,6 +112,8 @@ class PatientService {
 
     if (!patientDoc.exists) throw new Error("Patient not found");
 
+    const currentPatientData = patientDoc.data(); // Get current patient data
+
     if (updateFields.id) delete updateFields.id;
     if (updateFields.role) throw new Error("Cannot change role");
 
@@ -135,7 +137,35 @@ class PatientService {
       throw new Error("Only superadmins can suspend patients");
     }
 
-    await patientRef.update(updateFields);
+    if (updateFields.doctor && updateFields.doctor !== currentPatientData.doctor) {
+      const previousDoctorId = currentPatientData.doctor;
+      const newDoctorId = updateFields.doctor;
+
+      await db.runTransaction(async (transaction) => {
+          // Read all necessary data first
+          let prevDoctorRef, newDoctorRef;
+          if (previousDoctorId) prevDoctorRef = db.collection("doctors").doc(previousDoctorId);
+          if (newDoctorId) newDoctorRef = db.collection("doctors").doc(newDoctorId);
+
+          if (previousDoctorId) {
+              transaction.update(prevDoctorRef, {
+                  patients: admin.firestore.FieldValue.arrayRemove(patientId)
+              });
+          }
+
+          if (newDoctorId) {
+              transaction.update(newDoctorRef, {
+                  patients: admin.firestore.FieldValue.arrayUnion(patientId)
+              });
+          }
+
+          // Update the patient's document
+          transaction.update(patientRef, updateFields);
+      });
+    } else {
+        // If the doctor field is NOT being updated, update the patient normally
+        await patientRef.update(updateFields);
+    }
     const updatedPatient = await patientRef.get();
     return { id: updatedPatient.id, ...updatedPatient.data() };
   }
