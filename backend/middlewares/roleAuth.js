@@ -110,7 +110,6 @@ const authorize = (roles = []) => {
           .json({ error: "jwtAuth - Authorize: Unauthorized" });
       }
     } catch (error) {
-      console.error("Authorization error:", error);
       return res
         .status(500)
         .json({ error: "jwtAuth - Authorize: Internal Server Error" });

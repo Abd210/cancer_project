@@ -28,9 +28,8 @@ const authenticate = (req, res, next) => {
 
     // Attach the decoded user information to the request object for further use
     req.headers.user = decoded;
-    req.body["role"] =
-      // Proceed to the next middleware or route handler
-      next();
+    // Proceed to the next middleware or route handler
+    next();
   } catch (error) {
     // If the token is invalid, return a 400 error
     res.status(400).json({ error: "jwtAuth - Authenticate: Invalid token." });
