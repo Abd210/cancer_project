@@ -16,6 +16,7 @@ class Patient {
     mobileNumber,
     birthDate,
     hospital,
+    doctor, //
     status = "active",
     diagnosis = "Not Diagnosed",
     medicalHistory = [],
@@ -37,6 +38,10 @@ class Patient {
     if (typeof hospital !== "string")
       throw new Error(
         "Invalid hospital: must be a Firestore document reference"
+      );
+    if (typeof doctor !== "string")
+      throw new Error(
+        "Invalid doctor: must be a Firestore document reference"
       );
     if (!STATUSES.includes(status))
       throw new Error(
@@ -62,6 +67,7 @@ class Patient {
     this.diagnosis = diagnosis;
     this.medicalHistory = medicalHistory;
     this.role = role;
+    this.doctor = doctor;
     this.suspended = suspended;
     this.createdAt = new Date();
     this.updatedAt = new Date();

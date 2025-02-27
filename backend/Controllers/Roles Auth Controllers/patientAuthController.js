@@ -1,4 +1,6 @@
 const AuthService = require("../../Services/authService");
+const admin = require("firebase-admin");
+const db = admin.firestore();
 
 /**
  * PatientAuthController handles the authentication-related actions for patients.
@@ -33,6 +35,7 @@ class PatientAuthController {
         medicalHistory,
         hospital,
         suspended,
+        doctor, //
       } = req.body;
 
       // Check for required fields for Patient
@@ -46,7 +49,8 @@ class PatientAuthController {
         !diagnosis ||
         !birthDate ||
         !medicalHistory ||
-        !hospital
+        !hospital ||
+        !doctor
       ) {
         return res.status(400).json({
           error: `Missing required fields: ${!persId ? "pers. id, " : ""}${
@@ -55,7 +59,7 @@ class PatientAuthController {
             !mobileNumber ? "mobile number, " : ""
           }${!email ? "email, " : ""}${!status ? "status, " : ""}${
             !diagnosis ? "diagnosis, " : ""
-          }${!birthDate ? "date of birth, " : ""}${
+          }${!doctor ? "doctor id" : ""}${!birthDate ? "date of birth, " : ""}${
             !medicalHistory ? "medical history, " : ""
           }${!hospital ? "hospital id" : ""}`.slice(0, -2),
         });
@@ -75,6 +79,29 @@ class PatientAuthController {
         medicalHistory,
         hospital: hospital,
         suspended,
+        doctor: doctor,
+      });
+
+      // Extract the new patient's ID
+      const patientId = result.user.id;
+      if (!patientId) {
+        return res.status(500).json({ error: "Failed to retrieve patient ID after registration" });
+      }
+
+      // Update the assigned doctor's `patients` array
+      const doctorRef = db.collection("doctors").doc(doctor);
+
+      await db.runTransaction(async (transaction) => {
+        const doctorDoc = await transaction.get(doctorRef);
+
+        if (!doctorDoc.exists) {
+          throw new Error("Assigned doctor not found");
+        }
+
+        // Add the new patient to the doctor's patients array using `arrayUnion`
+        transaction.update(doctorRef, {
+          patients: admin.firestore.FieldValue.arrayUnion(patientId),
+        });
       });
 
       // Return the result of the registration

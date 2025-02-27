@@ -18,6 +18,7 @@ class Doctor {
     licenses,
     description = "",
     hospital,
+    patients = [], //
     role = "doctor",
     suspended = false,
   }) {
@@ -43,6 +44,12 @@ class Doctor {
       throw new Error(
         "Invalid hospital: must be a Firestore document reference"
       );
+    if (
+      !Array.isArray(patients) ||
+      !patients.every((num) => typeof num === "string")
+    ) {
+      throw new Error("Invalid patients: must be an array of strings");
+    }
     if (!ROLES.includes(role))
       throw new Error(`Invalid role: ${role}. Allowed: ${ROLES.join(", ")}`);
     if (typeof suspended !== "boolean")
@@ -59,6 +66,7 @@ class Doctor {
     this.description = description;
     this.hospital = hospital;
     this.role = role;
+    this.patients = patients;
     this.suspended = suspended;
     this.createdAt = new Date();
     this.updatedAt = new Date();
