@@ -33,7 +33,7 @@ class PatientService {
     if (patientId) {
       patientDoc = await db.collection("patients").doc(patientId).get();
       if (!patientDoc.exists) {
-        return null;
+        throw new Error("patientService-findPatient: Invalid Patient Id");
       }
       return patientDoc.data();
     } else {
@@ -52,7 +52,9 @@ class PatientService {
       }
 
       if (querySnapshot.empty) {
-        return null;
+        throw new Error(
+          "patientService-findPatient: Invalid Email or Mobile Number"
+        );
       }
 
       return querySnapshot.docs[0].data();
@@ -137,34 +139,39 @@ class PatientService {
       throw new Error("Only superadmins can suspend patients");
     }
 
-    if (updateFields.doctor && updateFields.doctor !== currentPatientData.doctor) {
+    if (
+      updateFields.doctor &&
+      updateFields.doctor !== currentPatientData.doctor
+    ) {
       const previousDoctorId = currentPatientData.doctor;
       const newDoctorId = updateFields.doctor;
 
       await db.runTransaction(async (transaction) => {
-          // Read all necessary data first
-          let prevDoctorRef, newDoctorRef;
-          if (previousDoctorId) prevDoctorRef = db.collection("doctors").doc(previousDoctorId);
-          if (newDoctorId) newDoctorRef = db.collection("doctors").doc(newDoctorId);
+        // Read all necessary data first
+        let prevDoctorRef, newDoctorRef;
+        if (previousDoctorId)
+          prevDoctorRef = db.collection("doctors").doc(previousDoctorId);
+        if (newDoctorId)
+          newDoctorRef = db.collection("doctors").doc(newDoctorId);
 
-          if (previousDoctorId) {
-              transaction.update(prevDoctorRef, {
-                  patients: admin.firestore.FieldValue.arrayRemove(patientId)
-              });
-          }
+        if (previousDoctorId) {
+          transaction.update(prevDoctorRef, {
+            patients: admin.firestore.FieldValue.arrayRemove(patientId),
+          });
+        }
 
-          if (newDoctorId) {
-              transaction.update(newDoctorRef, {
-                  patients: admin.firestore.FieldValue.arrayUnion(patientId)
-              });
-          }
+        if (newDoctorId) {
+          transaction.update(newDoctorRef, {
+            patients: admin.firestore.FieldValue.arrayUnion(patientId),
+          });
+        }
 
-          // Update the patient's document
-          transaction.update(patientRef, updateFields);
+        // Update the patient's document
+        transaction.update(patientRef, updateFields);
       });
     } else {
-        // If the doctor field is NOT being updated, update the patient normally
-        await patientRef.update(updateFields);
+      // If the doctor field is NOT being updated, update the patient normally
+      await patientRef.update(updateFields);
     }
     const updatedPatient = await patientRef.get();
     return { id: updatedPatient.id, ...updatedPatient.data() };

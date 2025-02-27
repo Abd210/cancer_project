@@ -130,7 +130,7 @@ router.delete(
 router.put(
   "/appointment/update",
   authenticate, // Middleware to authenticate the user
-  authorize("superadmin"), // Middleware to allow only superadmins
+  authorize(["admin", "superadmin"]), // Middleware to allow only superadmins
   appointmentController.updateAppointmentData // Controller function
 );
 

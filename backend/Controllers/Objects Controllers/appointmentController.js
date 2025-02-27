@@ -141,7 +141,10 @@ class AppointmentController {
       const { user, date, filter } = req.headers; // Date should be in 'YYYY-MM-DD' format
 
       if (!date) {
-        return res.status(400).json({ error: "AppointmentController-GetAppointmentsByDate: Missing date parameter" });
+        return res.status(400).json({
+          error:
+            "AppointmentController-GetAppointmentsByDate: Missing date parameter",
+        });
       }
 
       // Call the AppointmentService to fetch appointments for the given date
@@ -155,7 +158,9 @@ class AppointmentController {
 
       return res.status(200).json(filteredResult);
     } catch (error) {
-      return res.status(500).json({ error: `AppointmentController-GetAppointmentsByDate: ${error.message}` });
+      return res.status(500).json({
+        error: `AppointmentController-GetAppointmentsByDate: ${error.message}`,
+      });
     }
   }
 
@@ -343,6 +348,17 @@ class AppointmentController {
           error:
             "AppointmentController-update appointment: Missing appointmentId",
         });
+      }
+      // Check if the user is authorized to update the appointment when its suspended
+      if (user.role !== "superadmin") {
+        const appointment = await AppointmentService.findAppointment(
+          appointmentid
+        );
+        if (appointment.suspended) {
+          return res.status(403).json({
+            error: "AppointmentController-update appointment: Unauthorized",
+          });
+        }
       }
 
       // Validate if updateFields are provided

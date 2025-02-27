@@ -127,8 +127,16 @@ class AppointmentService {
 
     const snapshot = await db
       .collection("appointments")
-      .where("appointmentDate", ">=", admin.firestore.Timestamp.fromDate(startDate))
-      .where("appointmentDate", "<=", admin.firestore.Timestamp.fromDate(endDate))
+      .where(
+        "appointmentDate",
+        ">=",
+        admin.firestore.Timestamp.fromDate(startDate)
+      )
+      .where(
+        "appointmentDate",
+        "<=",
+        admin.firestore.Timestamp.fromDate(endDate)
+      )
       .orderBy("appointmentDate")
       .get();
 
@@ -138,7 +146,6 @@ class AppointmentService {
 
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
-
 
   /**
    * Cancels an appointment by updating its status to 'cancelled'.

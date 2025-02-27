@@ -20,7 +20,7 @@ class AdminService {
     if (adminId) {
       adminDoc = await db.collection("admins").doc(adminId).get();
       if (!adminDoc.exists) {
-        return null;
+        throw new Error("adminService-findAdmin: Invalid Admin Id");
       }
       return adminDoc.data();
     } else {
@@ -39,7 +39,9 @@ class AdminService {
       }
 
       if (querySnapshot.empty) {
-        return null;
+        throw new Error(
+          "adminService-findAdmin: Invalid Email or Mobile Number"
+        );
       }
 
       return querySnapshot.docs[0].data();
