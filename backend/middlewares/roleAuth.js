@@ -6,13 +6,43 @@ const PatientService = require("../Services/patientService");
 const DoctorService = require("../Services/doctorService");
 
 const identifyUserRole = async (req, res, next) => {
-  let { email, mobileNumber, password } = req.body;
+  let { email, mobileNumber } = req.body;
   try {
-    let user =
-      (await PatientService.findPatient(null, email, mobileNumber)) ||
-      (await DoctorService.findDoctor(null, email, mobileNumber)) ||
-      (await AdminService.findAdmin(null, email, mobileNumber)) ||
-      (await SuperAdminService.findSuperAdmin(null, email, mobileNumber));
+    let user = null;
+
+    try {
+      user = await PatientService.findPatient(null, email, mobileNumber);
+    } catch (error) {
+      console.error("Error finding patient:", error);
+    }
+
+    if (!user) {
+      try {
+        user = await DoctorService.findDoctor(null, email, mobileNumber);
+      } catch (error) {
+        console.error("Error finding doctor:", error);
+      }
+    }
+
+    if (!user) {
+      try {
+        user = await AdminService.findAdmin(null, email, mobileNumber);
+      } catch (error) {
+        console.error("Error finding admin:", error);
+      }
+    }
+
+    if (!user) {
+      try {
+        user = await SuperAdminService.findSuperAdmin(
+          null,
+          email,
+          mobileNumber
+        );
+      } catch (error) {
+        console.error("Error finding superadmin:", error);
+      }
+    }
 
     if (!user) {
       res
@@ -80,7 +110,6 @@ const authorize = (roles = []) => {
           .json({ error: "jwtAuth - Authorize: Unauthorized" });
       }
     } catch (error) {
-      console.error("Authorization error:", error);
       return res
         .status(500)
         .json({ error: "jwtAuth - Authorize: Internal Server Error" });

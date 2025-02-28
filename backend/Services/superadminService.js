@@ -26,7 +26,9 @@ class SuperAdminService {
         .doc(superAdminId)
         .get();
       if (!superAdminDoc.exists) {
-        return null;
+        throw new Error(
+          "superAdminService-findSuperAdmin: Invalid SuperAdmin Id"
+        );
       }
       return superAdminDoc.data();
     } else {
@@ -45,7 +47,9 @@ class SuperAdminService {
       }
 
       if (querySnapshot.empty) {
-        return null;
+        throw new Error(
+          "superAdminService-findSuperAdmin: Invalid Email or Mobile Number"
+        );
       }
 
       let superAdminData = querySnapshot.docs[0].data();

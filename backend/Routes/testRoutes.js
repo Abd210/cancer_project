@@ -65,7 +65,7 @@ router.delete(
 router.put(
   "/test/update",
   authenticate, // Middleware to authenticate the user
-  authorize("superadmin"), // Middleware to allow only superadmins
+  authorize(["admin", "superadmin"]), // Middleware to allow only superadmins
   TestController.updateTestData // Controller function
 );
 
