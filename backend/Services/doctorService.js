@@ -3,7 +3,6 @@ const db = admin.firestore();
 const bcrypt = require("bcrypt");
 const PatientService = require("./patientService");
 
-
 class DoctorService {
   /**
    * Get public doctor data (excluding sensitive fields)
@@ -32,7 +31,7 @@ class DoctorService {
     if (doctorId) {
       doctorDoc = await db.collection("doctors").doc(doctorId).get();
       if (!doctorDoc.exists) {
-        return null;
+        throw new Error("doctorService-findDoctor: Invalid Doctor Id");
       }
       return doctorDoc.data();
     } else {
@@ -51,7 +50,9 @@ class DoctorService {
       }
 
       if (querySnapshot.empty) {
-        return null;
+        throw new Error(
+          "doctorService-findDoctor: Invalid Email or Mobile Number"
+        );
       }
 
       return querySnapshot.docs[0].data();
@@ -143,25 +144,37 @@ class DoctorService {
       let newPatients = updateFields.patients || oldPatients; // If no update to patients array, keep the old list
 
       if (!Array.isArray(newPatients)) {
-          throw new Error("updateDoctor: patients field must be an array");
+        throw new Error("updateDoctor: patients field must be an array");
       }
 
       // Identify removed and added patients
-      const removedPatients = oldPatients.filter(patientId => !newPatients.includes(patientId));
-      const addedPatients = newPatients.filter(patientId => !oldPatients.includes(patientId));
+      const removedPatients = oldPatients.filter(
+      (patientId) => !newPatients.includes(patientId)
+    );
+      const addedPatients = newPatients.filter(
+      (patientId) => !oldPatients.includes(patientId)
+    );
 
       // Update removed patients (set their doctor attribute to an empty string or null)
       await Promise.all(
-          removedPatients.map(async (patientId) => {
-              await PatientService.updatePatient(patientId, { doctor: null }, { role: "superadmin" });
-          })
+        removedPatients.map(async (patientId) => {
+          await PatientService.updatePatient(
+          patientId,
+          { doctor: null },
+          { role: "superadmin" }
+        );
+        })
       );
 
       // Update added patients (set their doctor attribute to the new doctor's ID)
       await Promise.all(
-          addedPatients.map(async (patientId) => {
-              await PatientService.updatePatient(patientId, { doctor: doctorId }, { role: "superadmin" });
-          })
+        addedPatients.map(async (patientId) => {
+          await PatientService.updatePatient(
+          patientId,
+          { doctor: doctorId },
+          { role: "superadmin" }
+        );
+        })
       );
     }
 
