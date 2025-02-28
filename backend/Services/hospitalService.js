@@ -162,6 +162,17 @@ class HospitalService {
     return;
   }
 
+  static async findHospital(hospitalId) {
+    const hospitalRef = db.collection("hospitals").doc(hospitalId);
+    const hospitalDoc = await hospitalRef.get();
+
+    if (!hospitalDoc.exists) {
+      throw new Error("hospitalService-findHospital: Invalid Hospital ID");
+    }
+
+    return { id: hospitalDoc.id, ...hospitalDoc };
+  }
+
   /**
    * Retrieves all hospitals.
    * @returns {Promise<Array<Object>>} An array of all hospitals including their IDs.

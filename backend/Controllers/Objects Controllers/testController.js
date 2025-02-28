@@ -179,6 +179,16 @@ class TestController {
         });
       }
 
+      // Check if the user is authorized to update the test data when its suspended
+      if (user.role !== "superadmin") {
+        const test = await TestService.findTest(testid);
+        if (test.suspended) {
+          return res.status(403).json({
+            error: "TestController-update test: Unauthorized",
+          });
+        }
+      }
+
       // Validate if updateFields are provided
       if (!updateFields || Object.keys(updateFields).length === 0) {
         return res.status(400).json({
