@@ -117,6 +117,16 @@ class HospitalController {
         });
       }
 
+      // Check if the user is authorized to update the hospital when its suspended
+      if (user.role !== "superadmin") {
+        const hospital = await HospitalService.findHospital(hospitalid);
+        if (hospital.suspended) {
+          return res.status(403).json({
+            error: "HospitalController-update hospital: Unauthorized",
+          });
+        }
+      }
+
       // Validate if updateFields are provided
       if (!updateFields || Object.keys(updateFields).length === 0) {
         return res.status(400).json({
