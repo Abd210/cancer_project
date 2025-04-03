@@ -1,15 +1,15 @@
 class AppointmentData {
-  final String id;               // maps from "id" (or "_id" if provided)
-  final String patientId;        // from patient.id
-  final String patientName;      // from patient.name
-  final String patientEmail;     // from patient.email
-  final String doctorId;         // from doctor.id
-  final String doctorName;       // from doctor.name
-  final String doctorEmail;      // from doctor.email
-  final DateTime date;           // parse from "appointmentDate"
-  final String purpose;          // "purpose"
-  final String status;           // "status"
-  final bool suspended;          // "suspended"
+  final String id; // maps from "id" (or "_id" if provided)
+  final String patientId; // from patient.id
+  final String patientName; // from patient.name
+  final String patientEmail; // from patient.email
+  final String doctorId; // from doctor.id
+  final String doctorName; // from doctor.name
+  final String doctorEmail; // from doctor.email
+  final DateTime date; // parse from "appointmentDate"
+  final String purpose; // "purpose"
+  final String status; // "status"
+  final bool suspended; // "suspended"
 
   AppointmentData({
     required this.id,
@@ -29,6 +29,12 @@ class AppointmentData {
     final patientObj = json["patient"] ?? {};
     final doctorObj = json["doctor"] ?? {};
 
+    // Helper function to convert id to string
+    String toStringId(dynamic id) {
+      if (id == null) return '';
+      return id.toString();
+    }
+
     // Parse using the camelCase key "appointmentDate"
     DateTime parsedDate;
     try {
@@ -38,17 +44,21 @@ class AppointmentData {
     }
 
     return AppointmentData(
-      id: json["id"] ?? '',
-      patientId: patientObj["id"] ?? '',
-      patientName: patientObj["name"] ?? '',
-      patientEmail: patientObj["email"] ?? '',
-      doctorId: doctorObj["id"] ?? '',
-      doctorName: doctorObj["name"] ?? '',
-      doctorEmail: doctorObj["email"] ?? '',
+      id: toStringId(json["id"] ?? json["_id"]),
+      patientId: toStringId(patientObj["id"] ?? patientObj["_id"]),
+      patientName: patientObj["name"]?.toString() ?? '',
+      patientEmail: patientObj["email"]?.toString() ?? '',
+      doctorId: toStringId(doctorObj["id"] ?? doctorObj["_id"]),
+      doctorName: doctorObj["name"]?.toString() ?? '',
+      doctorEmail: doctorObj["email"]?.toString() ?? '',
       date: parsedDate,
-      purpose: json["purpose"] ?? '',
-      status: json["status"] ?? '',
+      purpose: json["purpose"]?.toString() ?? '',
+      status: json["status"]?.toString() ?? '',
       suspended: json["suspended"] ?? false,
     );
+  }
+
+  String toDebugString() {
+    return 'AppointmentData(id: $id, patient: $patientName, doctor: $doctorName, date: $date, status: $status)';
   }
 }
