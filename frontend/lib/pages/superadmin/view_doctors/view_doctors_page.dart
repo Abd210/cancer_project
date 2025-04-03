@@ -3,16 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-// Import your new DoctorProvider and model
 import 'package:frontend/providers/doctor_provider.dart';
 import 'package:frontend/models/doctor_data.dart';
-// If you also have a hospital list, import that if needed
 import 'package:frontend/models/hospital_data.dart';
 
-// Shared components
 import '../../../shared/components/loading_indicator.dart';
 import '../../../shared/components/components.dart';
-// For data tables if you like:
 import '../../../shared/components/responsive_data_table.dart'
     show BetterDataTable;
 
@@ -33,14 +29,10 @@ class _DoctorsPageState extends State<DoctorsPage> {
 
   List<DoctorData> _doctorList = [];
 
-  // If you want to choose from a real list of hospitals:
-  // List<HospitalData> _hospitalList = [];
-
   @override
   void initState() {
     super.initState();
     _fetchDoctors();
-    // _fetchHospitals(); // only if you need them
   }
 
   Future<void> _fetchDoctors() async {
@@ -48,7 +40,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
     try {
       final docs = await _doctorProvider.getDoctors(
         token: widget.token,
-        doctorId: '', // empty => get all
+        doctorId: '',
         filter: _filter,
       );
       setState(() => _doctorList = docs);
@@ -60,18 +52,16 @@ class _DoctorsPageState extends State<DoctorsPage> {
     }
   }
 
-  /// Show the “Add Doctor” dialog
   void _showAddDoctorDialog() {
     final formKey = GlobalKey<FormState>();
 
-    // All fields needed to match your POST body
     String persId = '';
     String name = '';
     String password = '';
     String email = '';
     String mobileNumber = '';
     String birthDate = '';
-    String licensesRaw = '';  // we’ll parse into List<String>
+    String licensesRaw = '';
     String description = '';
     bool isSuspended = false;
     String? selectedHospitalId;
@@ -86,43 +76,52 @@ class _DoctorsPageState extends State<DoctorsPage> {
             child: Column(
               children: [
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'pers_id'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter pers_id' : null,
+                  decoration: const InputDecoration(labelText: 'persId'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter persId' : null,
                   onSaved: (val) => persId = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter name' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter name' : null,
                   onSaved: (val) => name = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Password'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter password' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter password' : null,
                   onSaved: (val) => password = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter email' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter email' : null,
                   onSaved: (val) => email = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter mobile number' : null,
+                  validator: (val) => val == null || val.isEmpty
+                      ? 'Enter mobile number'
+                      : null,
                   onSaved: (val) => mobileNumber = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Birth Date (YYYY-MM-DD)'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter birth date' : null,
+                  decoration: const InputDecoration(
+                      labelText: 'Birth Date (YYYY-MM-DD)'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter birth date' : null,
                   onSaved: (val) => birthDate = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Licenses (comma-separated)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Licenses (comma-separated)'),
                   onSaved: (val) => licensesRaw = val ?? '',
                 ),
                 const SizedBox(height: 10),
@@ -131,24 +130,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   onSaved: (val) => description = val?.trim() ?? '',
                 ),
                 const SizedBox(height: 10),
-
-                // If you want to pick a hospital from a real list:
-                // if (_hospitalList.isNotEmpty) ...[
-                //   DropdownButtonFormField<String>(
-                //     decoration: const InputDecoration(labelText: 'Choose Hospital'),
-                //     items: _hospitalList.map((h) {
-                //       return DropdownMenuItem<String>(
-                //         value: h.id,
-                //         child: Text(h.name),
-                //       );
-                //     }).toList(),
-                //     validator: (val) => (val == null) ? 'Select a hospital' : null,
-                //     onChanged: (val) => selectedHospitalId = val,
-                //   ),
-                //   const SizedBox(height: 10),
-                // ],
-
-                // Suspended?
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -172,7 +153,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 formKey.currentState!.save();
-                Navigator.pop(ctx); // close the dialog
+                Navigator.pop(ctx);
 
                 final licensesList = licensesRaw
                     .split(',')
@@ -182,7 +163,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
 
                 setState(() => _isLoading = true);
                 try {
-                  // This call matches the EXACT shape the backend expects
                   await _doctorProvider.createDoctor(
                     token: widget.token,
                     persId: persId,
@@ -197,8 +177,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
                     suspended: isSuspended,
                   );
 
-                  // Some backends only return { "message": "Registration successful" }.
-                  // So we do a re-fetch to see the new doc:
                   await _fetchDoctors();
 
                   Fluttertoast.showToast(msg: 'Doctor added successfully.');
@@ -216,7 +194,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
     );
   }
 
-  /// Show “Edit Doctor” dialog => calls updateDoctor()
   void _showEditDoctorDialog(DoctorData doc) {
     final formKey = GlobalKey<FormState>();
 
@@ -229,7 +206,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
     List<String> licenses = doc.licenses;
     String description = doc.description;
     bool isSuspended = doc.isSuspended;
-    String hospitalId = doc.hospitalId;  // if you want to re-select hospital
+    String hospitalId = doc.hospitalId;
 
     showDialog(
       context: context,
@@ -242,49 +219,58 @@ class _DoctorsPageState extends State<DoctorsPage> {
               children: [
                 TextFormField(
                   initialValue: persId,
-                  decoration: const InputDecoration(labelText: 'pers_id'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter pers_id' : null,
+                  decoration: const InputDecoration(labelText: 'persId'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter persId' : null,
                   onSaved: (val) => persId = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: name,
                   decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter name' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter name' : null,
                   onSaved: (val) => name = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: email,
                   decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter email' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter email' : null,
                   onSaved: (val) => email = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: password,
                   decoration: const InputDecoration(labelText: 'Password'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter password' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter password' : null,
                   onSaved: (val) => password = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: mobileNumber,
-                  decoration: const InputDecoration(labelText: 'Mobile Number'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter mobile number' : null,
+                  decoration:
+                  const InputDecoration(labelText: 'Mobile Number'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter mobile number' : null,
                   onSaved: (val) => mobileNumber = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: birthDate,
-                  decoration: const InputDecoration(labelText: 'Birth Date'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter birth date' : null,
+                  decoration:
+                  const InputDecoration(labelText: 'Birth Date (YYYY-MM-DD)'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter birth date' : null,
                   onSaved: (val) => birthDate = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: licenses.join(', '),
-                  decoration: const InputDecoration(labelText: 'Licenses (comma-separated)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Licenses (comma-separated)'),
                   onSaved: (val) {
                     final raw = val ?? '';
                     licenses = raw
@@ -301,11 +287,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   onSaved: (val) => description = val?.trim() ?? '',
                 ),
                 const SizedBox(height: 10),
-
-                // If you have a hospital list for picking. Omitted if not needed:
-                // ...
-
-                // Suspended?
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -332,14 +313,13 @@ class _DoctorsPageState extends State<DoctorsPage> {
                 setState(() => _isLoading = true);
 
                 try {
-                  // Build the updated fields for the PUT request
                   final updatedFields = {
-                    "pers_id": persId,
+                    "persId": persId,
                     "name": name,
                     "password": password,
                     "email": email,
-                    "mobile_number": mobileNumber,
-                    "birth_date": birthDate,
+                    "mobileNumber": mobileNumber,
+                    "birthDate": birthDate,
                     "licenses": licenses,
                     "description": description,
                     "hospital": hospitalId,
@@ -367,7 +347,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
     );
   }
 
-  /// Delete a doctor
   void _deleteDoctor(String doctorId) {
     showDialog(
       context: context,
@@ -410,7 +389,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
       return const LoadingIndicator();
     }
 
-    // Filter by search query
     final filteredDoctors = _doctorList.where((doc) {
       final q = _searchQuery.toLowerCase();
       return doc.name.toLowerCase().contains(q) ||
@@ -424,10 +402,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Top Bar: Filter, Search, Add, Refresh
             Row(
               children: [
-                // Suspended / Unsuspended / all
                 Container(
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -461,8 +437,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
                     ],
                   ),
                 ),
-
-                // Search
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
@@ -478,16 +452,12 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   ),
                 ),
                 const SizedBox(width: 10),
-
-                // Add Doctor
                 ElevatedButton.icon(
                   onPressed: _showAddDoctorDialog,
                   icon: const Icon(Icons.add),
                   label: const Text('Add Doctor'),
                 ),
                 const SizedBox(width: 10),
-
-                // Refresh
                 ElevatedButton.icon(
                   onPressed: _fetchDoctors,
                   icon: const Icon(Icons.refresh),
@@ -495,60 +465,54 @@ class _DoctorsPageState extends State<DoctorsPage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-
-            // Doctor list
             Expanded(
               child: filteredDoctors.isEmpty
                   ? const Center(child: Text('No doctors found.'))
                   : ListView.builder(
-                      itemCount: filteredDoctors.length,
-                      itemBuilder: (context, index) {
-                        final doc = filteredDoctors[index];
-                        return Card(
-                          elevation: 3,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(16),
-                            title: Text(
-                              doc.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'pers_id: ${doc.persId}\n'
-                              'Email: ${doc.email}\n'
-                              'Mobile: ${doc.mobileNumber}\n'
-                              'Birth: ${doc.birthDate}\n'
-                              'Suspended: ${doc.isSuspended}\n'
-                              'Licenses: ${doc.licenses.join(", ")}',
-                            ),
-                            isThreeLine: false,
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Edit
-                                IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showEditDoctorDialog(doc),
-                                ),
-                                // Delete
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deleteDoctor(doc.id),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                itemCount: filteredDoctors.length,
+                itemBuilder: (context, index) {
+                  final doc = filteredDoctors[index];
+                  return Card(
+                    elevation: 3,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      title: Text(
+                        doc.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'persId: ${doc.persId}\n'
+                            'Email: ${doc.email}\n'
+                            'Mobile: ${doc.mobileNumber}\n'
+                            'Birth: ${doc.birthDate}\n'
+                            'Suspended: ${doc.isSuspended}\n'
+                            'Licenses: ${doc.licenses.join(", ")}',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _showEditDoctorDialog(doc),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteDoctor(doc.id),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

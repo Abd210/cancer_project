@@ -6,14 +6,11 @@ import 'package:frontend/models/appointment_data.dart';
 import 'package:frontend/utils/static.dart';
 
 class AppointmentProvider {
-  /// GET => /api/appointment/history
-  /// with custom headers:
-  ///   suspendfilter, filterbyrole, filterbyid
   Future<List<AppointmentData>> getAppointmentsHistory({
     required String token,
-    required String suspendfilter,   // "unsuspended" or "suspended"
-    required String filterbyrole,    // "patient", "doctor", or "admin"? ...
-    required String filterbyid,      // e.g. "67731e4f23997df9d739418a"
+    required String suspendfilter,
+    required String filterbyrole,
+    required String filterbyid,
   }) async {
     final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.appointmentHistoryRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
@@ -22,19 +19,14 @@ class AppointmentProvider {
     headers["filterbyrole"] = filterbyrole;
     headers["filterbyid"] = filterbyid;
 
-    print('[DEBUG] GET history appointments => headers=$headers');
-
     final response = await http.get(url, headers: headers);
-    print('[DEBUG] response status=${response.statusCode}, body=${response.body}');
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
       if (decoded is List) {
         final list = decoded.map((item) => AppointmentData.fromJson(item)).toList();
-        print('[DEBUG] parsed appointments length=${list.length}');
         return List<AppointmentData>.from(list);
       } else {
-        print('[DEBUG] Unexpected format: $decoded');
         throw Exception('Unexpected format while fetching appointments history');
       }
     } else {
@@ -44,7 +36,6 @@ class AppointmentProvider {
     }
   }
 
-  /// POST => /api/appointment/new
   Future<AppointmentData> createAppointment({
     required String token,
     required String patientId,
@@ -60,15 +51,13 @@ class AppointmentProvider {
     final body = {
       "patient": patientId,
       "doctor": doctorId,
-      "appointment_date": date.toIso8601String().split("T").first,
+      "appointmentDate": date.toIso8601String().split("T").first,
       "purpose": purpose,
       "status": status,
       "suspended": suspended,
     };
-    print('[DEBUG] Creating appointment => body=$body');
 
     final response = await http.post(url, headers: headers, body: jsonEncode(body));
-    print('[DEBUG] create response => code=${response.statusCode}, body=${response.body}');
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final decoded = json.decode(response.body);
@@ -84,7 +73,6 @@ class AppointmentProvider {
     }
   }
 
-  /// PUT => /api/appointment/update
   Future<AppointmentData> updateAppointment({
     required String token,
     required String appointmentId,
@@ -93,12 +81,10 @@ class AppointmentProvider {
     final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.appointmentUpdateRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
-    // According to your doc, we might pass appointmentid in the body
+    // Pass appointmentId in updatedFields if required
     updatedFields["appointmentid"] = appointmentId;
-    print('[DEBUG] Updating appt $appointmentId => fields=$updatedFields');
 
     final response = await http.put(url, headers: headers, body: jsonEncode(updatedFields));
-    print('[DEBUG] update response => code=${response.statusCode}, body=${response.body}');
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
@@ -110,7 +96,6 @@ class AppointmentProvider {
     }
   }
 
-  /// DELETE => /api/appointment/delete
   Future<void> deleteAppointment({
     required String token,
     required String appointmentId,
@@ -119,10 +104,8 @@ class AppointmentProvider {
     final headers = ClassUtil.baseHeaders(token: token);
 
     headers["appointmentid"] = appointmentId;
-    print('[DEBUG] Deleting appt $appointmentId => headers=$headers');
 
     final response = await http.delete(url, headers: headers);
-    print('[DEBUG] delete response => code=${response.statusCode}, body=${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception(

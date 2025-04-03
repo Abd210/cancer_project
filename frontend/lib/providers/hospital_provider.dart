@@ -1,5 +1,3 @@
-// lib/providers/hospital_provider.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:frontend/utils/static.dart';
@@ -64,12 +62,12 @@ class HospitalProvider {
     final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.hospitalRegisterRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
+    // Updated keys according to the API documentation.
     final body = {
-      'hospital_name': hospitalName,
-      'hospital_address': hospitalAddress,
-      'mobile_numbers': mobileNumbers,
+      'name': hospitalName,
+      'address': hospitalAddress,
+      'mobileNumbers': mobileNumbers,
       'emails': emails,
-      // If you need to pass a "suspended" field upon creation:
       'suspended': suspended,
     };
 
@@ -79,8 +77,7 @@ class HospitalProvider {
       body: jsonEncode(body),
     );
 
-    // In your original API doc, the response can be 200 or 201. 
-    // Use whichever your backend truly returns. 
+    // In your original API doc, the response can be 200 or 201.
     if (response.statusCode == 200 || response.statusCode == 201) {
       final decoded = json.decode(response.body);
       return HospitalData.fromJson(decoded);
@@ -105,6 +102,7 @@ class HospitalProvider {
 
     headers['hospitalid'] = hospitalId;
 
+    // It is assumed that updatedFields already uses the correct keys.
     final response = await http.put(
       url,
       headers: headers,

@@ -12,24 +12,18 @@ const identifyUserRole = async (req, res, next) => {
 
     try {
       user = await PatientService.findPatient(null, email, mobileNumber);
-    } catch (error) {
-      console.error("Error finding patient:", error);
-    }
+    } catch (error) {}
 
     if (!user) {
       try {
         user = await DoctorService.findDoctor(null, email, mobileNumber);
-      } catch (error) {
-        console.error("Error finding doctor:", error);
-      }
+      } catch (error) {}
     }
 
     if (!user) {
       try {
         user = await AdminService.findAdmin(null, email, mobileNumber);
-      } catch (error) {
-        console.error("Error finding admin:", error);
-      }
+      } catch (error) {}
     }
 
     if (!user) {
@@ -39,9 +33,7 @@ const identifyUserRole = async (req, res, next) => {
           email,
           mobileNumber
         );
-      } catch (error) {
-        console.error("Error finding superadmin:", error);
-      }
+      } catch (error) {}
     }
 
     if (!user) {

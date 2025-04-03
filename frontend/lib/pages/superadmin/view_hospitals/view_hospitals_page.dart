@@ -27,7 +27,7 @@ class _HospitalsPageState extends State<HospitalsPage>
   String _searchQuery = '';
 
   /// Possible values: "unsuspended", "suspended", or you can add "all"
-  /// if you want to handle that scenario. 
+  /// if you want to handle that scenario.
   String _filter = 'unsuspended';
 
   List<HospitalData> _hospitalList = [];
@@ -92,13 +92,13 @@ class _HospitalsPageState extends State<HospitalsPage>
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Hospital Name'),
                   validator: (value) =>
-                      (value == null || value.isEmpty) ? 'Enter name' : null,
+                  (value == null || value.isEmpty) ? 'Enter name' : null,
                   onSaved: (value) => name = value!.trim(),
                 ),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Address'),
                   validator: (value) =>
-                      (value == null || value.isEmpty) ? 'Enter address' : null,
+                  (value == null || value.isEmpty) ? 'Enter address' : null,
                   onSaved: (value) => address = value!.trim(),
                 ),
                 TextFormField(
@@ -187,14 +187,14 @@ class _HospitalsPageState extends State<HospitalsPage>
                   initialValue: name,
                   decoration: const InputDecoration(labelText: 'Hospital Name'),
                   validator: (value) =>
-                      (value == null || value.isEmpty) ? 'Enter name' : null,
+                  (value == null || value.isEmpty) ? 'Enter name' : null,
                   onSaved: (value) => name = value!.trim(),
                 ),
                 TextFormField(
                   initialValue: address,
                   decoration: const InputDecoration(labelText: 'Address'),
                   validator: (value) =>
-                      (value == null || value.isEmpty) ? 'Enter address' : null,
+                  (value == null || value.isEmpty) ? 'Enter address' : null,
                   onSaved: (value) => address = value!.trim(),
                 ),
                 TextFormField(
@@ -246,11 +246,12 @@ class _HospitalsPageState extends State<HospitalsPage>
                     .where((s) => s.isNotEmpty)
                     .toList();
 
+                // Updated keys now:
                 final updatedFields = <String, dynamic>{
-                  'hospital_name': name,
-                  'hospital_address': address,
+                  'name': name,
+                  'address': address,
                   'suspended': isSuspended,
-                  'mobile_numbers': mobileList,
+                  'mobileNumbers': mobileList,
                   'emails': emailList,
                 };
 
@@ -421,7 +422,6 @@ class _HospitalsPageState extends State<HospitalsPage>
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
@@ -436,17 +436,13 @@ class _HospitalsPageState extends State<HospitalsPage>
                     },
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 ElevatedButton.icon(
                   onPressed: () => _showAddHospitalDialog(context),
                   icon: const Icon(Icons.add),
                   label: const Text('Add Hospital'),
                 ),
-
                 const SizedBox(width: 10),
-
                 ElevatedButton.icon(
                   onPressed: _fetchHospitals,
                   icon: const Icon(Icons.refresh),
@@ -454,45 +450,43 @@ class _HospitalsPageState extends State<HospitalsPage>
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-
             Expanded(
               child: filteredHospitals.isEmpty
                   ? const Center(child: Text('No hospitals found.'))
                   : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columns: const [
-                          DataColumn(label: Text('Hospital Name')),
-                          DataColumn(label: Text('Address')),
-                          DataColumn(label: Text('Actions')),
-                        ],
-                        rows: filteredHospitals.map((hospital) {
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(hospital.name)),
-                              DataCell(Text(hospital.address)),
-                              DataCell(
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, color: Colors.blue),
-                                      onPressed: () => _showEditHospitalDialog(context, hospital),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () => _deleteHospital(context, hospital.id),
-                                    ),
-                                  ],
-                                ),
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text('Hospital Name')),
+                    DataColumn(label: Text('Address')),
+                    DataColumn(label: Text('Actions')),
+                  ],
+                  rows: filteredHospitals.map((hospital) {
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(hospital.name)),
+                        DataCell(Text(hospital.address)),
+                        DataCell(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () => _showEditHospitalDialog(context, hospital),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteHospital(context, hospital.id),
                               ),
                             ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
           ],
         ),

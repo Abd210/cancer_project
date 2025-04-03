@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:frontend/providers/appointment_provider.dart';
 import 'package:frontend/models/appointment_data.dart';
 
-// Shared
 import '../../../shared/components/loading_indicator.dart';
 import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
 
@@ -25,10 +24,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
   bool _isLoading = false;
   String _searchQuery = '';
 
-  // For the GET filtering
-  String _suspendFilter = 'unsuspended'; // or 'suspended'
-  String _filterByRole = 'patient'; // or 'doctor', 'admin', etc.
-  String _filterById = '67731e4f23997df9d739418a'; // you can change as needed
+  // For GET filtering
+  String _suspendFilter = 'unsuspended';
+  String _filterByRole = 'patient';
+  String _filterById = '67731e4f23997df9d739418a';
 
   List<AppointmentData> _appointmentList = [];
 
@@ -38,10 +37,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     _fetchAppointments();
   }
 
-  /// The main GET call => /api/appointment/history with the custom headers
   Future<void> _fetchAppointments() async {
     setState(() => _isLoading = true);
-
     try {
       final list = await _appointmentProvider.getAppointmentsHistory(
         token: widget.token,
@@ -52,7 +49,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       setState(() {
         _appointmentList = list;
       });
-
       Fluttertoast.showToast(msg: 'Loaded ${list.length} appointments');
     } catch (e) {
       debugPrint('Error fetching appointments: $e');
@@ -62,7 +58,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     }
   }
 
-  /// Example: Create a new appointment
   void _showAddAppointmentDialog() {
     final formKey = GlobalKey<FormState>();
     String patientId = '';
@@ -86,14 +81,14 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     TextFormField(
                       decoration: const InputDecoration(labelText: 'Patient ID'),
                       validator: (val) =>
-                          val == null || val.isEmpty ? 'Enter patient ID' : null,
+                      val == null || val.isEmpty ? 'Enter patient ID' : null,
                       onSaved: (val) => patientId = val!.trim(),
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
                       decoration: const InputDecoration(labelText: 'Doctor ID'),
                       validator: (val) =>
-                          val == null || val.isEmpty ? 'Enter doctor ID' : null,
+                      val == null || val.isEmpty ? 'Enter doctor ID' : null,
                       onSaved: (val) => doctorId = val!.trim(),
                     ),
                     const SizedBox(height: 10),
@@ -169,8 +164,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     status: status,
                     suspended: suspended,
                   );
-
-                  // Re-fetch
                   await _fetchAppointments();
                   Fluttertoast.showToast(msg: 'Appointment added successfully.');
                 } catch (e) {
@@ -187,7 +180,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     );
   }
 
-  /// Edit Appointment (PUT)
   void _showEditAppointmentDialog(AppointmentData appt) {
     final formKey = GlobalKey<FormState>();
 
@@ -286,7 +278,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 final updatedFields = {
                   "patient": patientId,
                   "doctor": doctorId,
-                  "appointment_date": DateFormat("yyyy-MM-dd").format(selectedDate),
+                  "appointmentDate": DateFormat("yyyy-MM-dd")
+                      .format(selectedDate),
                   "purpose": purpose,
                   "status": status,
                   "suspended": suspended,
@@ -297,8 +290,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                   appointmentId: appt.id,
                   updatedFields: updatedFields,
                 );
-
-                // Re-fetch
                 await _fetchAppointments();
                 Fluttertoast.showToast(msg: 'Appointment updated.');
               } catch (e) {
@@ -314,7 +305,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     );
   }
 
-  /// DELETE
   void _deleteAppointment(String apptId) {
     showDialog(
       context: context,
@@ -356,12 +346,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       return const LoadingIndicator();
     }
 
-    // We'll show a row that includes:
-    //   - suspendfilter dropdown
-    //   - filterbyrole text field
-    //   - filterbyid text field
-    //   - a "Fetch" button
-    //   - a "Search" text field for local filtering
     final filtered = _appointmentList.where((appt) {
       final q = _searchQuery.toLowerCase();
       return appt.id.toLowerCase().contains(q) ||
@@ -386,10 +370,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // 1) Filter row
             Row(
               children: [
-                // suspendfilter
                 Container(
                   width: 150,
                   margin: const EdgeInsets.only(right: 8),
@@ -397,15 +379,16 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     value: _suspendFilter,
                     decoration: const InputDecoration(labelText: 'SuspendFilter'),
                     items: const [
-                      DropdownMenuItem(value: 'unsuspended', child: Text('unsuspended')),
-                      DropdownMenuItem(value: 'suspended', child: Text('suspended')),
+                      DropdownMenuItem(
+                          value: 'unsuspended', child: Text('unsuspended')),
+                      DropdownMenuItem(
+                          value: 'suspended', child: Text('suspended')),
                     ],
-                    onChanged: (val) => setState(() => _suspendFilter = val ?? 'unsuspended'),
+                    onChanged: (val) =>
+                        setState(() => _suspendFilter = val ?? 'unsuspended'),
                   ),
                 ),
                 const SizedBox(width: 8),
-
-                // filterbyrole
                 Container(
                   width: 120,
                   margin: const EdgeInsets.only(right: 8),
@@ -415,8 +398,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     onChanged: (val) => _filterByRole = val.trim(),
                   ),
                 ),
-
-                // filterbyid
                 Container(
                   width: 200,
                   margin: const EdgeInsets.only(right: 8),
@@ -426,15 +407,11 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     onChanged: (val) => _filterById = val.trim(),
                   ),
                 ),
-
                 ElevatedButton(
                   onPressed: _fetchAppointments,
                   child: const Text('Fetch'),
                 ),
-
                 const Spacer(),
-
-                // local search
                 Container(
                   width: 200,
                   child: TextField(
@@ -448,46 +425,44 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
               ],
             ),
             const SizedBox(height: 20),
-
-            // 2) Show table
             Expanded(
               child: filtered.isEmpty
                   ? const Center(child: Text('No appointments found.'))
                   : BetterDataTable(
-                      columns: const [
-                        DataColumn(label: Text('ID')),
-                        DataColumn(label: Text('Patient Name')),
-                        DataColumn(label: Text('Doctor Name')),
-                        DataColumn(label: Text('Date')),
-                        DataColumn(label: Text('Purpose')),
-                        DataColumn(label: Text('Status')),
-                        DataColumn(label: Text('Actions')),
-                      ],
-                      rows: filtered.map((appt) {
-                        return DataRow(cells: [
-                          DataCell(Text(appt.id)),
-                          DataCell(Text(appt.patientName)),
-                          DataCell(Text(appt.doctorName)),
-                          DataCell(Text(DateFormat('yyyy-MM-dd').format(appt.date))),
-                          DataCell(Text(appt.purpose)),
-                          DataCell(Text(appt.status)),
-                          DataCell(
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showEditAppointmentDialog(appt),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deleteAppointment(appt.id),
-                                ),
-                              ],
-                            ),
+                columns: const [
+                  DataColumn(label: Text('ID')),
+                  DataColumn(label: Text('Patient Name')),
+                  DataColumn(label: Text('Doctor Name')),
+                  DataColumn(label: Text('Date')),
+                  DataColumn(label: Text('Purpose')),
+                  DataColumn(label: Text('Status')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: filtered.map((appt) {
+                  return DataRow(cells: [
+                    DataCell(Text(appt.id)),
+                    DataCell(Text(appt.patientName)),
+                    DataCell(Text(appt.doctorName)),
+                    DataCell(Text(DateFormat('yyyy-MM-dd').format(appt.date))),
+                    DataCell(Text(appt.purpose)),
+                    DataCell(Text(appt.status)),
+                    DataCell(
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _showEditAppointmentDialog(appt),
                           ),
-                        ]);
-                      }).toList(),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteAppointment(appt.id),
+                          ),
+                        ],
+                      ),
                     ),
+                  ]);
+                }).toList(),
+              ),
             ),
           ],
         ),

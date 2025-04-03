@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../providers/data_provider.dart';
 import '../../../models/device.dart';
 import '../../../models/patient.dart';
-import '../../../models/doctor.dart';
 import '../../../shared/components/loading_indicator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 

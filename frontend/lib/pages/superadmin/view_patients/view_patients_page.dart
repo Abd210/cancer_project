@@ -3,13 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-// Models & Providers
 import 'package:frontend/models/patient_data.dart';
 import 'package:frontend/providers/patient_provider.dart';
 import 'package:frontend/models/hospital_data.dart';
-import 'package:frontend/models/doctor_data.dart'; // If you need to link doctors
+import 'package:frontend/models/doctor_data.dart';
 
-// Shared components
 import '../../../shared/components/loading_indicator.dart';
 import '../../../shared/components/responsive_data_table.dart'
     show BetterDataTable;
@@ -27,29 +25,23 @@ class _PatientsPageState extends State<PatientsPage> {
 
   bool _isLoading = false;
   String _searchQuery = '';
-  String _filter = 'unsuspended'; // "unsuspended", "suspended", "all"
+  String _filter = 'unsuspended';
 
   List<PatientData> _patientList = [];
-
-  // If you want hospital data or doctor data:
-  // List<HospitalData> _hospitalList = [];
-  // List<DoctorData> _doctorList = [];
 
   @override
   void initState() {
     super.initState();
     _fetchPatients();
-    // _fetchHospitals() or _fetchDoctors() if needed
   }
 
   Future<void> _fetchPatients() async {
     setState(() => _isLoading = true);
     try {
-      // If you want all patients => patientId = ''
       final patients = await _patientProvider.getPatients(
         token: widget.token,
-        patientId: '', // empty => get all
-        filter: _filter, // if your backend supports it
+        patientId: '',
+        filter: _filter,
       );
       setState(() => _patientList = patients);
     } catch (e) {
@@ -60,20 +52,18 @@ class _PatientsPageState extends State<PatientsPage> {
     }
   }
 
-  /// Show “Add Patient” dialog => calls createPatient
   void _showAddPatientDialog() {
     final formKey = GlobalKey<FormState>();
 
-    // All fields needed to match your POST body
     String persId = '';
     String name = '';
     String password = '';
     String mobileNumber = '';
     String email = '';
-    String status = 'recovering'; // e.g. "recovering" / "recovered" / etc
+    String status = 'recovering';
     String diagnosis = '';
     String birthDate = '';
-    String medicalHistoryRaw = ''; // parse as list
+    String medicalHistoryRaw = '';
     String hospitalId = '';
     bool isSuspended = false;
 
@@ -87,37 +77,43 @@ class _PatientsPageState extends State<PatientsPage> {
             child: Column(
               children: [
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'pers_id'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter pers_id' : null,
+                  decoration: const InputDecoration(labelText: 'persId'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter persId' : null,
                   onSaved: (val) => persId = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter name' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter name' : null,
                   onSaved: (val) => name = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Password'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter password' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter password' : null,
                   onSaved: (val) => password = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter mobile number' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter mobile number' : null,
                   onSaved: (val) => mobileNumber = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter email' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter email' : null,
                   onSaved: (val) => email = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Status (e.g. recovered)'),
+                  decoration:
+                  const InputDecoration(labelText: 'Status (e.g. recovered)'),
                   onSaved: (val) => status = val?.trim() ?? '',
                 ),
                 const SizedBox(height: 10),
@@ -127,24 +123,24 @@ class _PatientsPageState extends State<PatientsPage> {
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Birth Date (YYYY-MM-DD)'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter birth date' : null,
+                  decoration:
+                  const InputDecoration(labelText: 'Birth Date (YYYY-MM-DD)'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter birth date' : null,
                   onSaved: (val) => birthDate = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Medical History (comma-separated)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Medical History (comma-separated)'),
                   onSaved: (val) => medicalHistoryRaw = val?.trim() ?? '',
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Hospital ID'),
-                  // or a dropdown if you fetch real hospitals
                   onSaved: (val) => hospitalId = val?.trim() ?? '',
                 ),
                 const SizedBox(height: 10),
-
-                // Suspended
                 Row(
                   children: [
                     const Text('Suspended?'),
@@ -191,8 +187,6 @@ class _PatientsPageState extends State<PatientsPage> {
                     hospitalId: hospitalId,
                     suspended: isSuspended,
                   );
-                  // If the backend only returns { "message": "Registration successful" },
-                  // we won't parse a new object. We'll re-fetch:
                   await _fetchPatients();
 
                   Fluttertoast.showToast(msg: 'Patient added successfully.');
@@ -210,11 +204,9 @@ class _PatientsPageState extends State<PatientsPage> {
     );
   }
 
-  /// (Optional) Show “Edit Patient” => calls updatePatient
   void _showEditPatientDialog(PatientData patient) {
     final formKey = GlobalKey<FormState>();
 
-    // Pre-populate
     String persId = patient.persId;
     String name = patient.name;
     String password = patient.password;
@@ -238,15 +230,17 @@ class _PatientsPageState extends State<PatientsPage> {
               children: [
                 TextFormField(
                   initialValue: persId,
-                  decoration: const InputDecoration(labelText: 'pers_id'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter pers_id' : null,
+                  decoration: const InputDecoration(labelText: 'persId'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter persId' : null,
                   onSaved: (val) => persId = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: name,
                   decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter name' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter name' : null,
                   onSaved: (val) => name = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -258,15 +252,18 @@ class _PatientsPageState extends State<PatientsPage> {
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: mobileNumber,
-                  decoration: const InputDecoration(labelText: 'Mobile Number'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter mobile number' : null,
+                  decoration:
+                  const InputDecoration(labelText: 'Mobile Number'),
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter mobile number' : null,
                   onSaved: (val) => mobileNumber = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: email,
                   decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter email' : null,
+                  validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter email' : null,
                   onSaved: (val) => email = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -290,8 +287,8 @@ class _PatientsPageState extends State<PatientsPage> {
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: medHistory.join(', '),
-                  decoration:
-                      const InputDecoration(labelText: 'Medical History (comma-separated)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Medical History (comma-separated)'),
                   onSaved: (val) {
                     final raw = val ?? '';
                     medHistory = raw
@@ -335,25 +332,24 @@ class _PatientsPageState extends State<PatientsPage> {
                 setState(() => _isLoading = true);
                 try {
                   final updatedFields = {
-                    "pers_id": persId,
+                    "persId": persId,
                     "name": name,
                     "password": password,
-                    "mobile_number": mobileNumber,
+                    "mobileNumber": mobileNumber,
                     "email": email,
                     "status": status,
                     "diagnosis": diagnosis,
-                    "birth_date": birthDate,
+                    "birthDate": birthDate,
                     "medicalHistory": medHistory,
-                    "hospital_id": hospitalId,
+                    "hospital": hospitalId,
                     "suspended": isSuspended,
                   };
 
                   await _patientProvider.updatePatient(
                     token: widget.token,
-                    patientId: patient.id, // your backend expects 'patientid' in headers
+                    patientId: patient.id,
                     updatedFields: updatedFields,
                   );
-
                   await _fetchPatients();
                   Fluttertoast.showToast(msg: 'Patient updated successfully.');
                 } catch (e) {
@@ -370,7 +366,6 @@ class _PatientsPageState extends State<PatientsPage> {
     );
   }
 
-  /// DELETE
   void _deletePatient(String patientId) {
     showDialog(
       context: context,
@@ -382,7 +377,6 @@ class _PatientsPageState extends State<PatientsPage> {
             onPressed: () async {
               Navigator.pop(ctx);
               setState(() => _isLoading = true);
-
               try {
                 await _patientProvider.deletePatient(
                   token: widget.token,
@@ -413,7 +407,6 @@ class _PatientsPageState extends State<PatientsPage> {
       return const LoadingIndicator();
     }
 
-    // Filter patients by _searchQuery
     final filteredPatients = _patientList.where((p) {
       final q = _searchQuery.toLowerCase();
       return p.name.toLowerCase().contains(q) ||
@@ -427,7 +420,6 @@ class _PatientsPageState extends State<PatientsPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            /// 1) Row with filter (suspended/unsuspended), search, Add, Refresh
             Row(
               children: [
                 Container(
@@ -463,7 +455,6 @@ class _PatientsPageState extends State<PatientsPage> {
                     ],
                   ),
                 ),
-                // Search
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
@@ -477,16 +468,12 @@ class _PatientsPageState extends State<PatientsPage> {
                   ),
                 ),
                 const SizedBox(width: 10),
-
-                // Add Patient
                 ElevatedButton.icon(
                   onPressed: _showAddPatientDialog,
                   icon: const Icon(Icons.add),
                   label: const Text('Add Patient'),
                 ),
                 const SizedBox(width: 10),
-
-                // Refresh
                 ElevatedButton.icon(
                   onPressed: _fetchPatients,
                   icon: const Icon(Icons.refresh),
@@ -495,55 +482,50 @@ class _PatientsPageState extends State<PatientsPage> {
               ],
             ),
             const SizedBox(height: 20),
-
-            /// 2) Patient List
             Expanded(
               child: filteredPatients.isEmpty
                   ? const Center(child: Text('No patients found.'))
                   : ListView.builder(
-                      itemCount: filteredPatients.length,
-                      itemBuilder: (ctx, i) {
-                        final patient = filteredPatients[i];
-                        return Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(12),
-                            title: Text(
-                              patient.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'pers_id: ${patient.persId}\n'
-                              'email: ${patient.email}\n'
-                              'diagnosis: ${patient.diagnosis}\n'
-                              'status: ${patient.status}\n'
-                              'suspended: ${patient.suspended}\n'
-                              'hospital: ${patient.hospitalId}',
-                            ),
-                            isThreeLine: false,
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Edit
-                                IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showEditPatientDialog(patient),
-                                ),
-                                // Delete
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deletePatient(patient.id),
-                                ),
-                              ],
-                            ),
+                itemCount: filteredPatients.length,
+                itemBuilder: (ctx, i) {
+                  final patient = filteredPatients[i];
+                  return Card(
+                    elevation: 2,
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(12),
+                      title: Text(
+                        patient.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'persId: ${patient.persId}\n'
+                            'Email: ${patient.email}\n'
+                            'Diagnosis: ${patient.diagnosis}\n'
+                            'Status: ${patient.status}\n'
+                            'Suspended: ${patient.suspended}\n'
+                            'Hospital: ${patient.hospitalId}',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _showEditPatientDialog(patient),
                           ),
-                        );
-                      },
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deletePatient(patient.id),
+                          ),
+                        ],
+                      ),
                     ),
+                  );
+                },
+              ),
             ),
           ],
         ),

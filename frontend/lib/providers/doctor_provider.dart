@@ -4,15 +4,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:frontend/models/doctor_data.dart';
-import 'package:frontend/utils/static.dart'; // for ClassUtil
+import 'package:frontend/utils/static.dart';
 
 class DoctorProvider {
-  /// -------------------------------------------------------------
-  ///  GET /api/doctor/data
-  ///     - Pass "doctorid" in headers to get a single doc.
-  ///     - Pass "filter" to filter by suspended/unsuspended.
-  ///     - Returns a List<DoctorData>.
-  /// -------------------------------------------------------------
   Future<List<DoctorData>> getDoctors({
     required String token,
     String? doctorId,
@@ -35,7 +29,6 @@ class DoctorProvider {
       if (decoded is List) {
         return decoded.map<DoctorData>((json) => DoctorData.fromJson(json)).toList();
       } else if (decoded is Map<String, dynamic>) {
-        // If backend returns a single object, wrap in a list
         return [DoctorData.fromJson(decoded)];
       } else {
         throw Exception('Unexpected response: $decoded');
@@ -47,23 +40,6 @@ class DoctorProvider {
     }
   }
 
-  /// -------------------------------------------------------------
-  ///  POST /api/auth/register (role=doctor)
-  ///     - EXACT JSON that worked in Postman:
-  ///       {
-  ///         "pers_id": "8754829",
-  ///         "name": "Dr. Bloom",
-  ///         "role": "doctor",
-  ///         "password": "123",
-  ///         "email": "drbloom@example.com",
-  ///         "mobile_number": "4111563",
-  ///         "birth_date": "1981-02-12",
-  ///         "licenses": ["License L", "License E"],
-  ///         "description": "I'm a doctor",
-  ///         "hospital": "67927d17052d0fd308cf0584",
-  ///         "suspended": true
-  ///       }
-  /// -------------------------------------------------------------
   Future<DoctorData> createDoctor({
     required String token,
     required String persId,
@@ -80,15 +56,14 @@ class DoctorProvider {
     final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.registerRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
-    // EXACT structure from Postman
     final body = {
-      "pers_id": persId,
+      "persId": persId,
       "name": name,
       "role": "doctor",
       "password": password,
       "email": email,
-      "mobile_number": mobileNumber,
-      "birth_date": birthDate,
+      "mobileNumber": mobileNumber,
+      "birthDate": birthDate,
       "licenses": licenses,
       "description": description,
       "hospital": hospitalId,
@@ -101,8 +76,6 @@ class DoctorProvider {
       body: jsonEncode(body),
     );
 
-    // If the backend only returns { "message": "Registration successful" },
-    // we won't have the doc data. But let's assume it returns the newly created doc.
     if (response.statusCode == 200 || response.statusCode == 201) {
       final decoded = json.decode(response.body);
       return DoctorData.fromJson(decoded);
@@ -113,11 +86,6 @@ class DoctorProvider {
     }
   }
 
-  /// -------------------------------------------------------------
-  ///  PUT /api/doctor/data/update
-  ///     - Must include "doctorid" in headers
-  ///     - Updated fields in body (JSON)
-  /// -------------------------------------------------------------
   Future<DoctorData> updateDoctor({
     required String token,
     required String doctorId,
@@ -144,10 +112,6 @@ class DoctorProvider {
     }
   }
 
-  /// -------------------------------------------------------------
-  ///  DELETE /api/doctor/delete
-  ///     - Must include "doctorid" in headers
-  /// -------------------------------------------------------------
   Future<void> deleteDoctor({
     required String token,
     required String doctorId,
