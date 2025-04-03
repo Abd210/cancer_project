@@ -150,6 +150,16 @@ class PatientController {
         });
       }
 
+      // Check if the user is authorized to update the test data when its suspended
+      if (user.role !== "superadmin") {
+        const patient = await PatientService.findPatient(patientid, null, null);
+        if (patient.suspended) {
+          return res.status(403).json({
+            error: "PatientController-update patient: Unauthorized",
+          });
+        }
+      }
+
       // Validate if updateFields are provided
       if (!updateFields || Object.keys(updateFields).length === 0) {
         return res.status(400).json({

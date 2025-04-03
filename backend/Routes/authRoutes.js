@@ -2,7 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const AuthController = require("../Controllers/redirectAuthController");
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize, identifyUserRole } = require("../middlewares/roleAuth");
 
 /**
  * Route: POST /auth/register
@@ -47,10 +48,10 @@ const { authenticate, authorize } = require("../middlewares/jwtAuth");
  *   - Internal Server Error (500): If any unexpected server error occurs.
  */
 router.post(
-    "/register", 
-    authenticate,
-    authorize("superadmin"),
-    AuthController.register
+  "/register",
+  authenticate,
+  authorize("superadmin"),
+  AuthController.register
 );
 
 /**
@@ -73,8 +74,7 @@ router.post(
  *   - Forbidden (403): If the user role is not allowed.
  *   - Internal Server Error (500): If any unexpected error occurs during login.
  */
-router.post("/login", AuthController.login);
-
+router.post("/login", identifyUserRole, AuthController.login);
 
 router.post("/forgot-password", AuthController.forgotPassword);
 router.put("/reset-password", AuthController.resetPassword);

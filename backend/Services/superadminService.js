@@ -4,28 +4,58 @@ const bcrypt = require("bcrypt");
 
 class SuperAdminService {
   /**
-   * Finds a superadmin by their Firestore document ID.
-   * @param {string} superAdminId - The Firestore document ID of the superadmin.
-   * @returns {Object} The found superadmin data.
-   * @throws Throws an error if the superadmin is not found or the ID is invalid.
+   * Finds an admin by their Firestore document ID.
+   * @param {string} superAdminId - The Firestore document ID of the admin.
+   * @param {string} email - The email of the admin.
+   * @param {string} mobileNumber - The mobile number of the admin
+   * @returns {Object} The found admin data.
+   * @throws Throws an error if the admin is not found or the ID is invalid.
    */
-  static async findSuperAdmin(superAdminId) {
-    if (!superAdminId) {
+  static async findSuperAdmin(superAdminId, email, mobileNumber) {
+    if (!superAdminId && !email && !mobileNumber) {
       throw new Error(
-        "superAdminService-findSuperAdmin: Invalid superadmin id"
+        "superAdminService-findSuperAdmin: Invalid input parameters"
       );
     }
 
-    const superAdminDoc = await db
-      .collection("superadmins")
-      .doc(superAdminId)
-      .get();
+    let superAdminDoc;
 
-    if (!superAdminDoc.exists) {
-      throw new Error("superAdminService-findSuperAdmin: Superadmin not found");
+    if (superAdminId) {
+      superAdminDoc = await db
+        .collection("superadmins")
+        .doc(superAdminId)
+        .get();
+      if (!superAdminDoc.exists) {
+        throw new Error(
+          "superAdminService-findSuperAdmin: Invalid SuperAdmin Id"
+        );
+      }
+      return superAdminDoc.data();
+    } else {
+      let querySnapshot;
+
+      if (email) {
+        querySnapshot = await db
+          .collection("superadmins")
+          .where("email", "==", email)
+          .get();
+      } else if (mobileNumber) {
+        querySnapshot = await db
+          .collection("superadmins")
+          .where("mobileNumber", "==", mobileNumber)
+          .get();
+      }
+
+      if (querySnapshot.empty) {
+        throw new Error(
+          "superAdminService-findSuperAdmin: Invalid Email or Mobile Number"
+        );
+      }
+
+      let superAdminData = querySnapshot.docs[0].data();
+
+      return superAdminData;
     }
-
-    return { id: superAdminDoc.id, ...superAdminDoc.data() };
   }
 
   /**

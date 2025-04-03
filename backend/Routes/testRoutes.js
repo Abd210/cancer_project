@@ -2,8 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const TestController = require("../Controllers/Objects Controllers/testController");
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
-
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize } = require("../middlewares/roleAuth");
 /**
  * Route: GET /test/details
  * Description: Retrieves the details of a specific test in the system. This route is accessible to users with roles such as patient, doctor, admin, and superadmin.
@@ -27,7 +27,7 @@ router.get(
   authenticate,
   authorize(["patient", "doctor", "admin", "superadmin"]),
   TestController.getTestDetails
-)
+);
 
 /**
  * Route: POST /test/new
@@ -62,11 +62,10 @@ router.delete(
   TestController.deleteTest
 );
 
-
 router.put(
   "/test/update",
   authenticate, // Middleware to authenticate the user
-  authorize("superadmin"), // Middleware to allow only superadmins
+  authorize(["admin", "superadmin"]), // Middleware to allow only superadmins
   TestController.updateTestData // Controller function
 );
 

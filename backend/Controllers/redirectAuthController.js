@@ -9,7 +9,7 @@ const AuthService = require("../Services/authService");
  * RedirectAuthController handles the routing of authentication-related requests to the
  * appropriate role-specific controllers. It includes methods for registering, logging in,
  * resetting passwords, and handling forgotten passwords.
- * 
+ *
  * The controller ensures that requests are directed to the correct controller based on the role
  * provided in the request body. The role-specific controllers handle the actual logic for registration,
  * login, and password management.
@@ -18,10 +18,10 @@ class RedirectAuthController {
   /**
    * Registers a user by redirecting the request to the appropriate role-specific controller.
    * The role is determined from the request body, and the corresponding controller's register method is called.
-   * 
+   *
    * @param {Object} req - The Express request object containing the registration details.
    * @param {Object} res - The Express response object used to send the result or error message.
-   * 
+   *
    * @returns {Object} A JSON response with either the result of the registration or an error message.
    */
   static async register(req, res) {
@@ -57,16 +57,16 @@ class RedirectAuthController {
   /**
    * Logs in a user by redirecting the request to the appropriate role-specific controller.
    * The role is determined from the request body, and the corresponding controller's login method is called.
-   * 
+   *
    * @param {Object} req - The Express request object containing the login credentials.
    * @param {Object} res - The Express response object used to send the result or error message.
-   * 
+   *
    * @returns {Object} A JSON response with either the result of the login or an error message.
    */
   static async login(req, res) {
-    const { role } = req.body;
+    const { role } = req.headers;
 
-    // Check if the role is provided in the request body
+    // Check if the role is provided in the request headers
     if (!role) {
       return res.status(400).json({
         error:
@@ -97,10 +97,10 @@ class RedirectAuthController {
   /**
    * Handles the forgotten password scenario by sending a password reset email.
    * The request is routed based on the provided role, and the corresponding service is called.
-   * 
+   *
    * @param {Object} req - The Express request object containing the role, email, and/or mobile number.
    * @param {Object} res - The Express response object used to send the result or error message.
-   * 
+   *
    * @returns {Object} A JSON response with either the result of the password reset process or an error message.
    */
   static async forgotPassword(req, res) {
@@ -127,10 +127,10 @@ class RedirectAuthController {
   /**
    * Resets a user's password using the provided token and new password.
    * The request is routed based on the role, and the corresponding service is called to handle the reset process.
-   * 
+   *
    * @param {Object} req - The Express request object containing the role, email, new password, and token.
    * @param {Object} res - The Express response object used to send the result or error message.
-   * 
+   *
    * @returns {Object} A JSON response with either the result of the password reset or an error message.
    */
   static async resetPassword(req, res) {

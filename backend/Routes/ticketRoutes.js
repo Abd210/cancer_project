@@ -4,8 +4,8 @@ const router = express.Router();
 const ticketController = require("../Controllers/Objects Controllers/ticketController");
 const ticketService = require("../Services/ticketService");
 
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
-
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize } = require("../middlewares/roleAuth");
 router.post(
   "/ticket/new",
   authenticate,

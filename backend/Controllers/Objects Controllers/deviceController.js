@@ -22,6 +22,16 @@ class DeviceController {
         return res.status(400).json({ error: "Device ID is required" });
       }
 
+      // Check if the user is authorized to update the device when its suspended
+      if (user.role !== "superadmin") {
+        const device = await DeviceService.findDevice(deviceId);
+        if (device.suspended) {
+          return res.status(403).json({
+            error: "DeviceController-update device: Unauthorized",
+          });
+        }
+      }
+
       const updatedDevice = await DeviceService.updateDevice(
         deviceId,
         updateFields

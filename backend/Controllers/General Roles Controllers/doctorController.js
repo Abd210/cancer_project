@@ -122,11 +122,14 @@ class DoctorController {
       // Destructure the fields to update from the request body
       const updateFields = req.body;
 
-      // Check if the role is superadmin
+      // Check if the user is authorized to update the test data when its suspended
       if (user.role !== "superadmin") {
-        return res.status(403).json({
-          error: "DoctorController- Update Doctor Data: Access denied",
-        });
+        const doctor = await DoctorService.findDoctor(doctorid, null, null);
+        if (doctor.suspended) {
+          return res.status(403).json({
+            error: "DoctorController-update doctor: Unauthorized",
+          });
+        }
       }
 
       // Validate if doctorId is provided

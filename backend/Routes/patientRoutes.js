@@ -2,8 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const patientController = require("../Controllers/General Roles Controllers/patientController");
-const { authenticate, authorize } = require("../middlewares/jwtAuth");
-
+const { authenticate } = require("../middlewares/jwtAuth");
+const { authorize } = require("../middlewares/roleAuth");
 /**
  * Route: GET /patient/personal-data
  * Description: Fetches the personal data of a specific patient. This route is accessible to users with specific roles, including patients, doctors, admins, and superadmins.
@@ -51,12 +51,11 @@ router.get(
   patientController.getDiagnosis
 );
 
-
 // Route to update patient data (Superadmin access only)
 router.put(
   "/patient/personal-data/update", // Endpoint
   authenticate, // Middleware to ensure the user is authenticated
-  authorize("superadmin"), // Middleware to ensure only superadmins can access this
+  authorize(["admin", "superadmin"]), // Middleware to ensure only superadmins can access this
   patientController.updatePatientData // Controller function to handle the request
 );
 
@@ -66,6 +65,5 @@ router.delete(
   authorize("superadmin"), // Middleware to allow only superadmins
   patientController.deletePatientData // Controller function
 );
-
 
 module.exports = router;

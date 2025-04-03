@@ -23,6 +23,44 @@ class PatientService {
     return { diagnosis: patient.diagnosis || "Not Diagnosed" };
   }
 
+  static async findPatient(patientId, email, mobileNumber) {
+    if (!patientId && !email && !mobileNumber) {
+      throw new Error("patientService-findPatient: Invalid input parameters");
+    }
+
+    let patientDoc;
+
+    if (patientId) {
+      patientDoc = await db.collection("patients").doc(patientId).get();
+      if (!patientDoc.exists) {
+        throw new Error("patientService-findPatient: Invalid Patient Id");
+      }
+      return patientDoc.data();
+    } else {
+      let querySnapshot;
+
+      if (email) {
+        querySnapshot = await db
+          .collection("patients")
+          .where("email", "==", email)
+          .get();
+      } else if (mobileNumber) {
+        querySnapshot = await db
+          .collection("patients")
+          .where("mobileNumber", "==", mobileNumber)
+          .get();
+      }
+
+      if (querySnapshot.empty) {
+        throw new Error(
+          "patientService-findPatient: Invalid Email or Mobile Number"
+        );
+      }
+
+      return querySnapshot.docs[0].data();
+    }
+  }
+
   /**
    * Fetch all patients from Firestore.
    */
@@ -76,6 +114,8 @@ class PatientService {
 
     if (!patientDoc.exists) throw new Error("Patient not found");
 
+    const currentPatientData = patientDoc.data(); // Get current patient data
+
     if (updateFields.id) delete updateFields.id;
     if (updateFields.role) throw new Error("Cannot change role");
 
@@ -99,7 +139,40 @@ class PatientService {
       throw new Error("Only superadmins can suspend patients");
     }
 
-    await patientRef.update(updateFields);
+    if (
+      updateFields.doctor &&
+      updateFields.doctor !== currentPatientData.doctor
+    ) {
+      const previousDoctorId = currentPatientData.doctor;
+      const newDoctorId = updateFields.doctor;
+
+      await db.runTransaction(async (transaction) => {
+        // Read all necessary data first
+        let prevDoctorRef, newDoctorRef;
+        if (previousDoctorId)
+          prevDoctorRef = db.collection("doctors").doc(previousDoctorId);
+        if (newDoctorId)
+          newDoctorRef = db.collection("doctors").doc(newDoctorId);
+
+        if (previousDoctorId) {
+          transaction.update(prevDoctorRef, {
+            patients: admin.firestore.FieldValue.arrayRemove(patientId),
+          });
+        }
+
+        if (newDoctorId) {
+          transaction.update(newDoctorRef, {
+            patients: admin.firestore.FieldValue.arrayUnion(patientId),
+          });
+        }
+
+        // Update the patient's document
+        transaction.update(patientRef, updateFields);
+      });
+    } else {
+      // If the doctor field is NOT being updated, update the patient normally
+      await patientRef.update(updateFields);
+    }
     const updatedPatient = await patientRef.get();
     return { id: updatedPatient.id, ...updatedPatient.data() };
   }
@@ -116,6 +189,17 @@ class PatientService {
 
     // Start Firestore batch operation
     const batch = db.batch();
+
+    const patientData = patientDoc.data();
+        const doctorId = patientData?.doctor; // Safely get doctor ID
+
+    // 🔹 Remove patient from doctor's patients array before deletion
+    if (doctorId && typeof doctorId === "string" && doctorId.trim() !== "") {
+      const doctorRef = db.collection("doctors").doc(doctorId);
+      batch.update(doctorRef, {
+          patients: admin.firestore.FieldValue.arrayRemove(patientId),
+      });
+    }
 
     // 🔹 Delete all appointments and tests where "patient" field matches patientId
     const deleteAppointmentsAndTests = async (collection) => {
@@ -135,7 +219,7 @@ class PatientService {
     // Commit batch
     await batch.commit();
 
-    return;
+    return { message: "Patient deleted successfully" };
   }
 }
 

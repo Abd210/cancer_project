@@ -4,22 +4,48 @@ const db = admin.firestore();
 class AdminService {
   /**
    * Finds an admin by their Firestore document ID.
-   * @param {string} admin_id - The Firestore document ID of the admin.
+   * @param {string} adminId - The Firestore document ID of the admin.
+   * @param {string} email - The email of the admin.
+   * @param {string} mobileNumber - The mobile number of the admin
    * @returns {Object} The found admin data.
    * @throws Throws an error if the admin is not found or the ID is invalid.
    */
-  static async findAdmin(admin_id) {
-    if (!admin_id) {
-      throw new Error("adminService-findAdmin: Invalid admin id");
+  static async findAdmin(adminId, email, mobileNumber) {
+    if (!adminId && !email && !mobileNumber) {
+      throw new Error("adminService-findAdmin: Invalid input parameters");
     }
 
-    const adminDoc = await db.collection("admins").doc(admin_id).get();
+    let adminDoc;
 
-    if (!adminDoc.exists) {
-      throw new Error("adminService-findAdmin: Admin not found");
+    if (adminId) {
+      adminDoc = await db.collection("admins").doc(adminId).get();
+      if (!adminDoc.exists) {
+        throw new Error("adminService-findAdmin: Invalid Admin Id");
+      }
+      return adminDoc.data();
+    } else {
+      let querySnapshot;
+
+      if (email) {
+        querySnapshot = await db
+          .collection("admins")
+          .where("email", "==", email)
+          .get();
+      } else if (mobileNumber) {
+        querySnapshot = await db
+          .collection("admins")
+          .where("mobileNumber", "==", mobileNumber)
+          .get();
+      }
+
+      if (querySnapshot.empty) {
+        throw new Error(
+          "adminService-findAdmin: Invalid Email or Mobile Number"
+        );
+      }
+
+      return querySnapshot.docs[0].data();
     }
-
-    return { id: adminDoc.id, ...adminDoc.data() };
   }
 
   /**
