@@ -4,14 +4,21 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:frontend/utils/static.dart';
 import 'package:frontend/models/patient_data.dart';
+import 'package:flutter/foundation.dart';
 
 class PatientProvider {
+  /// -------------------------------------------------
+  /// GET /api/patient/personal-data
+  ///    - If we pass "patientid" in headers, we get 1
+  ///    - If we pass "filter" or none, we can get multiple
+  /// -------------------------------------------------
   Future<List<PatientData>> getPatients({
     required String token,
     String? patientId,
     String? filter,
   }) async {
-    final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.patientPersonalDataRoute}');
+    final url =
+        Uri.parse('${ClassUtil.baseUrl}${ClassUtil.patientPersonalDataRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
     if (patientId != null && patientId.isNotEmpty) {
@@ -24,13 +31,24 @@ class PatientProvider {
     final response = await http.get(url, headers: headers);
 
     if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded is List) {
-        return decoded.map<PatientData>((json) => PatientData.fromJson(json)).toList();
-      } else if (decoded is Map<String, dynamic>) {
-        return [PatientData.fromJson(decoded)];
-      } else {
-        throw Exception('Unexpected patient data format: $decoded');
+      try {
+        final decoded = json.decode(response.body);
+
+        if (decoded is List) {
+          return decoded.map<PatientData>((json) {
+            try {
+              return PatientData.fromJson(json);
+            } catch (e) {
+              rethrow;
+            }
+          }).toList();
+        } else if (decoded is Map<String, dynamic>) {
+          return [PatientData.fromJson(decoded)];
+        } else {
+          throw Exception('Unexpected patient data format: $decoded');
+        }
+      } catch (e) {
+        throw Exception('Failed to process patient data: $e');
       }
     } else {
       throw Exception(
@@ -39,6 +57,10 @@ class PatientProvider {
     }
   }
 
+  /// -------------------------------------------------
+  /// POST => /api/auth/register (role=patient)
+  /// The request body is now built using camelCase keys.
+  /// -------------------------------------------------
   Future<void> createPatient({
     required String token,
     required String persId,
@@ -71,7 +93,8 @@ class PatientProvider {
       "suspended": suspended,
     };
 
-    final response = await http.post(url, headers: headers, body: jsonEncode(body));
+    final response =
+        await http.post(url, headers: headers, body: jsonEncode(body));
     if (response.statusCode == 200 || response.statusCode == 201) {
       return;
     } else {
@@ -81,17 +104,24 @@ class PatientProvider {
     }
   }
 
+  /// -------------------------------------------------
+  /// PUT => /api/patient/personal-data/update
+  ///    - Must pass "patientid" in headers
+  ///    - Updated fields in JSON using camelCase keys.
+  /// -------------------------------------------------
   Future<PatientData> updatePatient({
     required String token,
     required String patientId,
     required Map<String, dynamic> updatedFields,
   }) async {
-    final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.patientPersonalDataUpdateRoute}');
+    final url = Uri.parse(
+        '${ClassUtil.baseUrl}${ClassUtil.patientPersonalDataUpdateRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
     headers['patientid'] = patientId;
 
-    final response = await http.put(url, headers: headers, body: jsonEncode(updatedFields));
+    final response =
+        await http.put(url, headers: headers, body: jsonEncode(updatedFields));
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
       return PatientData.fromJson(decoded);
@@ -102,17 +132,22 @@ class PatientProvider {
     }
   }
 
+  /// -------------------------------------------------
+  /// DELETE => /api/patient/delete
+  ///    - Must pass "patientid" in headers
+  /// -------------------------------------------------
   Future<void> deletePatient({
     required String token,
     required String patientId,
   }) async {
-    final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.patientDeleteRoute}');
+    final url =
+        Uri.parse('${ClassUtil.baseUrl}${ClassUtil.patientDeleteRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
     headers['patientid'] = patientId;
 
     final response = await http.delete(url, headers: headers);
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception(
         'Failed to delete patient (${response.statusCode}): ${response.body}',
       );

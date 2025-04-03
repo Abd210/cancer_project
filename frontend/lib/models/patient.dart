@@ -1,4 +1,3 @@
-// lib/models/patient.dart
 class Patient {
   final String id;
   String name;

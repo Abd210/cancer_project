@@ -1,27 +1,12 @@
-// lib/models/appointment_data.dart
-
-/// Because your API returns something like:
-/// {
-///   "_id": "...",
-///   "patient": { "_id": "...", "name": "...", "email": "..." },
-///   "doctor": { "_id": "...", "name": "...", "email": "..." },
-///   "appointment_date": "2025-04-10T00:00:00.000Z",
-///   "purpose": "Example",
-///   "status": "scheduled",
-///   "suspended": false,
-///   ...
-/// }
-/// we parse those nested objects.
-
 class AppointmentData {
-  final String id;               // maps from "_id"
-  final String patientId;        // from "patient._id"
-  final String patientName;      // from "patient.name"
-  final String patientEmail;     // from "patient.email"
-  final String doctorId;         // from "doctor._id"
-  final String doctorName;       // from "doctor.name"
-  final String doctorEmail;      // from "doctor.email"
-  final DateTime date;           // parse from "appointment_date"
+  final String id;               // maps from "id" (or "_id" if provided)
+  final String patientId;        // from patient.id
+  final String patientName;      // from patient.name
+  final String patientEmail;     // from patient.email
+  final String doctorId;         // from doctor.id
+  final String doctorName;       // from doctor.name
+  final String doctorEmail;      // from doctor.email
+  final DateTime date;           // parse from "appointmentDate"
   final String purpose;          // "purpose"
   final String status;           // "status"
   final bool suspended;          // "suspended"
@@ -41,14 +26,13 @@ class AppointmentData {
   });
 
   factory AppointmentData.fromJson(Map<String, dynamic> json) {
-    // The server returns "patient" as an object. We safely parse subfields.
     final patientObj = json["patient"] ?? {};
     final doctorObj = json["doctor"] ?? {};
 
-    // parse date from "appointment_date"
+    // Parse using the camelCase key "appointmentDate"
     DateTime parsedDate;
     try {
-      parsedDate = DateTime.parse(json["appointment_date"]);
+      parsedDate = DateTime.parse(json["appointmentDate"]);
     } catch (_) {
       parsedDate = DateTime.now();
     }

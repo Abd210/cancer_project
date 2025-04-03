@@ -45,7 +45,6 @@ class _PatientsPageState extends State<PatientsPage> {
       );
       setState(() => _patientList = patients);
     } catch (e) {
-      debugPrint('Error fetching patients: $e');
       Fluttertoast.showToast(msg: 'Failed to load patients: $e');
     } finally {
       setState(() => _isLoading = false);
@@ -55,6 +54,7 @@ class _PatientsPageState extends State<PatientsPage> {
   void _showAddPatientDialog() {
     final formKey = GlobalKey<FormState>();
 
+    // Fields as expected by your API
     String persId = '';
     String name = '';
     String password = '';
@@ -62,7 +62,7 @@ class _PatientsPageState extends State<PatientsPage> {
     String email = '';
     String status = 'recovering';
     String diagnosis = '';
-    String birthDate = '';
+    DateTime birthDate = DateTime.now();
     String medicalHistoryRaw = '';
     String hospitalId = '';
     bool isSuspended = false;
@@ -79,41 +79,41 @@ class _PatientsPageState extends State<PatientsPage> {
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'persId'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter persId' : null,
+                      val == null || val.isEmpty ? 'Enter persId' : null,
                   onSaved: (val) => persId = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Name'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter name' : null,
+                      val == null || val.isEmpty ? 'Enter name' : null,
                   onSaved: (val) => name = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Password'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter password' : null,
+                      val == null || val.isEmpty ? 'Enter password' : null,
                   onSaved: (val) => password = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter mobile number' : null,
+                      val == null || val.isEmpty ? 'Enter mobile number' : null,
                   onSaved: (val) => mobileNumber = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Email'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter email' : null,
+                      val == null || val.isEmpty ? 'Enter email' : null,
                   onSaved: (val) => email = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
-                  decoration:
-                  const InputDecoration(labelText: 'Status (e.g. recovered)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Status (e.g. recovered)'),
                   onSaved: (val) => status = val?.trim() ?? '',
                 ),
                 const SizedBox(height: 10),
@@ -123,11 +123,19 @@ class _PatientsPageState extends State<PatientsPage> {
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
-                  decoration:
-                  const InputDecoration(labelText: 'Birth Date (YYYY-MM-DD)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Birth Date (YYYY-MM-DD)'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter birth date' : null,
-                  onSaved: (val) => birthDate = val!.trim(),
+                      val == null || val.isEmpty ? 'Enter birth date' : null,
+                  onSaved: (val) {
+                    if (val != null && val.isNotEmpty) {
+                      try {
+                        birthDate = DateTime.parse(val);
+                      } catch (e) {
+                        birthDate = DateTime.now();
+                      }
+                    }
+                  },
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
@@ -165,7 +173,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 formKey.currentState!.save();
                 Navigator.pop(ctx);
 
-                final medHistoryList = medicalHistoryRaw
+                final medicalHistory = medicalHistoryRaw
                     .split(',')
                     .map((s) => s.trim())
                     .where((s) => s.isNotEmpty)
@@ -182,8 +190,8 @@ class _PatientsPageState extends State<PatientsPage> {
                     email: email,
                     status: status,
                     diagnosis: diagnosis,
-                    birthDate: birthDate,
-                    medicalHistory: medHistoryList,
+                    birthDate: birthDate.toIso8601String().split('T')[0],
+                    medicalHistory: medicalHistory,
                     hospitalId: hospitalId,
                     suspended: isSuspended,
                   );
@@ -207,6 +215,7 @@ class _PatientsPageState extends State<PatientsPage> {
   void _showEditPatientDialog(PatientData patient) {
     final formKey = GlobalKey<FormState>();
 
+    // Pre-populate from the PatientData model using camelCase keys
     String persId = patient.persId;
     String name = patient.name;
     String password = patient.password;
@@ -214,7 +223,7 @@ class _PatientsPageState extends State<PatientsPage> {
     String email = patient.email;
     String status = patient.status;
     String diagnosis = patient.diagnosis;
-    String birthDate = patient.birthDate;
+    DateTime birthDate = patient.birthDate;
     List<String> medHistory = patient.medicalHistory;
     String hospitalId = patient.hospitalId;
     bool isSuspended = patient.suspended;
@@ -232,7 +241,7 @@ class _PatientsPageState extends State<PatientsPage> {
                   initialValue: persId,
                   decoration: const InputDecoration(labelText: 'persId'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter persId' : null,
+                      val == null || val.isEmpty ? 'Enter persId' : null,
                   onSaved: (val) => persId = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -240,7 +249,7 @@ class _PatientsPageState extends State<PatientsPage> {
                   initialValue: name,
                   decoration: const InputDecoration(labelText: 'Name'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter name' : null,
+                      val == null || val.isEmpty ? 'Enter name' : null,
                   onSaved: (val) => name = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -252,10 +261,9 @@ class _PatientsPageState extends State<PatientsPage> {
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: mobileNumber,
-                  decoration:
-                  const InputDecoration(labelText: 'Mobile Number'),
+                  decoration: const InputDecoration(labelText: 'Mobile Number'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter mobile number' : null,
+                      val == null || val.isEmpty ? 'Enter mobile number' : null,
                   onSaved: (val) => mobileNumber = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -263,7 +271,7 @@ class _PatientsPageState extends State<PatientsPage> {
                   initialValue: email,
                   decoration: const InputDecoration(labelText: 'Email'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter email' : null,
+                      val == null || val.isEmpty ? 'Enter email' : null,
                   onSaved: (val) => email = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -280,9 +288,18 @@ class _PatientsPageState extends State<PatientsPage> {
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
-                  initialValue: birthDate,
-                  decoration: const InputDecoration(labelText: 'Birth Date'),
-                  onSaved: (val) => birthDate = val?.trim() ?? '',
+                  initialValue: birthDate.toIso8601String().split('T')[0],
+                  decoration: const InputDecoration(
+                      labelText: 'Birth Date (YYYY-MM-DD)'),
+                  onSaved: (val) {
+                    if (val != null && val.isNotEmpty) {
+                      try {
+                        birthDate = DateTime.parse(val);
+                      } catch (e) {
+                        birthDate = DateTime.now();
+                      }
+                    }
+                  },
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
@@ -339,7 +356,7 @@ class _PatientsPageState extends State<PatientsPage> {
                     "email": email,
                     "status": status,
                     "diagnosis": diagnosis,
-                    "birthDate": birthDate,
+                    "birthDate": birthDate.toIso8601String().split('T')[0],
                     "medicalHistory": medHistory,
                     "hospital": hospitalId,
                     "suspended": isSuspended,
@@ -486,46 +503,49 @@ class _PatientsPageState extends State<PatientsPage> {
               child: filteredPatients.isEmpty
                   ? const Center(child: Text('No patients found.'))
                   : ListView.builder(
-                itemCount: filteredPatients.length,
-                itemBuilder: (ctx, i) {
-                  final patient = filteredPatients[i];
-                  return Card(
-                    elevation: 2,
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(12),
-                      title: Text(
-                        patient.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'persId: ${patient.persId}\n'
-                            'Email: ${patient.email}\n'
-                            'Diagnosis: ${patient.diagnosis}\n'
-                            'Status: ${patient.status}\n'
-                            'Suspended: ${patient.suspended}\n'
-                            'Hospital: ${patient.hospitalId}',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => _showEditPatientDialog(patient),
+                      itemCount: filteredPatients.length,
+                      itemBuilder: (context, index) {
+                        final patient = filteredPatients[index];
+                        return Card(
+                          elevation: 2,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(12),
+                            title: Text(
+                              patient.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'persId: ${patient.persId}\n'
+                              'Email: ${patient.email}\n'
+                              'Diagnosis: ${patient.diagnosis}\n'
+                              'Status: ${patient.status}\n'
+                              'Suspended: ${patient.suspended}\n'
+                              'Hospital: ${patient.hospitalId}',
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.blue),
+                                  onPressed: () =>
+                                      _showEditPatientDialog(patient),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
+                                  onPressed: () => _deletePatient(patient.id),
+                                ),
+                              ],
+                            ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deletePatient(patient.id),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

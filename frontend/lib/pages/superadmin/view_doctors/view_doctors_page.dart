@@ -1,7 +1,6 @@
 // lib/pages/superadmin/view_doctors/view_doctors_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:frontend/providers/doctor_provider.dart';
 import 'package:frontend/models/doctor_data.dart';
@@ -43,12 +42,17 @@ class _DoctorsPageState extends State<DoctorsPage> {
         doctorId: '',
         filter: _filter,
       );
-      setState(() => _doctorList = docs);
+      setState(() {
+        _doctorList = docs;
+        _isLoading = false;
+      });
     } catch (e) {
-      debugPrint('Error fetching doctors: $e');
-      Fluttertoast.showToast(msg: 'Failed to load doctors: $e');
-    } finally {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load doctors: $e')),
+        );
+      }
     }
   }
 
@@ -78,36 +82,35 @@ class _DoctorsPageState extends State<DoctorsPage> {
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'persId'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter persId' : null,
+                      val == null || val.isEmpty ? 'Enter persId' : null,
                   onSaved: (val) => persId = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Name'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter name' : null,
+                      val == null || val.isEmpty ? 'Enter name' : null,
                   onSaved: (val) => name = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Password'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter password' : null,
+                      val == null || val.isEmpty ? 'Enter password' : null,
                   onSaved: (val) => password = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Email'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter email' : null,
+                      val == null || val.isEmpty ? 'Enter email' : null,
                   onSaved: (val) => email = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
-                  validator: (val) => val == null || val.isEmpty
-                      ? 'Enter mobile number'
-                      : null,
+                  validator: (val) =>
+                      val == null || val.isEmpty ? 'Enter mobile number' : null,
                   onSaved: (val) => mobileNumber = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -115,7 +118,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   decoration: const InputDecoration(
                       labelText: 'Birth Date (YYYY-MM-DD)'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter birth date' : null,
+                      val == null || val.isEmpty ? 'Enter birth date' : null,
                   onSaved: (val) => birthDate = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -179,9 +182,18 @@ class _DoctorsPageState extends State<DoctorsPage> {
 
                   await _fetchDoctors();
 
-                  Fluttertoast.showToast(msg: 'Doctor added successfully.');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Doctor added successfully.')),
+                    );
+                  }
                 } catch (e) {
-                  Fluttertoast.showToast(msg: 'Failed to add doctor: $e');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to add doctor: $e')),
+                    );
+                  }
                 } finally {
                   setState(() => _isLoading = false);
                 }
@@ -221,7 +233,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   initialValue: persId,
                   decoration: const InputDecoration(labelText: 'persId'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter persId' : null,
+                      val == null || val.isEmpty ? 'Enter persId' : null,
                   onSaved: (val) => persId = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -229,7 +241,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   initialValue: name,
                   decoration: const InputDecoration(labelText: 'Name'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter name' : null,
+                      val == null || val.isEmpty ? 'Enter name' : null,
                   onSaved: (val) => name = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -237,7 +249,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   initialValue: email,
                   decoration: const InputDecoration(labelText: 'Email'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter email' : null,
+                      val == null || val.isEmpty ? 'Enter email' : null,
                   onSaved: (val) => email = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -245,25 +257,24 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   initialValue: password,
                   decoration: const InputDecoration(labelText: 'Password'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter password' : null,
+                      val == null || val.isEmpty ? 'Enter password' : null,
                   onSaved: (val) => password = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: mobileNumber,
-                  decoration:
-                  const InputDecoration(labelText: 'Mobile Number'),
+                  decoration: const InputDecoration(labelText: 'Mobile Number'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter mobile number' : null,
+                      val == null || val.isEmpty ? 'Enter mobile number' : null,
                   onSaved: (val) => mobileNumber = val!.trim(),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   initialValue: birthDate,
-                  decoration:
-                  const InputDecoration(labelText: 'Birth Date (YYYY-MM-DD)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Birth Date (YYYY-MM-DD)'),
                   validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter birth date' : null,
+                      val == null || val.isEmpty ? 'Enter birth date' : null,
                   onSaved: (val) => birthDate = val!.trim(),
                 ),
                 const SizedBox(height: 10),
@@ -332,9 +343,18 @@ class _DoctorsPageState extends State<DoctorsPage> {
                     updatedFields: updatedFields,
                   );
                   await _fetchDoctors();
-                  Fluttertoast.showToast(msg: 'Doctor updated successfully.');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Doctor updated successfully.')),
+                    );
+                  }
                 } catch (e) {
-                  Fluttertoast.showToast(msg: 'Failed to update doctor: $e');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to update doctor: $e')),
+                    );
+                  }
                 } finally {
                   setState(() => _isLoading = false);
                 }
@@ -365,9 +385,18 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   doctorId: doctorId,
                 );
                 await _fetchDoctors();
-                Fluttertoast.showToast(msg: 'Doctor deleted successfully.');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Doctor deleted successfully.')),
+                  );
+                }
               } catch (e) {
-                Fluttertoast.showToast(msg: 'Failed to delete doctor: $e');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete doctor: $e')),
+                  );
+                }
               } finally {
                 setState(() => _isLoading = false);
               }
@@ -386,7 +415,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const LoadingIndicator();
+      return const Center(child: LoadingIndicator());
     }
 
     final filteredDoctors = _doctorList.where((doc) {
@@ -467,52 +496,51 @@ class _DoctorsPageState extends State<DoctorsPage> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: filteredDoctors.isEmpty
+              child: _doctorList.isEmpty
                   ? const Center(child: Text('No doctors found.'))
                   : ListView.builder(
-                itemCount: filteredDoctors.length,
-                itemBuilder: (context, index) {
-                  final doc = filteredDoctors[index];
-                  return Card(
-                    elevation: 3,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      title: Text(
-                        doc.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'persId: ${doc.persId}\n'
-                            'Email: ${doc.email}\n'
-                            'Mobile: ${doc.mobileNumber}\n'
-                            'Birth: ${doc.birthDate}\n'
-                            'Suspended: ${doc.isSuspended}\n'
-                            'Licenses: ${doc.licenses.join(", ")}',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => _showEditDoctorDialog(doc),
+                      itemCount: filteredDoctors.length,
+                      itemBuilder: (context, index) {
+                        final doc = filteredDoctors[index];
+                        return Card(
+                          elevation: 2,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(12),
+                            title: Text(
+                              doc.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'persId: ${doc.persId}\n'
+                              'Email: ${doc.email}\n'
+                              'Mobile: ${doc.mobileNumber}\n'
+                              'Birth: ${doc.birthDate}\n'
+                              'Suspended: ${doc.isSuspended}\n'
+                              'Licenses: ${doc.licenses.join(", ")}',
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.blue),
+                                  onPressed: () => _showEditDoctorDialog(doc),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
+                                  onPressed: () => _deleteDoctor(doc.id),
+                                ),
+                              ],
+                            ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteDoctor(doc.id),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

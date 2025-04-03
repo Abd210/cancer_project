@@ -1,4 +1,3 @@
-// lib/models/appointment.dart
 class Appointment {
   final String id;
   String patientId;
