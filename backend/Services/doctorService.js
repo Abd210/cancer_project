@@ -178,6 +178,20 @@ class DoctorService {
       );
     }
 
+    if (updateFields.schedule) {
+      if (
+        !Array.isArray(updateFields.schedule) ||
+        !updateFields.schedule.every(
+          (s) =>
+            typeof s.day === "string" &&
+            typeof s.start === "string" &&
+            typeof s.end === "string"
+        )
+      ) {
+        throw new Error("updateDoctor: schedule must be an array of { day, start, end }");
+      }
+    }    
+
     // 🔹 Remove any undefined values before updating Firestore
     Object.keys(updateFields).forEach((key) => {
       if (updateFields[key] === undefined) {

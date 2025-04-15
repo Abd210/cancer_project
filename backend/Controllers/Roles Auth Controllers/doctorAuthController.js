@@ -35,7 +35,14 @@ class DoctorAuthController {
         description,
         hospital,
         suspended,
-        patients = [], //
+        patients = [],
+        schedule = [
+          { day: "Monday", start: "09:00", end: "17:00" },
+          { day: "Tuesday", start: "09:00", end: "17:00" },
+          { day: "Wednesday", start: "09:00", end: "17:00" },
+          { day: "Thursday", start: "09:00", end: "17:00" },
+          { day: "Friday", start: "09:00", end: "17:00" },
+        ], // Default array if not provided
       } = req.body;
 
       // Check for required fields for Doctor registration
@@ -74,6 +81,7 @@ class DoctorAuthController {
         hospital,
         suspended,
         patients,
+        schedule,
       });
 
       // Correctly extract `id` from `registeredDoctor.user`
