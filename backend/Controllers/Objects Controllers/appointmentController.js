@@ -384,12 +384,16 @@ class AppointmentController {
         });
       }
 
+      console.log("updateFields yo", updateFields);
+
       // Call the AppointmentService to perform the update
       const updatedAppointment = await AppointmentService.updateAppointment(
         appointmentid,
         updateFields,
         user
       );
+
+      console.log("updatedAppointment yoho", updatedAppointment);
 
       // Check if the patient was found and updated
       if (!updatedAppointment) {
@@ -399,11 +403,17 @@ class AppointmentController {
         });
       }
 
+      console.log("updatedAppointment yo", updatedAppointment);
+
       // Respond with the updated appointment data
       return res.status(200).json(updatedAppointment);
     } catch (updateAppointmentError) {
       // Catch and return errors
-      return res.status(500).json({
+      // return res.status(500).json({
+      //   error: `AppointmentController-update appointment: ${updateAppointmentError.message}`,
+      // });
+      const statusCode = updateAppointmentError.status || 500;
+      return res.status(statusCode).json({
         error: `AppointmentController-update appointment: ${updateAppointmentError.message}`,
       });
     }

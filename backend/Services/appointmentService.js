@@ -1,6 +1,12 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
 
+// You can reuse this helper function for converting time strings to minutes.
+const timeToMinutes = (timeStr) => {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
 class AppointmentService {
   /**
    * Get all upcoming appointments.
@@ -385,6 +391,8 @@ class AppointmentService {
    * Updates an appointment in Firestore.
    */
   static async updateAppointment(appointmentId, updateFields, user) {
+
+    console.log("updateFields yoomo", updateFields);
     if (!appointmentId) {
       throw new Error(
         "appointmentService-updateAppointment: Invalid appointmentId"
@@ -411,6 +419,103 @@ class AppointmentService {
         "appointmentService-updateAppointment: Appointment not found"
       );
     }
+    const currentAppointment = appointmentDoc.data();
+
+    // If either time frame attributes or the doctor are being updated, perform additional checks.
+    if (updateFields.day || updateFields.startTime || updateFields.endTime || updateFields.doctor) {
+      console.log("updateFields yoomo 2", updateFields);
+      // Use new values if provided, else fallback to existing ones.
+      const newDay = updateFields.day ? updateFields.day : currentAppointment.day;
+      const newStartTime = updateFields.startTime ? updateFields.startTime : currentAppointment.startTime;
+      const newEndTime = updateFields.endTime ? updateFields.endTime : currentAppointment.endTime;
+      const newDoctor = updateFields.doctor ? updateFields.doctor : currentAppointment.doctor;
+
+      // Validate presence of required fields.
+      if (!newDay || !newStartTime || !newEndTime) {
+        const error = new Error("appointmentService-updateAppointment: day, startTime, and endTime are required for time frame updates");
+        error.status = 400;
+        throw error;
+      }
+
+      // Validate time format (HH:mm) using a regular expression.
+      const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+      if (!timeRegex.test(newStartTime) || !timeRegex.test(newEndTime)) {
+        const error = new Error("appointmentService-updateAppointment: Invalid time format. Expected HH:mm");
+        error.status = 400;
+        throw error;
+      }
+      if (timeToMinutes(newStartTime) >= timeToMinutes(newEndTime)) {
+        const error = new Error("appointmentService-updateAppointment: startTime must be before endTime");
+        error.status = 400;
+        throw error;
+      }
+
+      // Validate the doctor exists and retrieve doctor's schedule.
+      const doctorDoc = await db.collection("doctors").doc(newDoctor).get();
+      if (!doctorDoc.exists) {
+        const error = new Error("appointmentService-updateAppointment: Doctor not found");
+        error.status = 400;
+        throw error;
+      }
+
+      console.log("yoomoo 5", doctorDoc.data());
+      const doctorData = doctorDoc.data();
+      const doctorSchedule = doctorData.schedule; // Array of objects: [{ day, start, end }, ...]
+      console.log("yoomoo 6", doctorSchedule);
+
+      // Ensure doctor works on newDay.
+      const daySchedule = doctorSchedule.find(
+        (sched) => sched.day.toLowerCase() === newDay.toLowerCase()
+      );
+      if (!daySchedule) {
+        const error = new Error(`appointmentService-updateAppointment: Doctor is not available on ${newDay}`);
+        error.status = 400;
+        throw error;
+      }
+
+      // Check that the new time frame fits within the doctor's schedule.
+      if (
+        timeToMinutes(newStartTime) < timeToMinutes(daySchedule.start) ||
+        timeToMinutes(newEndTime) > timeToMinutes(daySchedule.end)
+      ) {
+        const error = new Error(`appointmentService-updateAppointment: Appointment time frame (${newStartTime}-${newEndTime}) is outside the doctor's schedule on ${newDay}`);
+        error.status = 400;
+        throw error;
+      }
+
+      // Check for overlapping appointments on the same day, excluding the current appointment.
+      const overlappingSnapshot = await db
+        .collection("appointments")
+        .where("doctor", "==", newDoctor)
+        .where("day", "==", newDay)
+        .where("status", "==", "scheduled")
+        .get();
+      const overlappingAppointments = overlappingSnapshot.docs
+        .filter(doc => doc.id !== appointmentId)
+        .map(doc => doc.data())
+        .filter(app => {
+          const existingStart = timeToMinutes(app.startTime);
+          const existingEnd = timeToMinutes(app.endTime);
+          const newStart = timeToMinutes(newStartTime);
+          const newEnd = timeToMinutes(newEndTime);
+          // Overlap if newStart < existingEnd && existingStart < newEnd.
+          return newStart < existingEnd && existingStart < newEnd;
+        });
+
+      if (overlappingAppointments.length > 0) {
+        const error = new Error("appointmentService-updateAppointment: There is an existing overlapping appointment for this doctor on the specified day");
+        error.status = 400;
+        throw error;
+      }
+
+      // If we passed all the checks, updateFields should include the (validated) new time frame and doctor.
+      updateFields.day = newDay;
+      updateFields.startTime = newStartTime;
+      updateFields.endTime = newEndTime;
+      updateFields.doctor = newDoctor;
+
+      console.log("updateFields yoomo 3", updateFields);
+    }
 
     if (updateFields.patient) {
       if (!(await this.checkEntityExists("patient", updateFields.patient))) {
@@ -429,11 +534,11 @@ class AppointmentService {
     }
 
     // If appointmentDate is present, convert it to a Firestore Timestamp.
-    if (updateFields.appointmentDate) {
-      updateFields.appointmentDate = admin.firestore.Timestamp.fromDate(
-        new Date(updateFields.appointmentDate)
-      );
-    }
+    // if (updateFields.appointmentDate) {
+    //   updateFields.appointmentDate = admin.firestore.Timestamp.fromDate(
+    //     new Date(updateFields.appointmentDate)
+    //   );
+    // }
 
     await appointmentRef.update(updateFields);
 
