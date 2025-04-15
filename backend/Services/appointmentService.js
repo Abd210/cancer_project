@@ -216,24 +216,33 @@ class AppointmentService {
 
     // Validate required fields.
     if (!day || !startTime || !endTime) {
-      throw new Error(
-        "appointmentService-createAppointment: Missing required fields (day, startTime, endTime)"
-      );
+      // throw new Error(
+      //   "appointmentService-createAppointment: Missing required fields (day, startTime, endTime)"
+      // );
+      const error = new Error(`appointmentService-createAppointment: Missing required fields (day, startTime, endTime)`);
+      error.status = 400;
+      throw error;
     }
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
     if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
-      throw new Error(
-        "appointmentService-createAppointment: Invalid time format, expected HH:mm"
-      );
+      // throw new Error(
+      //   "appointmentService-createAppointment: Invalid time format, expected HH:mm"
+      // );
+      const error = new Error(`appointmentService-createAppointment: Invalid time format, expected HH:mm`);
+      error.status = 400;
+      throw error;
     }
     const timeToMinutes = (timeStr) => {
       const [h, m] = timeStr.split(":").map(Number);
       return h * 60 + m;
     };
     if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
-      throw new Error(
-        "appointmentService-createAppointment: startTime must be before endTime"
-      );
+      // throw new Error(
+      //   "appointmentService-createAppointment: startTime must be before endTime"
+      // );
+      const error = new Error(`appointmentService-createAppointment: startTime must be before endTime`);
+      error.status = 400;
+      throw error;
     }
 
     // Fetch the doctor's document to access the schedule.
@@ -249,18 +258,24 @@ class AppointmentService {
       (sched) => sched.day.toLowerCase() === day.toLowerCase()
     );
     if (!daySchedule) {
-      throw new Error(
-        `appointmentService-createAppointment: Doctor is not available on ${day}`
-      );
+      // throw new Error(
+      //   `appointmentService-createAppointment: Doctor is not available on ${day}`
+      // );
+      const error = new Error(`appointmentService-createAppointment: Doctor is not available on ${day}`);
+      error.status = 400;
+      throw error;
     }
     // Ensure the requested appointment time is within the doctor's available hours.
     if (
       timeToMinutes(startTime) < timeToMinutes(daySchedule.start) ||
       timeToMinutes(endTime) > timeToMinutes(daySchedule.end)
     ) {
-      throw new Error(
-        `appointmentService-createAppointment: Appointment time frame is outside the doctor's schedule on ${day}`
-      );
+      // throw new Error(
+      //   `appointmentService-createAppointment: Appointment time frame is outside the doctor's schedule on ${day}`
+      // );
+      const error = new Error(`appointmentService-createAppointment: Appointment time frame is outside the doctor's schedule on ${day}`);
+      error.status = 400;
+      throw error;
     }
 
     // Check for overlapping appointments on the same day for the same doctor.
@@ -283,9 +298,12 @@ class AppointmentService {
       });
 
     if (overlappingAppointments.length > 0) {
-      throw new Error(
-        "appointmentService-createAppointment: There is an existing overlapping appointment for this doctor on the specified day"
-      );
+      // throw new Error(
+      //   "appointmentService-createAppointment: There is an existing overlapping appointment for this doctor on the specified day"
+      // );
+      const error = new Error(`appointmentService-createAppointment: There is an existing overlapping appointment for this doctor on the specified day`);
+      error.status = 400;
+      throw error;
     }
 
     const appointmentData = {

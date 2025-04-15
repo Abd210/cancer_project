@@ -307,9 +307,11 @@ class AppointmentController {
 
       // Return the created appointment details
       res.status(201).json(appointment);
-    } catch (error) {
+    } catch (err) {
       // Handle errors in creating the appointment
-      res.status(500).json({ error: error.message });
+      // res.status(500).json({ error: error.message });
+      const statusCode = err.status || 500;
+      res.status(statusCode).json({ error: err.message });
     }
   }
 
