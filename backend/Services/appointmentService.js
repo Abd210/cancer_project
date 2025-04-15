@@ -197,7 +197,10 @@ class AppointmentService {
   static async createAppointment({
     patient,
     doctor,
-    appointmentDate,
+    // appointmentDate,
+    day,         // New required attribute (e.g., "Monday")
+    startTime,
+    endTime,
     purpose,
     status = "scheduled",
     suspended = false,
@@ -211,15 +214,94 @@ class AppointmentService {
       );
     }
 
+    // Validate required fields.
+    if (!day || !startTime || !endTime) {
+      throw new Error(
+        "appointmentService-createAppointment: Missing required fields (day, startTime, endTime)"
+      );
+    }
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+      throw new Error(
+        "appointmentService-createAppointment: Invalid time format, expected HH:mm"
+      );
+    }
+    const timeToMinutes = (timeStr) => {
+      const [h, m] = timeStr.split(":").map(Number);
+      return h * 60 + m;
+    };
+    if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
+      throw new Error(
+        "appointmentService-createAppointment: startTime must be before endTime"
+      );
+    }
+
+    // Fetch the doctor's document to access the schedule.
+    const doctorDoc = await db.collection("doctors").doc(doctor).get();
+    if (!doctorDoc.exists) {
+      throw new Error("appointmentService-createAppointment: Doctor not found");
+    }
+    const doctorData = doctorDoc.data();
+    const doctorSchedule = doctorData.schedule; // Array of { day, start, end } objects
+
+    // Check that the doctor's schedule includes the requested day.
+    const daySchedule = doctorSchedule.find(
+      (sched) => sched.day.toLowerCase() === day.toLowerCase()
+    );
+    if (!daySchedule) {
+      throw new Error(
+        `appointmentService-createAppointment: Doctor is not available on ${day}`
+      );
+    }
+    // Ensure the requested appointment time is within the doctor's available hours.
+    if (
+      timeToMinutes(startTime) < timeToMinutes(daySchedule.start) ||
+      timeToMinutes(endTime) > timeToMinutes(daySchedule.end)
+    ) {
+      throw new Error(
+        `appointmentService-createAppointment: Appointment time frame is outside the doctor's schedule on ${day}`
+      );
+    }
+
+    // Check for overlapping appointments on the same day for the same doctor.
+    const overlappingSnapshot = await db
+      .collection("appointments")
+      .where("doctor", "==", doctor)
+      .where("day", "==", day)
+      .where("status", "==", "scheduled")
+      .get();
+
+    const overlappingAppointments = overlappingSnapshot.docs
+      .map((doc) => doc.data())
+      .filter((app) => {
+        const existingStart = timeToMinutes(app.startTime);
+        const existingEnd = timeToMinutes(app.endTime);
+        const newStart = timeToMinutes(startTime);
+        const newEnd = timeToMinutes(endTime);
+        // Overlap condition: newStart < existingEnd && existingStart < newEnd
+        return newStart < existingEnd && existingStart < newEnd;
+      });
+
+    if (overlappingAppointments.length > 0) {
+      throw new Error(
+        "appointmentService-createAppointment: There is an existing overlapping appointment for this doctor on the specified day"
+      );
+    }
+
     const appointmentData = {
       patient,
       doctor,
-      appointmentDate: admin.firestore.Timestamp.fromDate(
-        new Date(appointmentDate)
-      ),
+      // appointmentDate: admin.firestore.Timestamp.fromDate(
+      //   new Date(appointmentDate)
+      // ),
+      day,
+      startTime,
+      endTime,
       purpose,
       status,
       suspended,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const newAppointmentRef = await db

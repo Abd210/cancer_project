@@ -233,39 +233,49 @@ class AppointmentController {
 
   static async createAppointment(req, res) {
     try {
-      const { patient, doctor, appointmentDate, purpose, status, suspended } =
+      // const { patient, doctor, appointmentDate, purpose, status, suspended } =
+      //   req.body;
+
+      const { patient, doctor, day, startTime, endTime, purpose, status, suspended } =
         req.body;
 
-      // Validate required fields
-      if (!patient || !doctor || !appointmentDate || !purpose) {
+      // // Validate required fields
+      // if (!patient || !doctor || !appointmentDate || !purpose) {
+      //   return res.status(400).json({
+      //     error: `Missing required fields: ${!patient ? "patient, " : ""}${
+      //       !doctor ? "doctor, " : ""
+      //     }${!appointmentDate ? "appointmentDate, " : ""}${
+      //       !purpose ? "purpose" : ""
+      //     }`.slice(0, -2),
+      //   });
+      // }
+
+      // Validate required fields.
+      if (!patient || !doctor || !day || !startTime || !endTime || !purpose) {
         return res.status(400).json({
-          error: `Missing required fields: ${!patient ? "patient, " : ""}${
-            !doctor ? "doctor, " : ""
-          }${!appointmentDate ? "appointmentDate, " : ""}${
-            !purpose ? "purpose" : ""
-          }`.slice(0, -2),
+          error: "Missing required fields: patient, doctor, day, startTime, endTime, and purpose are required."
         });
       }
 
       // Verify the user role and authorization before creating the appointment
-      if (
-        req.headers.user.role !== "admin" &&
-        req.headers.user.role !== "superadmin"
-      ) {
-        if (req.headers.user.role === "patient") {
-          if (patient !== req.headers.user._id) {
-            return res.status(403).json({
-              error: "AppointmentController-Cancel: Unauthorized",
-            });
-          }
-        } else if (req.headers.user.role === "doctor") {
-          if (doctor !== req.headers.user._id) {
-            return res.status(403).json({
-              error: "AppointmentController-Cancel: Unauthorized",
-            });
-          }
-        }
-      }
+      // if (
+      //   req.headers.user.role !== "admin" &&
+      //   req.headers.user.role !== "superadmin"
+      // ) {
+      //   if (req.headers.user.role === "patient") {
+      //     if (patient !== req.headers.user._id) {
+      //       return res.status(403).json({
+      //         error: "AppointmentController-Cancel: Unauthorized",
+      //       });
+      //     }
+      //   } else if (req.headers.user.role === "doctor") {
+      //     if (doctor !== req.headers.user._id) {
+      //       return res.status(403).json({
+      //         error: "AppointmentController-Cancel: Unauthorized",
+      //       });
+      //     }
+      //   }
+      // }
 
       // Validate the status value if provided
       if (status && !["scheduled", "cancelled", "completed"].includes(status)) {
@@ -286,10 +296,13 @@ class AppointmentController {
       const appointment = await AppointmentService.createAppointment({
         patient: patient,
         doctor: doctor,
-        appointmentDate,
-        purpose,
-        status,
-        suspended,
+        // appointmentDate,
+        day: day,
+        startTime: startTime,
+        endTime: endTime,
+        purpose: purpose,
+        status: status || "scheduled",
+        suspended: suspended || false,
       });
 
       // Return the created appointment details
