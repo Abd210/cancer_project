@@ -570,34 +570,6 @@ class AppointmentService {
    */
   static async updateAppointment(appointmentId, updateFields, user) {
 
-    if (!appointmentId) {
-      throw new Error(
-        "appointmentService-updateAppointment: Invalid appointmentId"
-      );
-    }
-
-    if (updateFields.id) {
-      throw new Error(
-        "appointmentService-updateAppointment: Changing 'id' is not allowed"
-      );
-    }
-
-    if (updateFields.suspended && user.role !== "superadmin") {
-      throw new Error(
-        "appointmentService-updateAppointment: Only superadmins can suspend appointments"
-      );
-    }
-
-    // ░░░ Allowed fields and extra field check ░░░
-    const ALLOWED_FIELDS = ["patient", "doctor", "start", "end", "purpose", "status", "suspended"];
-    Object.keys(updateFields).forEach((key) => {
-      if (updateFields[key] === undefined) {
-        delete updateFields[key];
-      } else if (!ALLOWED_FIELDS.includes(key)) {
-        throw new Error(`Field '${key}' is not allowed`);
-      }
-    });
-
     const appointmentRef = db.collection("appointments").doc(appointmentId);
     const appointmentDoc = await appointmentRef.get();
 
@@ -607,6 +579,47 @@ class AppointmentService {
       );
     }
     const currentAppointment = appointmentDoc.data();
+    // ░░░ Allowed fields and extra field check ░░░
+    const ALLOWED_FIELDS = ["patient", "doctor", "start", "end", "purpose", "status", "suspended"];
+    Object.keys(updateFields).forEach((key) => {
+      if (updateFields[key] === undefined) {
+        delete updateFields[key];
+      } else if (!ALLOWED_FIELDS.includes(key)) {
+        throw new Error(`Field '${key}' is not allowed`);
+      }
+    });
+    
+    // if (!appointmentId) {
+    //   throw new Error(
+    //     "appointmentService-updateAppointment: Invalid appointmentId"
+    //   );
+    // }
+
+    if (updateFields.id !== undefined) {
+      throw new Error(
+        "appointmentService-updateAppointment: Changing 'id' is not allowed"
+      );
+    }
+
+    // if (updateFields.suspended && user.role !== "superadmin") {
+    //   throw new Error(
+    //     "appointmentService-updateAppointment: Only superadmins can suspend appointments"
+    //   );
+    // }
+    if (updateFields.suspended !== undefined) {
+      if (typeof updateFields.suspended !== "boolean") {
+        throw new Error("Invalid suspended: must be a boolean");
+      }
+      if (updateFields.suspended && user.role !== "superadmin") {
+        throw new Error("Only superadmins can suspend appointments");
+      }
+    }
+
+    if (updateFields.purpose !== undefined) {
+      if (typeof updateFields.purpose !== "string") {
+        throw new Error("Invalid purpose: must be a string");
+      }
+    }
 
     // // If either time frame attributes or the doctor are being updated, perform additional checks.
     // if (updateFields.day || updateFields.startTime || updateFields.endTime || updateFields.doctor) {
