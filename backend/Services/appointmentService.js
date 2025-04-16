@@ -570,7 +570,6 @@ class AppointmentService {
    */
   static async updateAppointment(appointmentId, updateFields, user) {
 
-    console.log("updateFields yoomo", updateFields);
     if (!appointmentId) {
       throw new Error(
         "appointmentService-updateAppointment: Invalid appointmentId"
@@ -588,6 +587,16 @@ class AppointmentService {
         "appointmentService-updateAppointment: Only superadmins can suspend appointments"
       );
     }
+
+    // ░░░ Allowed fields and extra field check ░░░
+    const ALLOWED_FIELDS = ["patient", "doctor", "start", "end", "purpose", "status", "suspended"];
+    Object.keys(updateFields).forEach((key) => {
+      if (updateFields[key] === undefined) {
+        delete updateFields[key];
+      } else if (!ALLOWED_FIELDS.includes(key)) {
+        throw new Error(`Field '${key}' is not allowed`);
+      }
+    });
 
     const appointmentRef = db.collection("appointments").doc(appointmentId);
     const appointmentDoc = await appointmentRef.get();
@@ -849,8 +858,6 @@ class AppointmentService {
         "scheduled",
         "cancelled",
         "completed",
-        "no-show",
-        "rescheduled",
       ];
       if (!STATUSES.includes(updateFields.status)) {
         throw new Error(
