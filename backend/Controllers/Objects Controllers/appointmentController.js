@@ -104,6 +104,13 @@ class AppointmentController {
         });
       }
 
+      if ((!filterbyid && filterbyrole) || (!filterbyrole && filterbyid)) {
+        return res.status(400).json({
+          error:
+            "AppointmentController- Get Appointment History: filterById and filterByRole must be provided together",
+        });
+      }
+
       // Fetch appointment history using the AppointmentService
       const appointmentHistory = await AppointmentService.getAppointmentHistory(
         {

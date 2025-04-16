@@ -119,8 +119,8 @@ class AppointmentService {
     }
 
     queryRef = queryRef
-      .where("appointmentDate", "<", new Date())
-      .orderBy("appointmentDate", "desc");
+      .where("start", "<", new Date())
+      .orderBy("start", "desc");
 
     const snapshot = await queryRef.get();
 
