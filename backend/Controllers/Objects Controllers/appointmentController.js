@@ -172,6 +172,38 @@ class AppointmentController {
   }
 
   /**
+   * Retrieves all appointments associated with a hospital.
+   * The hospital's ID is expected to be provided in the request headers as "hospitalid".
+   *
+   * @param {Object} req - The Express request object.
+   * @param {Object} res - The Express response object.
+   * @returns {Object} JSON response with an array of appointments or an error message.
+   */
+  static async getHospitalAppointments(req, res) {
+    try {
+      const { hospital_id, user, filter } = req.headers;
+      if (!hospital_id) {
+        return res.status(400).json({
+          error: "AppointmentController-getHospitalAppointments: Missing hospitalid in headers"
+        });
+      }
+      
+      // Call the service to get appointments associated with this hospital.
+      const appointments = await AppointmentService.getAppointmentsByHospital(hospital_id);
+      
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        filter
+      );
+      
+      return res.status(200).json(filteredResult);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
    * Cancels an appointment if the authenticated user is authorized to do so.
    * Checks for user role and authorization before proceeding with cancellation.
    *

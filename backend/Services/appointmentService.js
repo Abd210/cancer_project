@@ -167,6 +167,60 @@ class AppointmentService {
   }
 
   /**
+   * Retrieves all appointments associated with a hospital.
+   * This is done by:
+   *  1. Querying the "doctors" collection for all doctors whose "hospital" field
+   *     matches the given hospitalId.
+   *  2. Extracting the doctor IDs.
+   *  3. Querying the "appointments" collection for all appointments where the "doctor"
+   *     field is in that list.
+   *
+   * @param {string} hospitalId - The ID of the hospital.
+   * @returns {Promise<Array>} Array of appointment objects.
+   */
+  static async getAppointmentsByHospital(hospitalId) {
+    if (!hospitalId) {
+      throw new Error("appointmentService-getAppointmentsByHospital: Missing hospitalId");
+    }
+    
+    // Step 1: Query the doctors collection.
+    const doctorsSnapshot = await db.collection("doctors")
+      .where("hospital", "==", hospitalId)
+      .get();
+      
+    if (doctorsSnapshot.empty) {
+      // No doctors in this hospital.
+      return [];
+    }
+    
+    // Step 2: Extract doctor IDs.
+    const doctorIds = doctorsSnapshot.docs.map(doc => doc.id);
+    let appointments = [];
+    
+    // Step 3: Use Firestore 'in' query if possible (max 10 values allowed).
+    if (doctorIds.length <= 10) {
+      const appointmentsSnapshot = await db.collection("appointments")
+        .where("doctor", "in", doctorIds)
+        .get();
+      
+      appointments = appointmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } else {
+      // If more than 10 doctor IDs, query individually.
+      for (const doc of doctorsSnapshot.docs) {
+        const doctorId = doc.id;
+        const snapshot = await db.collection("appointments")
+          .where("doctor", "==", doctorId)
+          .get();
+          
+        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        appointments = appointments.concat(docs);
+      }
+    }
+    
+    return appointments;
+  }
+
+  /**
    * Cancels an appointment by updating its status to 'cancelled'.
    */
   static async cancelAppointment(appointment_id) {
