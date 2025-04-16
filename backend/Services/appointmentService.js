@@ -412,15 +412,33 @@ class AppointmentService {
       throw error;
     }
 
+    // Check for overlapping appointments for the patient.
+    const overlappingPatientSnapshot = await db
+      .collection("appointments")
+      .where("patient", "==", patient)
+      .where("start", ">=", admin.firestore.Timestamp.fromDate(dayStart))
+      .where("start", "<=", admin.firestore.Timestamp.fromDate(dayEnd))
+      .where("status", "==", "scheduled")
+      .get();
+    const overlappingPatientAppointments = overlappingPatientSnapshot.docs
+      .map(doc => doc.data())
+      .filter(app => {
+        const existingStart = timeToMinutes(formatTime(app.start.toDate()));
+        const existingEnd = timeToMinutes(formatTime(app.end.toDate()));
+        const newStart = timeToMinutes(startTimeStr);
+        const newEnd = timeToMinutes(endTimeStr);
+        return newStart < existingEnd && existingStart < newEnd;
+      });
+    if (overlappingPatientAppointments.length > 0) {
+      throw new Error("appointmentService-createAppointment: There is an existing overlapping appointment for this patient on the specified date");
+    }
+
     const appointmentData = {
       patient,
       doctor,
       // appointmentDate: admin.firestore.Timestamp.fromDate(
       //   new Date(appointmentDate)
       // ),
-      // day,
-      // startTime,
-      // endTime,
       start: admin.firestore.Timestamp.fromDate(startDate),  // Stores full date & time.
       end: admin.firestore.Timestamp.fromDate(endDate),
       purpose,
@@ -624,9 +642,14 @@ class AppointmentService {
     // }
 
     // If start, end, or doctor is updated, we need to run validations.
-    if (updateFields.start || updateFields.end || updateFields.doctor) {
+    if (updateFields.start || updateFields.end || updateFields.doctor || updateFields.patient) {
       const newStart = updateFields.start ? new Date(updateFields.start) : currentAppointment.start.toDate();
       const newEnd = updateFields.end ? new Date(updateFields.end) : currentAppointment.end.toDate();
+      if (isNaN(newStart) || isNaN(newEnd)) {
+        const error = new Error("appointmentService-updateAppointment: Invalid start or end date");
+        error.status = 400;
+        throw error;
+      }
       if (newStart >= newEnd) {
         // throw new Error("appointmentService-updateAppointment: Start must be before end");
         const error = new Error("appointmentService-updateAppointment: Start must be before end");
@@ -639,6 +662,16 @@ class AppointmentService {
       const derivedEndTime = formatTime(newEnd);
       // Use new doctor if provided, otherwise use current doctor.
       const newDoctor = updateFields.doctor ? updateFields.doctor : currentAppointment.doctor;
+      // Determine new patient value: use updated patient if provided, otherwise the current one.
+      const newPatient = updateFields.patient ? updateFields.patient : currentAppointment.patient;
+
+      // Validate that the new patient exists
+      const patientDoc = await db.collection("patients").doc(newPatient).get();
+      if (!patientDoc.exists) {
+        const error = new Error("appointmentService-updateAppointment: Patient not found");
+        error.status = 400;
+        throw error;
+      }
 
       // Fetch the doctor and his/her schedule.
       const doctorDoc = await db.collection("doctors").doc(newDoctor).get();
@@ -675,15 +708,15 @@ class AppointmentService {
       const dayEnd = new Date(newStart);
       dayEnd.setHours(23, 59, 59, 999);
 
-      const overlappingSnapshot = await db
+      // Check for overlapping appointments for the doctor (excluding this appointment).
+      const overlappingDoctorSnapshot = await db
         .collection("appointments")
         .where("doctor", "==", newDoctor)
         .where("start", ">=", admin.firestore.Timestamp.fromDate(dayStart))
         .where("start", "<=", admin.firestore.Timestamp.fromDate(dayEnd))
         .where("status", "==", "scheduled")
         .get();
-
-      const overlappingAppointments = overlappingSnapshot.docs
+      const overlappingDoctorAppointments = overlappingDoctorSnapshot.docs
         .filter(doc => doc.id !== appointmentId)
         .map(doc => doc.data())
         .filter(app => {
@@ -693,9 +726,32 @@ class AppointmentService {
           const newEndMinutes = timeToMinutes(derivedEndTime);
           return newStartMinutes < existingEnd && existingStart < newEndMinutes;
         });
-      if (overlappingAppointments.length > 0) {
-        // throw new Error("appointmentService-updateAppointment: There is an existing overlapping appointment for this doctor on the specified date");
+      if (overlappingDoctorAppointments.length > 0) {
         const error = new Error("appointmentService-updateAppointment: There is an existing overlapping appointment for this doctor on the specified date");
+        error.status = 400;
+        throw error;
+      }
+
+      // Check for overlapping appointments for the patient.
+      const overlappingPatientSnapshot = await db
+        .collection("appointments")
+        .where("patient", "==", newPatient)
+        .where("start", ">=", admin.firestore.Timestamp.fromDate(dayStart))
+        .where("start", "<=", admin.firestore.Timestamp.fromDate(dayEnd))
+        .where("status", "==", "scheduled")
+        .get();
+      const overlappingPatientAppointments = overlappingPatientSnapshot.docs
+        .filter(doc => doc.id !== appointmentId)
+        .map(doc => doc.data())
+        .filter(app => {
+          const existingStart = timeToMinutes(formatTime(app.start.toDate()));
+          const existingEnd = timeToMinutes(formatTime(app.end.toDate()));
+          const newStartMinutes = timeToMinutes(derivedStartTime);
+          const newEndMinutes = timeToMinutes(derivedEndTime);
+          return newStartMinutes < existingEnd && existingStart < newEndMinutes;
+        });
+      if (overlappingPatientAppointments.length > 0) {
+        const error = new Error("appointmentService-updateAppointment: There is an existing overlapping appointment for this patient on the specified date");
         error.status = 400;
         throw error;
       }
@@ -704,19 +760,20 @@ class AppointmentService {
       updateFields.start = admin.firestore.Timestamp.fromDate(newStart);
       updateFields.end = admin.firestore.Timestamp.fromDate(newEnd);
       updateFields.doctor = newDoctor;
+      updateFields.patient = newPatient;
       // Optionally update these derived fields if you wish to store them:
       // updateFields.day = derivedDay;
       // updateFields.startTime = derivedStartTime;
       // updateFields.endTime = derivedEndTime;
     }
 
-    if (updateFields.patient) {
-      if (!(await this.checkEntityExists("patient", updateFields.patient))) {
-        throw new Error(
-          "appointmentService-updateAppointment: Patient not found"
-        );
-      }
-    }
+    // if (updateFields.patient) {
+    //   if (!(await this.checkEntityExists("patient", updateFields.patient))) {
+    //     throw new Error(
+    //       "appointmentService-updateAppointment: Patient not found"
+    //     );
+    //   }
+    // }
 
     // if (updateFields.doctor) {
     //   if (!(await this.checkEntityExists("doctor", updateFields.doctor))) {
