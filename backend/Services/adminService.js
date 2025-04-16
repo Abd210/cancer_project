@@ -1,5 +1,6 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
+const bcrypt = require("bcrypt");
 
 class AdminService {
   /**
@@ -106,8 +107,34 @@ class AdminService {
       throw new Error("adminService-updateAdmin: Invalid adminId");
     }
 
-    // Check if Hospital ID is valid
-    if (updateFields.hospital) {
+    const adminRef = db.collection("admins").doc(adminId);
+    const adminDoc = await adminRef.get();
+
+    if (!adminDoc.exists) {
+      throw new Error("adminService-updateAdmin: Admin not found");
+    }
+
+    // 1) Whitelist allowed fields
+    const ALLOWED = [
+      "persId",
+      "password",
+      "name",
+      "email",
+      "mobileNumber",
+      "hospital",
+      "suspended"
+    ];
+    Object.keys(updateFields).forEach(key => {
+      if (!ALLOWED.includes(key)) {
+        throw new Error(`Field '${key}' is not allowed`);
+      }
+    });
+
+    if (updateFields.hospital !== undefined) {
+      if (typeof updateFields.hospital !== "string") {
+        throw new Error("Invalid hospital: must be a Firestore document reference");
+      }
+      // Check the hospital exists
       const hospitalDoc = await db
         .collection("hospitals")
         .doc(updateFields.hospital)
@@ -145,34 +172,51 @@ class AdminService {
       }
     };
 
-    if (updateFields.persId) {
+    if (updateFields.persId !== undefined) {
+      if (typeof updateFields.persId !== "string") {
+        throw new Error("Invalid persId: must be a string");
+      }
       await checkUniqueness("persId", updateFields.persId);
     }
-    if (updateFields.email) {
+
+    if (updateFields.email !== undefined) {
+      if (typeof updateFields.email !== "string") {
+        throw new Error("Invalid email: must be a string");
+      }
       await checkUniqueness("email", updateFields.email);
     }
-    if (updateFields.mobileNumber) {
+
+    if (updateFields.mobileNumber !== undefined) {
+      if (typeof updateFields.mobileNumber !== "string") {
+        throw new Error("Invalid mobileNumber: must be a string");
+      }
       await checkUniqueness("mobileNumber", updateFields.mobileNumber);
     }
 
-    if (updateFields.password) {
+    if (updateFields.password !== undefined) {
+      if (typeof updateFields.password !== "string") {
+        throw new Error("Invalid password: must be a string");
+      }
       const salt = await bcrypt.genSalt(10);
       updateFields.password = await bcrypt.hash(updateFields.password, salt);
     }
 
-    if (updateFields.suspended && user.role !== "superadmin") {
-      throw new Error(
-        "adminService-updateAdmin: Only superadmins can suspend admins"
-      );
+    if (updateFields.name !== undefined) {
+      if (typeof updateFields.name !== "string") {
+        throw new Error("Invalid name: must be a string");
+      }
     }
 
-    const adminRef = db.collection("admins").doc(adminId);
-    const adminDoc = await adminRef.get();
-
-    if (!adminDoc.exists) {
-      throw new Error("adminService-updateAdmin: Admin not found");
+    if (updateFields.suspended !== undefined) {
+      if (typeof updateFields.suspended !== "boolean") {
+        throw new Error("Invalid suspended: must be a boolean");
+      }
+      if (updateFields.suspended && user.role !== "superadmin") {
+        throw new Error("adminService-updateAdmin: Only superadmins can suspend admins");
+      }
     }
 
+    updateFields.updatedAt = new Date()
     await adminRef.update(updateFields);
 
     const updatedAdminDoc = await adminRef.get();
