@@ -115,6 +115,38 @@ class DoctorController {
     }
   }
 
+  /**
+   * Retrieves all patients assigned to a specific doctor.
+   * The doctor id is expected to be provided in the request headers (doctorid).
+   *
+   * @param {Object} req - The Express request object.
+   * @param {Object} res - The Express response object.
+   * @returns {Object} A JSON response containing an array of patient data or an error message.
+   */
+  static async getAssignedPatients(req, res) {
+    try {
+      const { doctor_id, user, filter } = req.headers;
+      if (!doctor_id) {
+        return res.status(400).json({
+          error: "DoctorController-getAssignedPatients: Missing doctorid",
+        });
+      }
+
+      // Call the doctor service to retrieve assigned patients.
+      const patients = await DoctorService.getPatientsAssignedToDoctor(doctor_id);
+
+      const filtered_data = await SuspendController.filterData(
+        patients,
+        user.role,
+        filter
+      );
+      return res.status(200).json(filtered_data); // Return the filtered patient data
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+
   static async updateDoctorData(req, res) {
     try {
       const { user, doctorid } = req.headers;

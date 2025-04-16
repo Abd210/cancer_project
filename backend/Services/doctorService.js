@@ -69,6 +69,30 @@ class DoctorService {
   }
 
   /**
+   * Retrieves all patients assigned to a specific doctor.
+   * It queries the "patients" collection for documents where the "doctor" field equals the provided doctorId.
+   * 
+   * @param {string} doctorId - The ID of the doctor.
+   * @returns {Promise<Array>} A list of patient objects.
+   */
+  static async getPatientsAssignedToDoctor(doctorId) {
+    if (!doctorId) {
+      throw new Error("doctorService-getPatientsAssignedToDoctor: Missing doctorId");
+    }
+
+    const snapshot = await db.collection("patients")
+      .where("doctor", "==", doctorId)
+      .get();
+
+    if (snapshot.empty) {
+      return []; // No patients found
+    }
+    
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+
+  /**
    * Fetch all doctors
    */
   static async findAllDoctors() {

@@ -35,6 +35,13 @@ router.get(
   doctorController.getDoctorData
 );
 
+router.get(
+  "/doctor/patients",     // Example endpoint; adjust as needed.
+  authenticate,
+  authorize(["doctor", "superadmin"]), // Only the doctor themself or superadmin should access this.
+  doctorController.getAssignedPatients
+);
+
 // Route to update doctor data (Superadmin access only)
 router.put(
   "/doctor/data/update", // Endpoint
