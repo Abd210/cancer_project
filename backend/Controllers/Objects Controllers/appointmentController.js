@@ -236,8 +236,17 @@ class AppointmentController {
       // const { patient, doctor, appointmentDate, purpose, status, suspended } =
       //   req.body;
 
-      const { patient, doctor, day, startTime, endTime, purpose, status, suspended } =
-        req.body;
+      // const { patient, doctor, day, startTime, endTime, purpose, status, suspended } =
+      //   req.body;
+
+      // Expect start and end as full date-time strings, along with other details.
+    const { patient, doctor, start, end, purpose, status, suspended } = req.body;
+
+    if (!patient || !doctor || !start || !end || !purpose) {
+      return res.status(400).json({
+        error: "Missing required fields: patient, doctor, start, end, and purpose are required."
+      });
+    }
 
       // // Validate required fields
       // if (!patient || !doctor || !appointmentDate || !purpose) {
@@ -251,11 +260,11 @@ class AppointmentController {
       // }
 
       // Validate required fields.
-      if (!patient || !doctor || !day || !startTime || !endTime || !purpose) {
-        return res.status(400).json({
-          error: "Missing required fields: patient, doctor, day, startTime, endTime, and purpose are required."
-        });
-      }
+      // if (!patient || !doctor || !day || !startTime || !endTime || !purpose) {
+      //   return res.status(400).json({
+      //     error: "Missing required fields: patient, doctor, day, startTime, endTime, and purpose are required."
+      //   });
+      // }
 
       // Verify the user role and authorization before creating the appointment
       // if (
@@ -297,9 +306,11 @@ class AppointmentController {
         patient: patient,
         doctor: doctor,
         // appointmentDate,
-        day: day,
-        startTime: startTime,
-        endTime: endTime,
+        // day: day,
+        // startTime: startTime,
+        // endTime: endTime,
+        start: start,
+        end: end,
         purpose: purpose,
         status: status || "scheduled",
         suspended: suspended || false,
