@@ -332,10 +332,16 @@ class AppointmentService {
     const startDate = start instanceof Date ? start : new Date(start);
     const endDate = end instanceof Date ? end : new Date(end);
     if (isNaN(startDate) || isNaN(endDate)) {
-      throw new Error("appointmentService-createAppointment: Invalid start or end date");
+      // throw new Error("appointmentService-createAppointment: Invalid start or end date");
+      const error = new Error("appointmentService-createAppointment: Invalid start or end date");
+      error.status = 400;
+      throw error;
     }
     if (startDate >= endDate) {
-      throw new Error("appointmentService-createAppointment: Start date/time must be before end date/time");
+      // throw new Error("appointmentService-createAppointment: Start date/time must be before end date/time");
+      const error = new Error("appointmentService-createAppointment: Start date/time must be before end date/time");
+      error.status = 400;
+      throw error;
     }
 
     // Derive day and time-of-day strings.
@@ -346,7 +352,10 @@ class AppointmentService {
     // Fetch the doctor's schedule.
     const doctorDoc = await db.collection("doctors").doc(doctor).get();
     if (!doctorDoc.exists) {
-      throw new Error("appointmentService-createAppointment: Doctor not found");
+      // throw new Error("appointmentService-createAppointment: Doctor not found");
+      const error = new Error("appointmentService-createAppointment: Doctor not found");
+      error.status = 400;
+      throw error;
     }
     const doctorData = doctorDoc.data();
     const doctorSchedule = doctorData.schedule; // e.g., [{ day: "Monday", start: "09:00", end: "17:00" }, …]
@@ -354,14 +363,20 @@ class AppointmentService {
       (sched) => sched.day.toLowerCase() === day.toLowerCase()
     );
     if (!daySchedule) {
-      throw new Error(`appointmentService-createAppointment: Doctor is not available on ${day}`);
+      // throw new Error(`appointmentService-createAppointment: Doctor is not available on ${day}`);
+      const error = new Error(`appointmentService-createAppointment: Doctor is not available on ${day}`);
+      error.status = 400;
+      throw error;
     }
     // Check if the appointment's times fall within the doctor's working hours.
     if (
       timeToMinutes(startTimeStr) < timeToMinutes(daySchedule.start) ||
       timeToMinutes(endTimeStr) > timeToMinutes(daySchedule.end)
     ) {
-      throw new Error(`appointmentService-createAppointment: Appointment time frame (${startTimeStr} - ${endTimeStr}) is outside the doctor's schedule on ${day}`);
+      // throw new Error(`appointmentService-createAppointment: Appointment time frame (${startTimeStr} - ${endTimeStr}) is outside the doctor's schedule on ${day}`);
+      const error = new Error(`appointmentService-createAppointment: Appointment time frame (${startTimeStr} - ${endTimeStr}) is outside the doctor's schedule on ${day}`);
+      error.status = 400;
+      throw error;
     }
 
     // Overlap check: Query for other appointments for that doctor on the same date.
@@ -391,7 +406,10 @@ class AppointmentService {
         return newStart < existingEnd && existingStart < newEnd;
       });
     if (overlappingAppointments.length > 0) {
-      throw new Error("appointmentService-createAppointment: There is an existing overlapping appointment for this doctor on the specified date");
+      // throw new Error("appointmentService-createAppointment: There is an existing overlapping appointment for this doctor on the specified date");
+      const error = new Error("appointmentService-createAppointment: There is an existing overlapping appointment for this doctor on the specified date");
+      error.status = 400;
+      throw error;
     }
 
     const appointmentData = {
@@ -610,7 +628,10 @@ class AppointmentService {
       const newStart = updateFields.start ? new Date(updateFields.start) : currentAppointment.start.toDate();
       const newEnd = updateFields.end ? new Date(updateFields.end) : currentAppointment.end.toDate();
       if (newStart >= newEnd) {
-        throw new Error("appointmentService-updateAppointment: Start must be before end");
+        // throw new Error("appointmentService-updateAppointment: Start must be before end");
+        const error = new Error("appointmentService-updateAppointment: Start must be before end");
+        error.status = 400;
+        throw error;
       }
       // Derive day and time strings
       const derivedDay = getDayFromDate(newStart);
@@ -622,7 +643,10 @@ class AppointmentService {
       // Fetch the doctor and his/her schedule.
       const doctorDoc = await db.collection("doctors").doc(newDoctor).get();
       if (!doctorDoc.exists) {
-        throw new Error("appointmentService-updateAppointment: Doctor not found");
+        // throw new Error("appointmentService-updateAppointment: Doctor not found");
+        const error = new Error("appointmentService-updateAppointment: Doctor not found");
+        error.status = 400;
+        throw error;
       }
       const doctorData = doctorDoc.data();
       const doctorSchedule = doctorData.schedule;
@@ -630,13 +654,19 @@ class AppointmentService {
         (sched) => sched.day.toLowerCase() === derivedDay.toLowerCase()
       );
       if (!daySchedule) {
-        throw new Error(`appointmentService-updateAppointment: Doctor is not available on ${derivedDay}`);
+        // throw new Error(`appointmentService-updateAppointment: Doctor is not available on ${derivedDay}`);
+        const error = new Error(`appointmentService-updateAppointment: Doctor is not available on ${derivedDay}`);
+        error.status = 400;
+        throw error;
       }
       if (
         timeToMinutes(derivedStartTime) < timeToMinutes(daySchedule.start) ||
         timeToMinutes(derivedEndTime) > timeToMinutes(daySchedule.end)
       ) {
-        throw new Error(`appointmentService-updateAppointment: Updated time frame (${derivedStartTime}-${derivedEndTime}) is outside the doctor's schedule on ${derivedDay}`);
+        // throw new Error(`appointmentService-updateAppointment: Updated time frame (${derivedStartTime}-${derivedEndTime}) is outside the doctor's schedule on ${derivedDay}`);
+        const error = new Error(`appointmentService-updateAppointment: Updated time frame (${derivedStartTime}-${derivedEndTime}) is outside the doctor's schedule on ${derivedDay}`);
+        error.status = 400;
+        throw error;
       }
 
       // Overlapping check:
@@ -664,7 +694,10 @@ class AppointmentService {
           return newStartMinutes < existingEnd && existingStart < newEndMinutes;
         });
       if (overlappingAppointments.length > 0) {
-        throw new Error("appointmentService-updateAppointment: There is an existing overlapping appointment for this doctor on the specified date");
+        // throw new Error("appointmentService-updateAppointment: There is an existing overlapping appointment for this doctor on the specified date");
+        const error = new Error("appointmentService-updateAppointment: There is an existing overlapping appointment for this doctor on the specified date");
+        error.status = 400;
+        throw error;
       }
 
       // Update the fields with the validated and derived values.
