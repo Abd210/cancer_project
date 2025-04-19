@@ -67,6 +67,14 @@ class DoctorAuthController {
         });
       }
 
+      // Convert to a real Date
+      const parsedBirthDate = new Date(birthDate);
+
+      // Validate the parse
+      if (isNaN(parsedBirthDate.getTime())) {
+        return res.status(400).json({ error: "Invalid birthDate format" });
+      }
+
       // Call the AuthService to handle the doctor registration logic
       const result = await AuthService.register({
         persId,
@@ -75,7 +83,7 @@ class DoctorAuthController {
         role: "doctor", // Set the role as 'doctor'
         email,
         mobileNumber,
-        birthDate,
+        birthDate: parsedBirthDate,
         licenses,
         description,
         hospital,
