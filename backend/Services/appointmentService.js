@@ -75,9 +75,9 @@ class AppointmentService {
     const snapshot = await db
       .collection("appointments")
       .where(field, "==", entity_id)
-      .where("appointmentDate", ">=", new Date())
+      .where("start", ">=", new Date())
       .where("status", "==", "scheduled")
-      .orderBy("appointmentDate")
+      .orderBy("start")
       .get();
 
     if (snapshot.empty) {
