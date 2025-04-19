@@ -34,9 +34,9 @@ class AppointmentService {
     try {
       const snapshot = await db
         .collection("appointments")
-        .where("appointmentDate", ">=", new Date())
+        .where("start", ">=", new Date())
         .where("status", "==", "scheduled")
-        .orderBy("appointmentDate")
+        .orderBy("start")
         .get();
 
       if (snapshot.empty) {
@@ -147,16 +147,16 @@ class AppointmentService {
     const snapshot = await db
       .collection("appointments")
       .where(
-        "appointmentDate",
+        "start",
         ">=",
         admin.firestore.Timestamp.fromDate(startDate)
       )
       .where(
-        "appointmentDate",
+        "start",
         "<=",
         admin.firestore.Timestamp.fromDate(endDate)
       )
-      .orderBy("appointmentDate")
+      .orderBy("start")
       .get();
 
     if (snapshot.empty) {
