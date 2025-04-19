@@ -210,7 +210,7 @@ class HospitalService {
     batch.delete(hospitalRef);
     await batch.commit();
 
-    return;
+    return { message: "Hospital and all associated records deleted successfully." };
   }
 
   static async findHospital(hospitalId) {

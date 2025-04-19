@@ -92,7 +92,7 @@ class AdminService {
 
     await adminRef.delete();
 
-    return;
+    return { message: "Doctor deleted successfully" };
   }
 
   /**
