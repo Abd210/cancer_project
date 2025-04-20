@@ -18,7 +18,8 @@ class Doctor {
     licenses,
     description = "",
     hospital,
-    patients = [], //
+    patients = [],
+    schedule = [], // New field
     role = "doctor",
     suspended = false,
   }) {
@@ -55,6 +56,20 @@ class Doctor {
     if (typeof suspended !== "boolean")
       throw new Error("Invalid suspended: must be a boolean");
 
+    if (
+      !Array.isArray(schedule) ||
+      !schedule.every(
+        (s) =>
+          typeof s.day === "string" &&
+          typeof s.start === "string" &&
+          typeof s.end === "string"
+      )
+    ) {
+      throw new Error(
+        "Invalid schedule: must be an array of { day, start, end }"
+      );
+    }
+
     this._id = _id;
     this.persId = persId;
     this.password = password;
@@ -67,6 +82,7 @@ class Doctor {
     this.hospital = hospital;
     this.role = role;
     this.patients = patients;
+    this.schedule = schedule; // <-- Here
     this.suspended = suspended;
     this.createdAt = new Date();
     this.updatedAt = new Date();

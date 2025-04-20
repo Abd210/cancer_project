@@ -87,20 +87,62 @@ class PatientService {
    * @param {string} value - The value to check for uniqueness.
    * @param {string} excludeId - (Optional) The ID to exclude (for updates).
    */
+  // static async checkUniqueness(field, value, excludeId = null) {
+  //   const collections = ["patients", "doctors", "admins", "superadmins"];
+  //   for (const collection of collections) {
+  //     const snapshot = await db
+  //       .collection(collection)
+  //       .where(field, "==", value)
+  //       .get();
+  //     for (const doc of snapshot.docs) {
+  //       if (doc.id !== excludeId) {
+  //         throw new Error(`The ${field} '${value}' is already in use`);
+  //       }
+  //     }
+  //   }
+  // }
   static async checkUniqueness(field, value, excludeId = null) {
-    const collections = ["patients", "doctors", "admins", "superadmins"];
+    // Include hospitals too
+    const collections = ["patients", "doctors", "admins", "superadmins", "hospitals"];
+
+    let field_updated;
+    switch (field) {
+      case "email":
+        field_updated = "emails";
+        break;
+      case "mobileNumber":
+        field_updated = "mobileNumbers";
+        break;
+      default:
+        throw new Error("Invalid field provided.");
+    }
+    
     for (const collection of collections) {
-      const snapshot = await db
-        .collection(collection)
-        .where(field, "==", value)
-        .get();
+      let snapshot;
+      
+      if (collection === "hospitals") {
+        // In hospitals, emails and mobileNumbers are arrays
+        snapshot = await db
+          .collection(collection)
+          .where(field_updated, "array-contains", value)
+          .get();
+      } else {
+        // In other collections these fields are scalars
+        snapshot = await db
+          .collection(collection)
+          .where(field, "==", value)
+          .get();
+      }
+      
       for (const doc of snapshot.docs) {
+        // If we're excluding our own record, skip it
         if (doc.id !== excludeId) {
           throw new Error(`The ${field} '${value}' is already in use`);
         }
       }
     }
   }
+  
 
   /**
    * Update a patient's data securely.
@@ -116,65 +158,204 @@ class PatientService {
 
     const currentPatientData = patientDoc.data(); // Get current patient data
 
+    // ░░░ 1. Define allowed fields for patient updates ░░░
+    const ALLOWED_FIELDS = [
+      "persId",
+      "password",
+      "name",
+      "email",
+      "mobileNumber",
+      "birthDate",
+      "hospital",
+      "status",
+      "diagnosis",
+      "medicalHistory",
+      "doctor",
+      "suspended"
+    ];
+
+    // ░░░ 2. Remove extra or undefined fields ░░░
+    Object.keys(updateFields).forEach((key) => {
+      if (updateFields[key] === undefined) {
+        delete updateFields[key];
+      } else if (!ALLOWED_FIELDS.includes(key)) {
+        // Either throw an error or silently remove the extra field.
+        throw new Error(`Field '${key}' is not allowed`);
+        // delete updateFields[key];
+      }
+    });
+
     if (updateFields.id) delete updateFields.id;
-    if (updateFields.role) throw new Error("Cannot change role");
+    if (updateFields.role !== undefined) throw new Error("Cannot change role");
 
-    if (updateFields.email)
+    // if (updateFields.email)
+    //   await this.checkUniqueness("email", updateFields.email, patientId);
+    if (updateFields.email !== undefined) {
+      if (typeof updateFields.email !== "string") {
+        throw new Error("Invalid email: must be a string");
+      }
       await this.checkUniqueness("email", updateFields.email, patientId);
-    if (updateFields.mobileNumber)
-      await this.checkUniqueness(
-        "mobileNumber",
-        updateFields.mobileNumber,
-        patientId
-      );
-    if (updateFields.persId)
-      await this.checkUniqueness("persId", updateFields.persId, patientId);
+    }
 
-    if (updateFields.password) {
+    // if (updateFields.mobileNumber)
+    //   await this.checkUniqueness(
+    //     "mobileNumber",
+    //     updateFields.mobileNumber,
+    //     patientId
+    //   );
+    if (updateFields.mobileNumber !== undefined) {
+      if (typeof updateFields.mobileNumber !== "string") {
+        throw new Error("Invalid mobileNumber: must be a string");
+      }
+      await this.checkUniqueness("mobileNumber", updateFields.mobileNumber, patientId);
+    }
+
+    if (updateFields.birthDate !== undefined) {
+      const parsedDate = new Date(updateFields.birthDate);
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error("Invalid birthDate: must be a valid Date string");
+      }
+      updateFields.birthDate = parsedDate;
+    }
+
+    // if (updateFields.persId)
+    //   await this.checkUniqueness("persId", updateFields.persId, patientId);
+    if (updateFields.persId !== undefined) {
+      if (typeof updateFields.persId !== "string") {
+        throw new Error("Invalid persId: must be a string");
+      }
+      await this.checkUniqueness("persId", updateFields.persId, patientId);
+    }
+
+    if (updateFields.hospital !== undefined) {
+      if (typeof updateFields.hospital !== "string") {
+        throw new Error("Invalid hospital: must be a Firestore document reference string");
+      }
+      const hospitalDoc = await db.collection("hospitals").doc(updateFields.hospital).get();
+      if (!hospitalDoc.exists) {
+        throw new Error("Invalid hospital: Hospital does not exist");
+      }
+    }
+
+    // if (updateFields.password) {
+    //   const salt = await bcrypt.genSalt(10);
+    //   updateFields.password = await bcrypt.hash(updateFields.password, salt);
+    // }
+    if (updateFields.password !== undefined) {
+      if (typeof updateFields.password !== "string") {
+        throw new Error("Invalid password: must be a string");
+      }
       const salt = await bcrypt.genSalt(10);
       updateFields.password = await bcrypt.hash(updateFields.password, salt);
     }
 
-    if (updateFields.suspended && user.role !== "superadmin") {
-      throw new Error("Only superadmins can suspend patients");
+    if (updateFields.name !== undefined) {
+      if (typeof updateFields.name !== "string") {
+        throw new Error("Invalid name: must be a string");
+      }
     }
 
-    if (
-      updateFields.doctor &&
-      updateFields.doctor !== currentPatientData.doctor
-    ) {
-      const previousDoctorId = currentPatientData.doctor;
-      const newDoctorId = updateFields.doctor;
+    // if (updateFields.suspended && user.role !== "superadmin") {
+    //   throw new Error("Only superadmins can suspend patients");
+    // }
+    if (updateFields.suspended !== undefined) {
+      if (typeof updateFields.suspended !== "boolean") {
+        throw new Error("Invalid suspended: must be a boolean");
+      }
+      if (updateFields.suspended && user.role !== "superadmin") {
+        throw new Error("Only superadmins can suspend patients");
+      }
+    }
+
+    if (updateFields.status !== undefined) {
+      const STATUSES = ["recovering", "recovered", "active", "inactive"];
+      if (typeof updateFields.status !== "string" || !STATUSES.includes(updateFields.status)) {
+        throw new Error(`Invalid status: ${updateFields.status}. Allowed: ${STATUSES.join(", ")}`);
+      }
+    }
+
+    if (updateFields.diagnosis !== undefined) {
+      if (typeof updateFields.diagnosis !== "string") {
+        throw new Error("Invalid diagnosis: must be a string");
+      }
+    }
+
+    if (updateFields.medicalHistory !== undefined) {
+      if (!Array.isArray(updateFields.medicalHistory) ||
+          !updateFields.medicalHistory.every(item => typeof item === "string")) {
+        throw new Error("Invalid medicalHistory: must be an array of strings");
+      }
+    }
+
+    // if (
+    //   updateFields.doctor &&
+    //   updateFields.doctor !== currentPatientData.doctor
+    // ) {
+    //   const previousDoctorId = currentPatientData.doctor;
+    //   const newDoctorId = updateFields.doctor;
+
+    //   await db.runTransaction(async (transaction) => {
+    //     // Read all necessary data first
+    //     let prevDoctorRef, newDoctorRef;
+    //     if (previousDoctorId)
+    //       prevDoctorRef = db.collection("doctors").doc(previousDoctorId);
+    //     if (newDoctorId)
+    //       newDoctorRef = db.collection("doctors").doc(newDoctorId);
+
+    //     if (previousDoctorId) {
+    //       transaction.update(prevDoctorRef, {
+    //         patients: admin.firestore.FieldValue.arrayRemove(patientId),
+    //       });
+    //     }
+
+    //     if (newDoctorId) {
+    //       transaction.update(newDoctorRef, {
+    //         patients: admin.firestore.FieldValue.arrayUnion(patientId),
+    //       });
+    //     }
+
+    //     // Update the patient's document
+    //     updateFields.updatedAt = new Date();
+    //     transaction.update(patientRef, updateFields);
+    //   });
+    // } else {
+    //   // If the doctor field is NOT being updated, update the patient normally
+    //   updateFields.updatedAt = new Date();
+    //   await patientRef.update(updateFields);
+    // }
+
+    if (updateFields.doctor && updateFields.doctor !== currentPatientData.doctor) {
+      // Validate that the new doctor exists.
+      const newDoctorDoc = await db.collection("doctors").doc(updateFields.doctor).get();
+      if (!newDoctorDoc.exists) {
+        throw new Error("Invalid doctor: new doctor not found");
+      }
 
       await db.runTransaction(async (transaction) => {
-        // Read all necessary data first
         let prevDoctorRef, newDoctorRef;
-        if (previousDoctorId)
-          prevDoctorRef = db.collection("doctors").doc(previousDoctorId);
-        if (newDoctorId)
-          newDoctorRef = db.collection("doctors").doc(newDoctorId);
+        if (currentPatientData.doctor) {
+          prevDoctorRef = db.collection("doctors").doc(currentPatientData.doctor);
+        }
+        newDoctorRef = db.collection("doctors").doc(updateFields.doctor);
 
-        if (previousDoctorId) {
+        if (currentPatientData.doctor) {
           transaction.update(prevDoctorRef, {
-            patients: admin.firestore.FieldValue.arrayRemove(patientId),
+            patients: admin.firestore.FieldValue.arrayRemove(patientId)
           });
         }
-
-        if (newDoctorId) {
-          transaction.update(newDoctorRef, {
-            patients: admin.firestore.FieldValue.arrayUnion(patientId),
-          });
-        }
-
-        // Update the patient's document
+        transaction.update(newDoctorRef, {
+          patients: admin.firestore.FieldValue.arrayUnion(patientId)
+        });
+        updateFields.updatedAt = new Date();
         transaction.update(patientRef, updateFields);
       });
     } else {
-      // If the doctor field is NOT being updated, update the patient normally
+      updateFields.updatedAt = new Date();
       await patientRef.update(updateFields);
     }
+
     const updatedPatient = await patientRef.get();
-    return { id: updatedPatient.id, ...updatedPatient.data() };
+    return "Patient updated successfully";
   }
 
   /**

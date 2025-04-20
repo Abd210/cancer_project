@@ -104,6 +104,13 @@ class AppointmentController {
         });
       }
 
+      if ((!filterbyid && filterbyrole) || (!filterbyrole && filterbyid)) {
+        return res.status(400).json({
+          error:
+            "AppointmentController- Get Appointment History: filterById and filterByRole must be provided together",
+        });
+      }
+
       // Fetch appointment history using the AppointmentService
       const appointmentHistory = await AppointmentService.getAppointmentHistory(
         {
@@ -161,6 +168,70 @@ class AppointmentController {
       return res.status(500).json({
         error: `AppointmentController-GetAppointmentsByDate: ${error.message}`,
       });
+    }
+  }
+
+  /**
+   * Retrieves all upcoming appointments associated with a hospital.
+   * The hospital's ID is expected to be provided in the request headers as "hospitalid".
+   *
+   * @param {Object} req - The Express request object.
+   * @param {Object} res - The Express response object.
+   * @returns {Object} JSON response with an array of appointments or an error message.
+   */
+  static async getHospitalUpcomingAppointments(req, res) {
+    try {
+      const { hospital_id, user, filter } = req.headers;
+      if (!hospital_id) {
+        return res.status(400).json({
+          error: "AppointmentController-getHospitalAppointments: Missing hospitalid in headers"
+        });
+      }
+      
+      // Call the service to get appointments associated with this hospital.
+      const appointments = await AppointmentService.getUpcomingAppointmentsByHospital(hospital_id);
+      
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        filter
+      );
+      
+      return res.status(200).json(filteredResult);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
+   * Retrieves all past appointments associated with a hospital.
+   * The hospital's ID is expected to be provided in the request headers as "hospitalid".
+   *
+   * @param {Object} req - The Express request object.
+   * @param {Object} res - The Express response object.
+   * @returns {Object} JSON response with an array of appointments or an error message.
+   */
+  static async getHospitalHistoryOfAppointments(req, res) {
+    try {
+      const { hospital_id, user, filter } = req.headers;
+      if (!hospital_id) {
+        return res.status(400).json({
+          error: "AppointmentController-getHospitalAppointments: Missing hospitalid in headers"
+        });
+      }
+      
+      // Call the service to get appointments associated with this hospital.
+      const appointments = await AppointmentService.getPastAppointmentsByHospital(hospital_id);
+      
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        filter
+      );
+      
+      return res.status(200).json(filteredResult);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
     }
   }
 
@@ -233,39 +304,58 @@ class AppointmentController {
 
   static async createAppointment(req, res) {
     try {
-      const { patient, doctor, appointmentDate, purpose, status, suspended } =
-        req.body;
+      // const { patient, doctor, appointmentDate, purpose, status, suspended } =
+      //   req.body;
 
-      // Validate required fields
-      if (!patient || !doctor || !appointmentDate || !purpose) {
-        return res.status(400).json({
-          error: `Missing required fields: ${!patient ? "patient, " : ""}${
-            !doctor ? "doctor, " : ""
-          }${!appointmentDate ? "appointmentDate, " : ""}${
-            !purpose ? "purpose" : ""
-          }`.slice(0, -2),
-        });
-      }
+      // const { patient, doctor, day, startTime, endTime, purpose, status, suspended } =
+      //   req.body;
+
+      // Expect start and end as full date-time strings, along with other details.
+    const { patient, doctor, start, end, purpose, status, suspended } = req.body;
+
+    if (!patient || !doctor || !start || !end || !purpose) {
+      return res.status(400).json({
+        error: "Missing required fields: patient, doctor, start, end, and purpose are required."
+      });
+    }
+
+      // // Validate required fields
+      // if (!patient || !doctor || !appointmentDate || !purpose) {
+      //   return res.status(400).json({
+      //     error: `Missing required fields: ${!patient ? "patient, " : ""}${
+      //       !doctor ? "doctor, " : ""
+      //     }${!appointmentDate ? "appointmentDate, " : ""}${
+      //       !purpose ? "purpose" : ""
+      //     }`.slice(0, -2),
+      //   });
+      // }
+
+      // Validate required fields.
+      // if (!patient || !doctor || !day || !startTime || !endTime || !purpose) {
+      //   return res.status(400).json({
+      //     error: "Missing required fields: patient, doctor, day, startTime, endTime, and purpose are required."
+      //   });
+      // }
 
       // Verify the user role and authorization before creating the appointment
-      if (
-        req.headers.user.role !== "admin" &&
-        req.headers.user.role !== "superadmin"
-      ) {
-        if (req.headers.user.role === "patient") {
-          if (patient !== req.headers.user._id) {
-            return res.status(403).json({
-              error: "AppointmentController-Cancel: Unauthorized",
-            });
-          }
-        } else if (req.headers.user.role === "doctor") {
-          if (doctor !== req.headers.user._id) {
-            return res.status(403).json({
-              error: "AppointmentController-Cancel: Unauthorized",
-            });
-          }
-        }
-      }
+      // if (
+      //   req.headers.user.role !== "admin" &&
+      //   req.headers.user.role !== "superadmin"
+      // ) {
+      //   if (req.headers.user.role === "patient") {
+      //     if (patient !== req.headers.user._id) {
+      //       return res.status(403).json({
+      //         error: "AppointmentController-Cancel: Unauthorized",
+      //       });
+      //     }
+      //   } else if (req.headers.user.role === "doctor") {
+      //     if (doctor !== req.headers.user._id) {
+      //       return res.status(403).json({
+      //         error: "AppointmentController-Cancel: Unauthorized",
+      //       });
+      //     }
+      //   }
+      // }
 
       // Validate the status value if provided
       if (status && !["scheduled", "cancelled", "completed"].includes(status)) {
@@ -286,17 +376,24 @@ class AppointmentController {
       const appointment = await AppointmentService.createAppointment({
         patient: patient,
         doctor: doctor,
-        appointmentDate,
-        purpose,
-        status,
-        suspended,
+        // appointmentDate,
+        // day: day,
+        // startTime: startTime,
+        // endTime: endTime,
+        start: start,
+        end: end,
+        purpose: purpose,
+        status: status || "scheduled",
+        suspended: suspended || false,
       });
 
       // Return the created appointment details
       res.status(201).json(appointment);
-    } catch (error) {
+    } catch (err) {
       // Handle errors in creating the appointment
-      res.status(500).json({ error: error.message });
+      // res.status(500).json({ error: error.message });
+      const statusCode = err.status || 500;
+      res.status(statusCode).json({ error: err.message });
     }
   }
 
@@ -369,12 +466,16 @@ class AppointmentController {
         });
       }
 
+      console.log("updateFields yo", updateFields);
+
       // Call the AppointmentService to perform the update
       const updatedAppointment = await AppointmentService.updateAppointment(
         appointmentid,
         updateFields,
         user
       );
+
+      console.log("updatedAppointment yoho", updatedAppointment);
 
       // Check if the patient was found and updated
       if (!updatedAppointment) {
@@ -384,11 +485,17 @@ class AppointmentController {
         });
       }
 
+      console.log("updatedAppointment yo", updatedAppointment);
+
       // Respond with the updated appointment data
       return res.status(200).json(updatedAppointment);
     } catch (updateAppointmentError) {
       // Catch and return errors
-      return res.status(500).json({
+      // return res.status(500).json({
+      //   error: `AppointmentController-update appointment: ${updateAppointmentError.message}`,
+      // });
+      const statusCode = updateAppointmentError.status || 500;
+      return res.status(statusCode).json({
         error: `AppointmentController-update appointment: ${updateAppointmentError.message}`,
       });
     }

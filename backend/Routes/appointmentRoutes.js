@@ -65,6 +65,20 @@ router.get(
   appointmentController.getAppointmentsByDate
 );
 
+router.get(
+  "/appointment/hospital/upcoming", // e.g., GET /appointment/hospital/upcoming to fetch appointments for a given hospital.
+  authenticate,
+  authorize(["admin", "superadmin", "doctor"]), // Adjust roles as needed.
+  appointmentController.getHospitalUpcomingAppointments
+);
+
+router.get(
+  "/appointment/hospital/history", // e.g., GET /appointment/hospital/upcoming to fetch appointments for a given hospital.
+  authenticate,
+  authorize(["admin", "superadmin", "doctor"]), // Adjust roles as needed.
+  appointmentController.getHospitalHistoryOfAppointments
+);
+
 /**
  * Route: POST /appointment/cancel
  * Description: Cancels an appointment for the authenticated user.

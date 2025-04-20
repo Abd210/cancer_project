@@ -35,7 +35,14 @@ class DoctorAuthController {
         description,
         hospital,
         suspended,
-        patients = [], //
+        patients = [],
+        schedule = [
+          { day: "Monday", start: "09:00", end: "17:00" },
+          { day: "Tuesday", start: "09:00", end: "17:00" },
+          { day: "Wednesday", start: "09:00", end: "17:00" },
+          { day: "Thursday", start: "09:00", end: "17:00" },
+          { day: "Friday", start: "09:00", end: "17:00" },
+        ], // Default array if not provided
       } = req.body;
 
       // Check for required fields for Doctor registration
@@ -60,6 +67,14 @@ class DoctorAuthController {
         });
       }
 
+      // Convert to a real Date
+      const parsedBirthDate = new Date(birthDate);
+
+      // Validate the parse
+      if (isNaN(parsedBirthDate.getTime())) {
+        return res.status(400).json({ error: "Invalid birthDate format" });
+      }
+
       // Call the AuthService to handle the doctor registration logic
       const result = await AuthService.register({
         persId,
@@ -68,12 +83,13 @@ class DoctorAuthController {
         role: "doctor", // Set the role as 'doctor'
         email,
         mobileNumber,
-        birthDate,
+        birthDate: parsedBirthDate,
         licenses,
         description,
         hospital,
         suspended,
         patients,
+        schedule,
       });
 
       // Correctly extract `id` from `registeredDoctor.user`

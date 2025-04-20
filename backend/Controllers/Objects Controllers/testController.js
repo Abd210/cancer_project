@@ -38,7 +38,7 @@ class TestController {
       // Fetch the test data from the TestService
       const test = await TestService.fetchTests({
         role: user.role,
-        user_id: user._id,
+        user_id: user.id,
         filterById: filterbyid || null, // Use filterById from query parameters, default to null
         filterByRole: filterbyrole || null, // Use filterByRole from query parameters, default to null
       });

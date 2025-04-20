@@ -138,7 +138,8 @@ class HospitalController {
       // Call the HospitalService to perform the update
       const updatedHospital = await HospitalService.updateHospital(
         hospitalid,
-        updateFields
+        updateFields, 
+        user
       );
 
       // Check if the hospital was found and updated

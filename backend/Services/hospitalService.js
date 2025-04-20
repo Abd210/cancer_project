@@ -72,7 +72,7 @@ class HospitalService {
    * @returns {Promise<Object>} A message indicating the hospital was updated successfully.
    * @throws {Error} If the hospital is not found or if emails/mobile numbers are not unique.
    */
-  static async updateHospital(hospitalId, updateFields) {
+  static async updateHospital(hospitalId, updateFields, user) {
     const hospitalRef = db.collection("hospitals").doc(hospitalId);
     const hospitalDoc = await hospitalRef.get();
 
@@ -80,23 +80,74 @@ class HospitalService {
       throw new Error("Hospital not found.");
     }
 
+    // 1. Whitelist allowed fields
+    const ALLOWED_FIELDS = ["name","address","mobileNumbers","emails","suspended"];
+    Object.keys(updateFields).forEach(key => {
+      if (!ALLOWED_FIELDS.includes(key)) {
+        throw new Error(`Field '${key}' is not allowed`);
+      }
+    });
+
     // Prevent updating `_id`
-    if (updateFields._id) {
-      throw new Error("Changing '_id' is not allowed.");
+    // if (updateFields._id) {
+    //   throw new Error("Changing '_id' is not allowed.");
+    // }
+
+    if (updateFields.name !== undefined) {
+      if (typeof updateFields.name !== "string") {
+        throw new Error("Invalid name: must be a string");
+      }
+    }
+
+    if (updateFields.address !== undefined) {
+      if (typeof updateFields.address !== "string") {
+        throw new Error("Invalid address: must be a string");
+      }
     }
 
     // Check uniqueness of emails and mobile numbers if updated
-    if (updateFields.emails)
-      await this._checkUniqueFields("emails", updateFields.emails, hospitalId);
-    if (updateFields.mobileNumbers)
-      await this._checkUniqueFields(
-        "mobileNumbers",
-        updateFields.mobileNumbers,
-        hospitalId
-      );
+    // if (updateFields.emails)
+    //   await this._checkUniqueFields("emails", updateFields.emails, hospitalId);
 
+    if (updateFields.emails !== undefined) {
+      if (
+        !Array.isArray(updateFields.emails) ||
+        !updateFields.emails.every(email => typeof email === "string")
+      ) {
+        throw new Error("Invalid emails: must be an array of strings");
+      }
+      await this._checkUniqueFields("emails", updateFields.emails, hospitalId);
+    }
+    // if (updateFields.mobileNumbers)
+    //   await this._checkUniqueFields(
+    //     "mobileNumbers",
+    //     updateFields.mobileNumbers,
+    //     hospitalId
+    //   );
+    if (updateFields.mobileNumbers !== undefined) {
+      if (
+        !Array.isArray(updateFields.mobileNumbers) ||
+        !updateFields.mobileNumbers.every(num => typeof num === "string")
+      ) {
+        throw new Error("Invalid mobileNumbers: must be an array of strings");
+      }
+      await this._checkUniqueFields("mobileNumbers", updateFields.mobileNumbers, hospitalId);
+    }
+
+    if (updateFields.suspended !== undefined) {
+      if (typeof updateFields.suspended !== "boolean") {
+        throw new Error("Invalid suspended: must be a boolean");
+      }
+      if (updateFields.suspended && user.role !== "superadmin") {
+        throw new Error("Only superadmins can suspend doctors");
+      }
+    }
+
+    updateFields.updatedAt = admin.firestore.Timestamp.now
+    ? admin.firestore.Timestamp.now()
+    : new Date();
     await hospitalRef.update(updateFields);
-    return { message: "Hospital updated successfully." };
+    return "Hospital updated successfully.";
   }
 
   /**
@@ -159,7 +210,7 @@ class HospitalService {
     batch.delete(hospitalRef);
     await batch.commit();
 
-    return;
+    return { message: "Hospital and all associated records deleted successfully." };
   }
 
   static async findHospital(hospitalId) {
@@ -196,21 +247,75 @@ class HospitalService {
    * @throws {Error} If any of the values are already in use.
    * @private
    */
+  // static async _checkUniqueFields(field, values, hospitalId = null) {
+  //   const collections = ["patients", "doctors", "admins", "hospitals"];
+
+  //   for (const collection of collections) {
+  //     const querySnapshot = await db
+  //       .collection(collection)
+  //       .where(field, "array-contains-any", values)
+  //       .get();
+
+  //     querySnapshot.forEach((doc) => {
+  //       if (hospitalId && doc.id === hospitalId) return; // Skip the current hospital
+  //       throw new Error(`One of the ${field} is already in use.`);
+  //     });
+  //   }
+  // }
+
   static async _checkUniqueFields(field, values, hospitalId = null) {
-    const collections = ["patients", "doctors", "admins", "hospitals"];
-
-    for (const collection of collections) {
-      const querySnapshot = await db
-        .collection(collection)
-        .where(field, "array-contains-any", values)
-        .get();
-
-      querySnapshot.forEach((doc) => {
-        if (hospitalId && doc.id === hospitalId) return; // Skip the current hospital
-        throw new Error(`One of the ${field} is already in use.`);
-      });
+    const collections = ["patients", "doctors", "admins", "superadmins", "hospitals"];
+  
+    let field_updated;
+    switch (field) {
+      case "emails":
+        field_updated = "email";
+        break;
+      case "mobileNumbers":
+        field_updated = "mobileNumber";
+        break;
+      default:
+        throw new Error("Invalid field provided.");
     }
-  }
+  
+    // Helper to chunk values into groups of 10
+    const chunkArray = (arr, size) => {
+      const result = [];
+      for (let i = 0; i < arr.length; i += size) {
+        result.push(arr.slice(i, i + size));
+      }
+      return result;
+    };
+  
+    for (const coll of collections) {
+      if (coll === "hospitals") {
+        // Only one query needed since we're using `array-contains-any`
+        const snapshot = await db
+          .collection(coll)
+          .where(field, "array-contains-any", values)
+          .get();
+  
+        snapshot.docs.forEach((doc) => {
+          if (hospitalId && doc.id === hospitalId) return;
+          throw new Error(`One of the ${field} is already in use.`);
+        });
+      } else {
+        const valueChunks = chunkArray(values, 10);
+  
+        for (const chunk of valueChunks) {
+          const snapshot = await db
+            .collection(coll)
+            .where(field_updated, "in", chunk)
+            .get();
+  
+          snapshot.docs.forEach((doc) => {
+            throw new Error(`One of the ${field} is already in use.`);
+          });
+        }
+      }
+    }
+  }  
+  
 }
 
 module.exports = HospitalService;
