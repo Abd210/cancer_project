@@ -17,6 +17,9 @@ class DoctorService {
     delete doctorData.role;
     delete doctorData.createdAt;
     delete doctorData.updatedAt;
+    delete doctorData.suspended;
+    delete doctorData.patients;
+    delete doctorData.birthDate;
 
     return { id: doctorDoc.id, ...doctorData };
   }
