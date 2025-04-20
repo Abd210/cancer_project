@@ -886,12 +886,12 @@ class AppointmentService {
 
     await appointmentRef.update(updateFields);
 
-    const updatedAppointmentDoc = await appointmentRef.get();
-    const updatedAppointment = {
-      id: updatedAppointmentDoc.id,
-      ...updatedAppointmentDoc.data(),
-    };
-    return updatedAppointment;
+    // const updatedAppointmentDoc = await appointmentRef.get();
+    // const updatedAppointment = {
+    //   id: updatedAppointmentDoc.id,
+    //   ...updatedAppointmentDoc.data(),
+    // };
+    return "Appointment updated successfully";
   }
 }
 

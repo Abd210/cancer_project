@@ -87,20 +87,62 @@ class PatientService {
    * @param {string} value - The value to check for uniqueness.
    * @param {string} excludeId - (Optional) The ID to exclude (for updates).
    */
+  // static async checkUniqueness(field, value, excludeId = null) {
+  //   const collections = ["patients", "doctors", "admins", "superadmins"];
+  //   for (const collection of collections) {
+  //     const snapshot = await db
+  //       .collection(collection)
+  //       .where(field, "==", value)
+  //       .get();
+  //     for (const doc of snapshot.docs) {
+  //       if (doc.id !== excludeId) {
+  //         throw new Error(`The ${field} '${value}' is already in use`);
+  //       }
+  //     }
+  //   }
+  // }
   static async checkUniqueness(field, value, excludeId = null) {
-    const collections = ["patients", "doctors", "admins", "superadmins"];
+    // Include hospitals too
+    const collections = ["patients", "doctors", "admins", "superadmins", "hospitals"];
+
+    let field_updated;
+    switch (field) {
+      case "email":
+        field_updated = "emails";
+        break;
+      case "mobileNumber":
+        field_updated = "mobileNumbers";
+        break;
+      default:
+        throw new Error("Invalid field provided.");
+    }
+    
     for (const collection of collections) {
-      const snapshot = await db
-        .collection(collection)
-        .where(field, "==", value)
-        .get();
+      let snapshot;
+      
+      if (collection === "hospitals") {
+        // In hospitals, emails and mobileNumbers are arrays
+        snapshot = await db
+          .collection(collection)
+          .where(field_updated, "array-contains", value)
+          .get();
+      } else {
+        // In other collections these fields are scalars
+        snapshot = await db
+          .collection(collection)
+          .where(field, "==", value)
+          .get();
+      }
+      
       for (const doc of snapshot.docs) {
+        // If we're excluding our own record, skip it
         if (doc.id !== excludeId) {
           throw new Error(`The ${field} '${value}' is already in use`);
         }
       }
     }
   }
+  
 
   /**
    * Update a patient's data securely.
@@ -313,7 +355,7 @@ class PatientService {
     }
 
     const updatedPatient = await patientRef.get();
-    return { id: updatedPatient.id, ...updatedPatient.data() };
+    return "Patient updated successfully";
   }
 
   /**

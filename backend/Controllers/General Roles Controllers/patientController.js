@@ -185,7 +185,7 @@ class PatientController {
       res.status(200).json(updatedPatient);
     } catch (updatePatientError) {
       // Handle errors during the update process
-      res.status(500).json({ error: updatePatientError.message });
+      res.status(500).json({ error: `PatientController-update patient: ${updatePatientError.message}` });
     }
   }
 

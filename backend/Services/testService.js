@@ -258,7 +258,7 @@ class TestService {
     updateFields.updatedAt = new Date();
     await db.collection("tests").doc(testId).update(updateFields);
     const updatedTest = await db.collection("tests").doc(testId).get();
-    return { id: updatedTest.id, ...updatedTest.data() };
+    return "Test updated successfully";
   }
 }
 

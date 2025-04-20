@@ -157,40 +157,101 @@ class AdminService {
     }
 
     // Internal helper function to check uniqueness across collections
-    const checkUniqueness = async (field, value) => {
-      const collections = ["patients", "doctors", "admins", "superadmins"];
+    // const checkUniqueness = async (field, value) => {
+    //   const collections = ["patients", "doctors", "admins", "superadmins"];
+    //   for (const collection of collections) {
+    //     const snapshot = await db
+    //       .collection(collection)
+    //       .where(field, "==", value)
+    //       .get();
+    //     if (!snapshot.empty) {
+    //       throw new Error(
+    //         `adminService-updateAdmin: The ${field} '${value}' is already in use by another user`
+    //       );
+    //     }
+    //   }
+    // };
+    // Internal helper function to check uniqueness across collections,
+
+    // const checkUniqueness = async (field, value, excludeId=null) => {
+    //   const collections = ["patients", "doctors", "admins", "superadmins"];
+    //   for (const col of collections) {
+    //     const snapshot = await db
+    //       .collection(col)
+    //       .where(field, "==", value)
+    //       .get();
+
+    //     for (const doc of snapshot.docs) {
+    //       if (doc.id !== excludeId) {
+    //         throw new Error(
+    //           `adminService-updateAdmin: The ${field} '${value}' is already in use`
+    //         );
+    //       }
+    //     }
+    //   }
+    // };
+    const checkUniqueness = async (field, value, excludeId = null) => {
+      // Include hospitals too
+      const collections = ["patients", "doctors", "admins", "superadmins", "hospitals"];
+  
+      let field_updated;
+      switch (field) {
+        case "email":
+          field_updated = "emails";
+          break;
+        case "mobileNumber":
+          field_updated = "mobileNumbers";
+          break;
+        default:
+          throw new Error("Invalid field provided.");
+      }
+      
       for (const collection of collections) {
-        const snapshot = await db
-          .collection(collection)
-          .where(field, "==", value)
-          .get();
-        if (!snapshot.empty) {
-          throw new Error(
-            `adminService-updateAdmin: The ${field} '${value}' is already in use by another user`
-          );
+        let snapshot;
+        
+        if (collection === "hospitals") {
+          // In hospitals, emails and mobileNumbers are arrays
+          snapshot = await db
+            .collection(collection)
+            .where(field_updated, "array-contains", value)
+            .get();
+        } else {
+          // In other collections these fields are scalars
+          snapshot = await db
+            .collection(collection)
+            .where(field, "==", value)
+            .get();
+        }
+        
+        for (const doc of snapshot.docs) {
+          // If we're excluding our own record, skip it
+          if (doc.id !== excludeId) {
+            throw new Error(`The ${field} '${value}' is already in use`);
+          }
         }
       }
-    };
+    }
+
 
     if (updateFields.persId !== undefined) {
       if (typeof updateFields.persId !== "string") {
         throw new Error("Invalid persId: must be a string");
       }
-      await checkUniqueness("persId", updateFields.persId);
+      await checkUniqueness("persId", updateFields.persId, adminId);
     }
 
     if (updateFields.email !== undefined) {
       if (typeof updateFields.email !== "string") {
         throw new Error("Invalid email: must be a string");
       }
-      await checkUniqueness("email", updateFields.email);
+      await checkUniqueness("email", updateFields.email, adminId);
     }
 
     if (updateFields.mobileNumber !== undefined) {
       if (typeof updateFields.mobileNumber !== "string") {
         throw new Error("Invalid mobileNumber: must be a string");
       }
-      await checkUniqueness("mobileNumber", updateFields.mobileNumber);
+      await checkUniqueness("mobileNumber", updateFields.mobileNumber, adminId);
     }
 
     if (updateFields.password !== undefined) {
@@ -221,7 +282,7 @@ class AdminService {
 
     const updatedAdminDoc = await adminRef.get();
     const updatedAdmin = { id: updatedAdminDoc.id, ...updatedAdminDoc.data() };
-    return updatedAdmin;
+    return "Admin updated successfully";
   }
 }
 
