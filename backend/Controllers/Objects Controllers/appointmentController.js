@@ -172,14 +172,14 @@ class AppointmentController {
   }
 
   /**
-   * Retrieves all appointments associated with a hospital.
+   * Retrieves all upcoming appointments associated with a hospital.
    * The hospital's ID is expected to be provided in the request headers as "hospitalid".
    *
    * @param {Object} req - The Express request object.
    * @param {Object} res - The Express response object.
    * @returns {Object} JSON response with an array of appointments or an error message.
    */
-  static async getHospitalAppointments(req, res) {
+  static async getHospitalUpcomingAppointments(req, res) {
     try {
       const { hospital_id, user, filter } = req.headers;
       if (!hospital_id) {
@@ -189,7 +189,39 @@ class AppointmentController {
       }
       
       // Call the service to get appointments associated with this hospital.
-      const appointments = await AppointmentService.getAppointmentsByHospital(hospital_id);
+      const appointments = await AppointmentService.getUpcomingAppointmentsByHospital(hospital_id);
+      
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        filter
+      );
+      
+      return res.status(200).json(filteredResult);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
+   * Retrieves all past appointments associated with a hospital.
+   * The hospital's ID is expected to be provided in the request headers as "hospitalid".
+   *
+   * @param {Object} req - The Express request object.
+   * @param {Object} res - The Express response object.
+   * @returns {Object} JSON response with an array of appointments or an error message.
+   */
+  static async getHospitalHistoryOfAppointments(req, res) {
+    try {
+      const { hospital_id, user, filter } = req.headers;
+      if (!hospital_id) {
+        return res.status(400).json({
+          error: "AppointmentController-getHospitalAppointments: Missing hospitalid in headers"
+        });
+      }
+      
+      // Call the service to get appointments associated with this hospital.
+      const appointments = await AppointmentService.getPastAppointmentsByHospital(hospital_id);
       
       const filteredResult = await SuspendController.filterData(
         appointments,

@@ -166,58 +166,135 @@ class AppointmentService {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
 
-  /**
-   * Retrieves all appointments associated with a hospital.
-   * This is done by:
-   *  1. Querying the "doctors" collection for all doctors whose "hospital" field
-   *     matches the given hospitalId.
-   *  2. Extracting the doctor IDs.
-   *  3. Querying the "appointments" collection for all appointments where the "doctor"
-   *     field is in that list.
-   *
-   * @param {string} hospitalId - The ID of the hospital.
-   * @returns {Promise<Array>} Array of appointment objects.
-   */
-  static async getAppointmentsByHospital(hospitalId) {
-    if (!hospitalId) {
-      throw new Error("appointmentService-getAppointmentsByHospital: Missing hospitalId");
-    }
+  // /**
+  //  * Retrieves all appointments associated with a hospital.
+  //  * This is done by:
+  //  *  1. Querying the "doctors" collection for all doctors whose "hospital" field
+  //  *     matches the given hospitalId.
+  //  *  2. Extracting the doctor IDs.
+  //  *  3. Querying the "appointments" collection for all appointments where the "doctor"
+  //  *     field is in that list.
+  //  *
+  //  * @param {string} hospitalId - The ID of the hospital.
+  //  * @returns {Promise<Array>} Array of appointment objects.
+  //  */
+  // static async getAppointmentsByHospital(hospitalId) {
+  //   if (!hospitalId) {
+  //     throw new Error("appointmentService-getAppointmentsByHospital: Missing hospitalId");
+  //   }
     
-    // Step 1: Query the doctors collection.
-    const doctorsSnapshot = await db.collection("doctors")
-      .where("hospital", "==", hospitalId)
-      .get();
+  //   // Step 1: Query the doctors collection.
+  //   const doctorsSnapshot = await db.collection("doctors")
+  //     .where("hospital", "==", hospitalId)
+  //     .get();
       
-    if (doctorsSnapshot.empty) {
-      // No doctors in this hospital.
-      return [];
-    }
+  //   if (doctorsSnapshot.empty) {
+  //     // No doctors in this hospital.
+  //     return [];
+  //   }
     
-    // Step 2: Extract doctor IDs.
-    const doctorIds = doctorsSnapshot.docs.map(doc => doc.id);
-    let appointments = [];
+  //   // Step 2: Extract doctor IDs.
+  //   const doctorIds = doctorsSnapshot.docs.map(doc => doc.id);
+  //   let appointments = [];
     
-    // Step 3: Use Firestore 'in' query if possible (max 10 values allowed).
-    if (doctorIds.length <= 10) {
-      const appointmentsSnapshot = await db.collection("appointments")
-        .where("doctor", "in", doctorIds)
-        .get();
+  //   // Step 3: Use Firestore 'in' query if possible (max 10 values allowed).
+  //   if (doctorIds.length <= 10) {
+  //     const appointmentsSnapshot = await db.collection("appointments")
+  //       .where("doctor", "in", doctorIds)
+  //       .get();
       
-      appointments = appointmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else {
-      // If more than 10 doctor IDs, query individually.
-      for (const doc of doctorsSnapshot.docs) {
-        const doctorId = doc.id;
-        const snapshot = await db.collection("appointments")
-          .where("doctor", "==", doctorId)
-          .get();
+  //     appointments = appointmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  //   } else {
+  //     // If more than 10 doctor IDs, query individually.
+  //     for (const doc of doctorsSnapshot.docs) {
+  //       const doctorId = doc.id;
+  //       const snapshot = await db.collection("appointments")
+  //         .where("doctor", "==", doctorId)
+  //         .get();
           
-        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        appointments = appointments.concat(docs);
+  //       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  //       appointments = appointments.concat(docs);
+  //     }
+  //   }
+    
+  //   return appointments;
+  // }
+
+  /**
+   * Helper to fetch all appointments for a list of doctor IDs,
+   * applying an optional range filter on the "start" field.
+   */
+  static async _fetchByDoctorIds(doctorIds, timeFilter = null) {
+    let appointments = [];
+
+    // If we can use an "in" query:
+    if (doctorIds.length <= 10) {
+      let query = db.collection("appointments").where("doctor", "in", doctorIds);
+      if (timeFilter) {
+        // timeFilter is { op: '>=|<', ts: Timestamp }
+        query = query.where("start", timeFilter.op, timeFilter.ts);
+      }
+      const snap = await query.get();
+      appointments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } else {
+      // >10 doctors: query per-doctor
+      for (const doctorId of doctorIds) {
+        let query = db.collection("appointments").where("doctor", "==", doctorId);
+        if (timeFilter) {
+          query = query.where("start", timeFilter.op, timeFilter.ts);
+        }
+        const snap = await query.get();
+        appointments = appointments.concat(
+          snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        );
       }
     }
-    
+
     return appointments;
+  }
+
+  /**
+   * Returns all upcoming (future) appointments for a given hospital.
+   * "Future" means appointment.start ≥ now.
+   */
+  static async getUpcomingAppointmentsByHospital(hospitalId) {
+    if (!hospitalId) {
+      throw new Error("appointmentService-getUpcomingAppointmentsByHospital: Missing hospitalId");
+    }
+
+    // 1) find doctors in that hospital
+    const doctorsSnap = await db.collection("doctors")
+      .where("hospital", "==", hospitalId)
+      .get();
+    if (doctorsSnap.empty) return [];
+
+    const doctorIds = doctorsSnap.docs.map(d => d.id);
+
+    // 2) fetch appointments where start ≥ now
+    const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+    return this._fetchByDoctorIds(doctorIds, { op: ">=", ts: nowTs });
+  }
+
+  /**
+   * Returns all past appointments for a given hospital.
+   * "Past" means appointment.start < now.
+   */
+  static async getPastAppointmentsByHospital(hospitalId) {
+    if (!hospitalId) {
+      throw new Error("appointmentService-getPastAppointmentsByHospital: Missing hospitalId");
+    }
+
+    // 1) find doctors in that hospital
+    const doctorsSnap = await db.collection("doctors")
+      .where("hospital", "==", hospitalId)
+      .get();
+    if (doctorsSnap.empty) return [];
+
+    const doctorIds = doctorsSnap.docs.map(d => d.id);
+
+    // 2) fetch appointments where start < now
+    const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+    return this._fetchByDoctorIds(doctorIds, { op: "<", ts: nowTs });
   }
 
   /**

@@ -66,10 +66,17 @@ router.get(
 );
 
 router.get(
-  "/appointment/hospital", // e.g., GET /appointment/hospital to fetch appointments for a given hospital.
+  "/appointment/hospital/upcoming", // e.g., GET /appointment/hospital/upcoming to fetch appointments for a given hospital.
   authenticate,
   authorize(["admin", "superadmin", "doctor"]), // Adjust roles as needed.
-  appointmentController.getHospitalAppointments
+  appointmentController.getHospitalUpcomingAppointments
+);
+
+router.get(
+  "/appointment/hospital/history", // e.g., GET /appointment/hospital/upcoming to fetch appointments for a given hospital.
+  authenticate,
+  authorize(["admin", "superadmin", "doctor"]), // Adjust roles as needed.
+  appointmentController.getHospitalHistoryOfAppointments
 );
 
 /**
