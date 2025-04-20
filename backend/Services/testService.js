@@ -53,13 +53,13 @@ class TestService {
       let testData = doc.data();
 
       // Fetch related data
-      const doctor = await DoctorService.getDoctorData(testData.doctor);
+      // const doctor = await DoctorService.getDoctorData(testData.doctor);
       const patient = await PatientService.getPatientData(testData.patient);
 
       tests.push({
         id: doc.id, // Firestore-generated ID
         ...testData,
-        doctor: doctor || null,
+        // doctor: doctor || null,
         patient: patient || null,
       });
     }
