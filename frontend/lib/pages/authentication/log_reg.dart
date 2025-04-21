@@ -59,13 +59,16 @@ class _LogInState extends State<LogIn> {
           destination = SuperAdminDashboard(token: resp.token);
           break;
         case 'admin':
-          destination = HospitalPage(hospitalId: resp.hospitalId ?? '');
+          destination = SuperAdminDashboard(token: resp.token);
+          //HospitalPage(hospitalId: resp.hospitalId ?? '');
           break;
         case 'doctor':
-          destination = DoctorPage(doctorId: resp.userId);
+          destination = SuperAdminDashboard(token: resp.token);
+          //DoctorPage(doctorId: resp.userId);
           break;
         case 'patient':
-          destination = const PatientPage();   // patientId not used in UI yet
+          destination = SuperAdminDashboard(token: resp.token);
+           //PatientPage();   // patientId not used in UI yet
           break;
         default:
           _showError('Unknown role "${resp.role}".');
