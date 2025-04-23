@@ -1,3 +1,4 @@
+// lib/pages/superadmin/view_hospitals/tabs/doctors_tab.dart
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/models/doctor_data.dart';
@@ -43,18 +44,15 @@ class _HospitalDoctorsTabState extends State<HospitalDoctorsTab> {
     }
   }
 
-  void _showCreate() => _showUpsert();
-  void _showEdit(DoctorData d) => _showUpsert(existing: d);
-
-  void _showUpsert({DoctorData? existing}) {
+  void _showUpsert([DoctorData? existing]) {
     final formKey = GlobalKey<FormState>();
     String persId   = existing?.persId ?? '';
-    String name     = existing?.name ?? '';
-    String email    = existing?.email ?? '';
+    String name     = existing?.name   ?? '';
+    String email    = existing?.email  ?? '';
     String mobile   = existing?.mobileNumber ?? '';
     String password = '';
-    String desc     = existing?.description ?? '';
-    bool suspended  = existing?.isSuspended ?? false;
+    String desc     = existing?.description  ?? '';
+    bool suspended  = existing?.isSuspended  ?? false;
 
     showDialog(
       context: context,
@@ -63,27 +61,22 @@ class _HospitalDoctorsTabState extends State<HospitalDoctorsTab> {
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _txt('Personal ID', initial: persId, save: (v)=>persId=v),
-                _txt('Name',        initial: name,   save: (v)=>name=v),
-                _txt('Email',       initial: email,  save: (v)=>email=v),
-                _txt('Mobile',      initial: mobile, save: (v)=>mobile=v),
-                if (existing == null)
-                  _txt('Password', obscure: true, save: (v)=>password=v),
-                _txt('Description', initial: desc,   save: (v)=>desc=v),
-                Row(
-                  children: [
-                    const Text('Suspended?'),
-                    Checkbox(
-                      value: suspended,
-                      onChanged: (v)=>setState(()=>suspended = v ?? false),
-                    ),
-                  ],
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              _txt('Personal ID', initial: persId, save: (v) => persId = v),
+              _txt('Name',        initial: name,   save: (v) => name   = v),
+              _txt('Email',       initial: email,  save: (v) => email  = v),
+              _txt('Mobile',      initial: mobile, save: (v) => mobile = v),
+              if (existing == null)
+                _txt('Password', obscure: true, save: (v) => password = v),
+              _txt('Description', initial: desc,   save: (v) => desc   = v),
+              Row(children: [
+                const Text('Suspended?'),
+                Checkbox(
+                  value: suspended,
+                  onChanged: (v) => setState(() => suspended = v ?? false),
                 ),
-              ],
-            ),
+              ]),
+            ]),
           ),
         ),
         actions: [
@@ -103,7 +96,7 @@ class _HospitalDoctorsTabState extends State<HospitalDoctorsTab> {
                     password: password.isEmpty ? '123' : password,
                     email: email,
                     mobileNumber: mobile,
-                    birthDate: DateTime(1990).toIso8601String(),
+                    birthDate: DateTime.now().toIso8601String(),
                     licenses: [],
                     description: desc,
                     hospitalId: widget.hospitalId,
@@ -128,7 +121,7 @@ class _HospitalDoctorsTabState extends State<HospitalDoctorsTab> {
               } catch (e) {
                 Fluttertoast.showToast(msg: 'Save failed: $e');
               } finally {
-                if (mounted) setState(()=>_loading = false);
+                if (mounted) setState(() => _loading = false);
               }
             },
             child: const Text('Save'),
@@ -144,8 +137,8 @@ class _HospitalDoctorsTabState extends State<HospitalDoctorsTab> {
       builder: (_) => AlertDialog(
         title: const Text('Delete doctor?'),
         actions: [
-          TextButton(onPressed: ()=>Navigator.pop(context,false), child: const Text('No')),
-          TextButton(onPressed: ()=>Navigator.pop(context,true),  child: const Text('Yes')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
+          TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('Yes')),
         ],
       ),
     );
@@ -159,97 +152,90 @@ class _HospitalDoctorsTabState extends State<HospitalDoctorsTab> {
     } catch (e) {
       Fluttertoast.showToast(msg: 'Delete failed: $e');
     } finally {
-      if (mounted) setState(()=>_loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
-
     final list = _doctors.where((d) {
-      final q=_q.toLowerCase();
-      return d.name.toLowerCase().contains(q) ||
-          d.email.toLowerCase().contains(q);
+      final q = _q.toLowerCase();
+      return d.name.toLowerCase().contains(q) || d.email.toLowerCase().contains(q);
     }).toList();
 
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'Search doctors',
-                  ),
-                  onChanged: (v)=>setState(()=>_q=v),
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Search doctors',
                 ),
+                onChanged: (v) => setState(() => _q = v),
               ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _showCreate,
-                icon: const Icon(Icons.add),
-                label: const Text('Add'),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _fetch,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Refresh'),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: () => _showUpsert(),
+              icon: const Icon(Icons.add),
+              label: const Text('Add'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: _fetch,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+            ),
+          ]),
         ),
         Expanded(
           child: list.isEmpty
               ? const Center(child: Text('No doctors found.'))
               : SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Name')),
-                DataColumn(label: Text('Email')),
-                DataColumn(label: Text('Description')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: list.map((d) => DataRow(cells: [
-                DataCell(Text(d.name)),
-                DataCell(Text(d.email)),
-                DataCell(Text(d.description)),
-                DataCell(Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: ()=>_showEdit(d),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: ()=>_delete(d.id),
-                    ),
-                  ],
-                )),
-              ])).toList(),
-            ),
-          ),
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('Name')),
+                      DataColumn(label: Text('Email')),
+                      DataColumn(label: Text('Description')),
+                      DataColumn(label: Text('Actions')),
+                    ],
+                    rows: list.map((d) => DataRow(cells: [
+                      DataCell(Text(d.name)),
+                      DataCell(Text(d.email)),
+                      DataCell(Text(d.description)),
+                      DataCell(Row(children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _showUpsert(d),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _delete(d.id),
+                        ),
+                      ])),
+                    ])).toList(),
+                  ),
+                ),
         ),
       ],
     );
   }
 
-  // helper ------------------------------------------------------------
   Widget _txt(String label,
-          {String initial = '',
-          bool obscure = false,
-          required void Function(String) save}) =>
-      TextFormField(
-        initialValue: initial,
-        obscureText: obscure,
-        decoration: InputDecoration(labelText: label),
-        validator: (v) =>
-            (v == null || v.trim().isEmpty) ? 'Enter $label' : null,
-        onSaved: (v) => save(v!.trim()),
-      );
+      {String initial = '',
+      bool obscure = false,
+      required void Function(String) save}) {
+    return TextFormField(
+      initialValue: initial,
+      obscureText: obscure,
+      decoration: InputDecoration(labelText: label),
+      validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter $label' : null,
+      onSaved: (v) => save(v!.trim()),
+    );
+  }
 }

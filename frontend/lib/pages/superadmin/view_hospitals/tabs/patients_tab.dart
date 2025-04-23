@@ -1,3 +1,4 @@
+// lib/pages/superadmin/view_hospitals/tabs/patients_tab.dart
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/models/patient_data.dart';
@@ -43,17 +44,14 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
     }
   }
 
-  void _showCreate() => _showUpsertDialog();
-  void _showEdit(PatientData data) => _showUpsertDialog(existing: data);
-
-  void _showUpsertDialog({PatientData? existing}) {
+  void _showUpsert([PatientData? existing]) {
     final formKey = GlobalKey<FormState>();
     String persId     = existing?.persId ?? '';
-    String name       = existing?.name ?? '';
-    String email      = existing?.email ?? '';
+    String name       = existing?.name   ?? '';
+    String email      = existing?.email  ?? '';
     String mobile     = existing?.mobileNumber ?? '';
     String password   = '';
-    String status     = existing?.status ?? 'active';
+    String status     = existing?.status    ?? '';
     String diagnosis  = existing?.diagnosis ?? '';
     bool suspended    = existing?.suspended ?? false;
 
@@ -64,28 +62,23 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _txt('Personal ID', initial: persId, save: (v)=>persId = v),
-                _txt('Name',        initial: name,   save: (v)=>name   = v),
-                _txt('Email',       initial: email,  save: (v)=>email  = v),
-                _txt('Mobile',      initial: mobile, save: (v)=>mobile = v),
-                if (existing == null)
-                  _txt('Password', obscure: true, save: (v)=>password=v),
-                _txt('Status',     initial: status, save: (v)=>status = v),
-                _txt('Diagnosis',  initial: diagnosis, save: (v)=>diagnosis=v),
-                Row(
-                  children: [
-                    const Text('Suspended?'),
-                    Checkbox(
-                      value: suspended,
-                      onChanged: (v)=>setState(()=>suspended = v ?? false),
-                    ),
-                  ],
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              _txt('Personal ID', initial: persId, save: (v) => persId    = v),
+              _txt('Name',        initial: name,   save: (v) => name      = v),
+              _txt('Email',       initial: email,  save: (v) => email     = v),
+              _txt('Mobile',      initial: mobile, save: (v) => mobile    = v),
+              if (existing == null)
+                _txt('Password', obscure: true, save: (v) => password = v),
+              _txt('Status',     initial: status, save: (v) => status    = v),
+              _txt('Diagnosis',  initial: diagnosis, save: (v) => diagnosis = v),
+              Row(children: [
+                const Text('Suspended?'),
+                Checkbox(
+                  value: suspended,
+                  onChanged: (v) => setState(() => suspended = v ?? false),
                 ),
-              ],
-            ),
+              ]),
+            ]),
           ),
         ),
         actions: [
@@ -132,7 +125,7 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
               } catch (e) {
                 Fluttertoast.showToast(msg: 'Save failed: $e');
               } finally {
-                if (mounted) setState(()=>_loading = false);
+                if (mounted) setState(() => _loading = false);
               }
             },
             child: const Text('Save'),
@@ -146,11 +139,10 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete'),
-        content: const Text('Delete this patient?'),
+        title: const Text('Delete this patient?'),
         actions: [
-          TextButton(onPressed: ()=>Navigator.pop(context,false), child: const Text('No')),
-          TextButton(onPressed: ()=>Navigator.pop(context,true),  child: const Text('Yes')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
+          TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('Yes')),
         ],
       ),
     );
@@ -164,49 +156,46 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
     } catch (e) {
       Fluttertoast.showToast(msg: 'Delete failed: $e');
     } finally {
-      if (mounted) setState(()=>_loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
-
     final list = _patients.where((p) {
       final q = _query.toLowerCase();
       return p.name.toLowerCase().contains(q) ||
-          p.email.toLowerCase().contains(q);
+             p.email.toLowerCase().contains(q);
     }).toList();
 
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'Search patients',
-                  ),
-                  onChanged: (v) => setState(() => _query = v),
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Search patients',
                 ),
+                onChanged: (v) => setState(() => _query = v),
               ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _showCreate,
-                icon: const Icon(Icons.add),
-                label: const Text('Add'),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _fetch,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Refresh'),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: () => _showUpsert(),
+              icon: const Icon(Icons.add),
+              label: const Text('Add'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: _fetch,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+            ),
+          ]),
         ),
         Expanded(
           child: list.isEmpty
@@ -226,18 +215,16 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
                       DataCell(Text(p.email)),
                       DataCell(Text(p.status)),
                       DataCell(Text(p.diagnosis)),
-                      DataCell(Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => _showEdit(p),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _delete(p.id),
-                          ),
-                        ],
-                      )),
+                      DataCell(Row(children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _showUpsert(p),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _delete(p.id),
+                        ),
+                      ])),
                     ])).toList(),
                   ),
                 ),
@@ -246,17 +233,16 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
     );
   }
 
-  // helper ------------------------------------------------------------
   Widget _txt(String label,
-          {String initial = '',
-          bool obscure = false,
-          required void Function(String) save}) =>
-      TextFormField(
-        initialValue: initial,
-        obscureText: obscure,
-        decoration: InputDecoration(labelText: label),
-        validator: (v) =>
-            (v == null || v.trim().isEmpty) ? 'Enter $label' : null,
-        onSaved: (v) => save(v!.trim()),
-      );
+      {String initial = '',
+      bool obscure = false,
+      required void Function(String) save}) {
+    return TextFormField(
+      initialValue: initial,
+      obscureText: obscure,
+      decoration: InputDecoration(labelText: label),
+      validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter $label' : null,
+      onSaved: (v) => save(v!.trim()),
+    );
+  }
 }
