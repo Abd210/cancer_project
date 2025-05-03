@@ -15,9 +15,9 @@ class LogIn extends StatefulWidget {
 }
 
 class _LogInState extends State<LogIn> {
-  final _emailCtrl    = TextEditingController(text: 'mario@gmail.com');
-  final _passwordCtrl = TextEditingController(text: '123');
-  bool  _isLoading = false;
+  final _emailCtrl = TextEditingController(text: 'mrexample@example.com');
+  final _passwordCtrl = TextEditingController(text: '123456');
+  bool _isLoading = false;
 
   //---------------------------------------------------------------------------
   // HELPERS
@@ -26,22 +26,26 @@ class _LogInState extends State<LogIn> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Error'), content: Text(msg),
-        actions: [TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('OK'))],
+        title: const Text('Error'),
+        content: Text(msg),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: const Text('OK'))
+        ],
       ),
     );
   }
 
   Future<void> _handleLogin() async {
     final email = _emailCtrl.text.trim();
-    final pass  = _passwordCtrl.text.trim();
+    final pass = _passwordCtrl.text.trim();
 
     if (email.isEmpty || pass.isEmpty) {
       _showError('Please enter email and password.');
       return;
     }
 
-    setState(()=>_isLoading = true);
+    setState(() => _isLoading = true);
     try {
       final auth = AuthProvider();
       final resp = await auth.login(email: email, password: pass);
@@ -62,12 +66,11 @@ class _LogInState extends State<LogIn> {
           //HospitalPage(hospitalId: resp.hospitalId ?? '');
           break;
         case 'doctor':
-          destination = SuperAdminDashboard(token: resp.token);
-          //DoctorPage(doctorId: resp.userId);
+          destination = DoctorPage(doctorId: resp.userId, token: resp.token);
           break;
         case 'patient':
           destination = SuperAdminDashboard(token: resp.token);
-           //PatientPage();   // patientId not used in UI yet
+          //PatientPage();   // patientId not used in UI yet
           break;
         default:
           _showError('Unknown role "${resp.role}".');
@@ -84,7 +87,7 @@ class _LogInState extends State<LogIn> {
     } catch (e) {
       _showError(e.toString());
     } finally {
-      if (mounted) setState(()=>_isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -97,7 +100,7 @@ class _LogInState extends State<LogIn> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/back.png'), fit: BoxFit.cover),
+              image: AssetImage('assets/images/back.png'), fit: BoxFit.cover),
         ),
         child: Center(
           child: SingleChildScrollView(
@@ -109,9 +112,11 @@ class _LogInState extends State<LogIn> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset('assets/images/acuranics.png', height: 135),
-                    const Text('CURANICS',
+                    const Text(
+                      'CURANICS',
                       style: TextStyle(
-                        fontSize: 40, fontWeight: FontWeight.bold,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 218, 73, 143),
                       ),
                     ),
@@ -142,25 +147,29 @@ class _LogInState extends State<LogIn> {
                   onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 218, 73, 143),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 100, vertical: 15),
                     elevation: 5,
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text('LOGIN',
-                          style: TextStyle(fontSize: 16,
-                                           fontWeight: FontWeight.bold,
-                                           color: Colors.white)),
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
                 ),
                 const SizedBox(height: 20),
 
                 // -------- forgot pw ----------
                 TextButton(
-                  onPressed: () {},  // TODO
+                  onPressed: () {}, // TODO
                   child: const Text('Forgot password?',
                       style: TextStyle(
-                        color: Color.fromARGB(255, 218, 73, 143), fontSize: 14)),
+                          color: Color.fromARGB(255, 218, 73, 143),
+                          fontSize: 14)),
                 ),
               ],
             ),
@@ -183,7 +192,8 @@ class _LogInState extends State<LogIn> {
         controller: controller,
         obscureText: obscure,
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: const Color.fromARGB(255, 218, 73, 143)),
+          prefixIcon:
+              Icon(icon, color: const Color.fromARGB(255, 218, 73, 143)),
           hintText: hint,
           hintStyle: const TextStyle(color: Color.fromARGB(255, 218, 73, 143)),
           filled: true,
@@ -192,8 +202,8 @@ class _LogInState extends State<LogIn> {
             borderSide: BorderSide(color: Color.fromARGB(255, 218, 73, 143)),
           ),
           focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Color.fromARGB(255, 218, 73, 143), width: 2),
+            borderSide:
+                BorderSide(color: Color.fromARGB(255, 218, 73, 143), width: 2),
           ),
         ),
       ),

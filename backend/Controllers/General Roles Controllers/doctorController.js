@@ -47,7 +47,7 @@ class DoctorController {
 
       // If the user's role is "doctor", ensure they can only access their own data
       if (user.role === "doctor") {
-        const doctor_data = await DoctorService.getDoctorData(user._id);
+        const doctor_data = await DoctorService.getDoctorData(user.id);
         // Check if the doctor data exists
         if (!doctor_data) {
           return res.status(404).json({ error: "Doctor not found" });
