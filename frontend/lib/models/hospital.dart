@@ -1,3 +1,4 @@
+//hospital.dart
 class Hospital {
   final String id;
   String name;
@@ -9,3 +10,4 @@ class Hospital {
     required this.address,
   });
 }
+//useless

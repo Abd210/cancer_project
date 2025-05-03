@@ -1,15 +1,34 @@
+// lib/models/appointment_data.dart
 class AppointmentData {
-  final String id; // maps from "id" (or "_id" if provided)
-  final String patientId; // from patient.id
-  final String patientName; // from patient.name
-  final String patientEmail; // from patient.email
-  final String doctorId; // from doctor.id
-  final String doctorName; // from doctor.name
-  final String doctorEmail; // from doctor.email
-  final DateTime date; // parse from "appointmentDate"
-  final String purpose; // "purpose"
-  final String status; // "status"
-  final bool suspended; // "suspended"
+  //--------------------------------------------------------------------
+  // RAW FIELDS IN API
+  // id              String
+  // patient         String  OR  nested Map
+  // doctor          String  OR  nested Map
+  // start, end      ISO‑8601 String OR Firestore timestamp object
+  // purpose         String
+  // status          String
+  // suspended       bool
+  //--------------------------------------------------------------------
+  final String id;
+
+  // Patient info
+  final String patientId;
+  final String patientName;
+  final String patientEmail;
+
+  // Doctor info
+  final String doctorId;
+  final String doctorName;
+  final String doctorEmail;
+
+  // Time range
+  final DateTime start;
+  final DateTime end;
+
+  final String purpose;
+  final String status;
+  final bool   suspended;
 
   AppointmentData({
     required this.id,
@@ -19,46 +38,62 @@ class AppointmentData {
     required this.doctorId,
     required this.doctorName,
     required this.doctorEmail,
-    required this.date,
+    required this.start,
+    required this.end,
     required this.purpose,
     required this.status,
     required this.suspended,
   });
 
-  factory AppointmentData.fromJson(Map<String, dynamic> json) {
-    final patientObj = json["patient"] ?? {};
-    final doctorObj = json["doctor"] ?? {};
+  //--------------------------------------------------------------------
+  // JSON ↦ MODEL
+  //--------------------------------------------------------------------
+  factory AppointmentData.fromJson(Map<String,dynamic> json) {
+    // ---------------- helpers ----------------
+    String str(dynamic v) => v == null ? '' : v.toString();
 
-    // Helper function to convert id to string
-    String toStringId(dynamic id) {
-      if (id == null) return '';
-      return id.toString();
+    DateTime parseTimestamp(dynamic ts) {
+      if (ts is Map<String,dynamic>) {
+        final s  = ts['_seconds']     as int? ?? 0;
+        final ns = ts['_nanoseconds'] as int? ?? 0;
+        return DateTime.fromMillisecondsSinceEpoch(
+          s*1000 + (ns ~/ 1000000),
+          isUtc: true,
+        ).toLocal();
+      }
+      if (ts is String)   return DateTime.parse(ts);
+      return DateTime.now();
     }
 
-    // Parse using the camelCase key "appointmentDate"
-    DateTime parsedDate;
-    try {
-      parsedDate = DateTime.parse(json["appointmentDate"]);
-    } catch (_) {
-      parsedDate = DateTime.now();
-    }
+    // ------------- patient / doctor ----------
+    final patientObj = json['patient'];
+    final doctorObj  = json['doctor'];
+
+    final String patientId = patientObj is Map
+        ? str(patientObj['id'] ?? patientObj['_id'])
+        : str(patientObj);
+
+    final String doctorId = doctorObj is Map
+        ? str(doctorObj['id'] ?? doctorObj['_id'])
+        : str(doctorObj);
 
     return AppointmentData(
-      id: toStringId(json["id"] ?? json["_id"]),
-      patientId: toStringId(patientObj["id"] ?? patientObj["_id"]),
-      patientName: patientObj["name"]?.toString() ?? '',
-      patientEmail: patientObj["email"]?.toString() ?? '',
-      doctorId: toStringId(doctorObj["id"] ?? doctorObj["_id"]),
-      doctorName: doctorObj["name"]?.toString() ?? '',
-      doctorEmail: doctorObj["email"]?.toString() ?? '',
-      date: parsedDate,
-      purpose: json["purpose"]?.toString() ?? '',
-      status: json["status"]?.toString() ?? '',
-      suspended: json["suspended"] ?? false,
+      id            : str(json['id'] ?? json['_id']),
+      patientId     : patientId,
+      patientName   : patientObj is Map ? str(patientObj['name'])  : '',
+      patientEmail  : patientObj is Map ? str(patientObj['email']) : '',
+      doctorId      : doctorId,
+      doctorName    : doctorObj  is Map ? str(doctorObj['name'])   : '',
+      doctorEmail   : doctorObj  is Map ? str(doctorObj['email'])  : '',
+      start         : parseTimestamp(json['start']),
+      end           : parseTimestamp(json['end']),
+      purpose       : str(json['purpose']),
+      status        : str(json['status']),
+      suspended     : json['suspended'] ?? false,
     );
   }
 
-  String toDebugString() {
-    return 'AppointmentData(id: $id, patient: $patientName, doctor: $doctorName, date: $date, status: $status)';
-  }
+  @override
+  String toString() =>
+      'Appointment($id → $patientName vs $doctorName @ $start)';
 }
