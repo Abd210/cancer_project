@@ -10,15 +10,14 @@ class TicketController {
    * Creates a new ticket based on the provided user input.
    * Validates the required fields (role, issue, user), checks for valid roles,
    * and creates a ticket through the TicketService.
-   * 
+   *
    * @param {Object} req - The Express request object, containing the details of the ticket.
    * @param {Object} res - The Express response object used to send the result or errors.
-   * 
+   *
    * @returns {Object} A JSON response containing the created ticket or an error message.
    */
   static async createTicket(req, res) {
     try {
-
       // Destructure the necessary data from the request body
       const { role, issue, user, visibleTo } = req.body;
 
@@ -62,7 +61,7 @@ class TicketController {
       // Respond with the created ticket and a 201 status code
       res.status(201).json(ticket);
     } catch (error) {
-      // Handle errors and respond with a 500 status if something goes wrong
+      console.error("Error in createTicket:", error);
       res
         .status(500)
         .json({ error: `TicketController-Create: ${error.message}` });

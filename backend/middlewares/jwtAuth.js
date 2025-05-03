@@ -31,7 +31,7 @@ const authenticate = (req, res, next) => {
     // Proceed to the next middleware or route handler
     next();
   } catch (error) {
-    // If the token is invalid, return a 400 error
+    console.error("Error in jwtAuth - authentication:", error);
     res.status(400).json({ error: "jwtAuth - Authenticate: Invalid token." });
   }
 };

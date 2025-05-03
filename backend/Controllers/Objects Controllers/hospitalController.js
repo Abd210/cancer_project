@@ -48,7 +48,7 @@ class HospitalController {
       // Respond with the hospital data if the registration was successful
       res.status(201).json(hospital);
     } catch (error) {
-      // Handle unexpected errors and return a 500 error response
+      console.error("Error in register:", error);
       res.status(500).json({
         error: `HospitalController - Register Hospital: ${error.message}`,
       });
@@ -98,8 +98,10 @@ class HospitalController {
       // Return the fetched hospital data with a 200 status code
       res.status(200).json(hospital_data);
     } catch (fetchHospitalDataError) {
-      // Catch any errors during the data fetching process and return a 500 status with the error message
-      res.status(500).json({ error: fetchHospitalDataError.message });
+      console.error("Error in getHospitalData:", fetchHospitalDataError);
+      res.status(500).json({
+        error: `HospitalController - Fetch Hospital Data: ${fetchHospitalDataError.message}`,
+      });
     }
   }
 
@@ -138,7 +140,7 @@ class HospitalController {
       // Call the HospitalService to perform the update
       const updatedHospital = await HospitalService.updateHospital(
         hospitalid,
-        updateFields, 
+        updateFields,
         user
       );
 
@@ -153,8 +155,8 @@ class HospitalController {
       // Respond with the updated hospital data
       return res.status(200).json(updatedHospital);
     } catch (updateHospitalError) {
-      // Catch and return errors
-      return res.status(500).json({
+      console.error("Error in updateHospitalData:", updateHospitalError);
+      res.status(500).json({
         error: `HospitalController - Update Hospital: ${updateHospitalError.message}`,
       });
     }
@@ -184,9 +186,9 @@ class HospitalController {
         message: "Hospital and all associated data successfully deleted",
       });
     } catch (deleteHospitalError) {
-      // Handle unexpected errors
-      return res.status(500).json({
-        error: `HospitalController-Delete: ${deleteHospitalError.message}`,
+      console.error("Error in deleteHospital:", deleteHospitalError);
+      res.status(500).json({
+        error: `HospitalController - Delete Hospital: ${deleteHospitalError.message}`,
       });
     }
   }

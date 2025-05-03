@@ -9,6 +9,7 @@ class DeviceController {
       const newDevice = await DeviceService.createDevice(deviceData);
       res.status(201).json(newDevice);
     } catch (error) {
+      console.error("Error in createDevice:", error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -53,6 +54,7 @@ class DeviceController {
       const result = await DeviceService.deleteDevice(deviceId);
       res.status(200).json({ message: "Device deleted successfully" });
     } catch (error) {
+      console.error("Error in deleteDevice:", error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -90,6 +92,7 @@ class DeviceController {
 
       res.status(200).json({ message: "Data uploaded successfully", test });
     } catch (error) {
+      console.error("Error in uploadDeviceData:", error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -125,6 +128,7 @@ class DeviceController {
 
       res.status(200).json(filteredDevice);
     } catch (error) {
+      console.error("Error in getDeviceData:", error);
       res.status(500).json({ error: error.message });
     }
   }

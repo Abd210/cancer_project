@@ -44,7 +44,7 @@ class AdminController {
       // Respond with the updated Admin data
       return res.status(200).json(updatedAdmin);
     } catch (updateAdminError) {
-      // Catch and return errors
+      console.error("Error in updateAdminData:", updateAdminError);
       return res.status(500).json({
         error: `AdminController-update admin: ${updateAdminError.message}`,
       });
@@ -82,7 +82,7 @@ class AdminController {
       // Respond with success
       return res.status(200).json({ message: "Admin deleted successfully" });
     } catch (deleteAdminError) {
-      // Catch and return errors
+      console.error("Error in deleteAdmin:", deleteAdminError);
       return res.status(500).json({
         error: `AdminController-delete admin: ${deleteAdminError.message}`,
       });
@@ -161,8 +161,10 @@ class AdminController {
       // Return the fetched admin data with a 200 status code
       res.status(200).json(admin_data);
     } catch (fetchAdminDataError) {
-      // Catch any errors during the data fetching process and return a 500 status with the error message
-      res.status(500).json({ error: fetchAdminDataError.message });
+      console.error("Error in getAdminData:", fetchAdminDataError);
+      return res.status(500).json({
+        error: `AdminController-fetch admin data: ${fetchAdminDataError.message}`,
+      });
     }
   }
 }

@@ -95,6 +95,7 @@ class Doctor {
       this.updatedAt = new Date();
       await doctorsCollection.doc(this._id).set({ ...this });
     } catch (error) {
+      console.error("Error in Doctor.save:", error);
       throw new Error("Error saving doctor: " + error.message);
     }
   }

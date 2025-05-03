@@ -30,6 +30,7 @@ class AppointmentController {
 
       return res.status(200).json(filteredResult);
     } catch (error) {
+      console.error("Error in getAllUpcomingAppointments:", error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -73,7 +74,10 @@ class AppointmentController {
       // Return the fetched appointments
       res.status(200).json(filteredResult);
     } catch (fetchUpcomingAppointmentsError) {
-      // Handle errors in fetching the appointments
+      console.error(
+        "Error in getUpcomingAppointmentsForSpecificPatientOrDoctor:",
+        fetchUpcomingAppointmentsError
+      );
       res.status(500).json({ error: fetchUpcomingAppointmentsError.message });
     }
   }
@@ -130,7 +134,10 @@ class AppointmentController {
       // Return the fetched appointment history
       res.status(200).json(filteredResult);
     } catch (fetchAppointmentHistoryError) {
-      // Handle errors in fetching the appointment history
+      console.error(
+        "Error in getAppointmentHistory:",
+        fetchAppointmentHistoryError
+      );
       res.status(500).json({ error: fetchAppointmentHistoryError.message });
     }
   }
@@ -165,7 +172,8 @@ class AppointmentController {
 
       return res.status(200).json(filteredResult);
     } catch (error) {
-      return res.status(500).json({
+      console.error("Error in getAppointmentsByDate:", error);
+      res.status(500).json({
         error: `AppointmentController-GetAppointmentsByDate: ${error.message}`,
       });
     }
@@ -184,21 +192,24 @@ class AppointmentController {
       const { hospital_id, user, filter } = req.headers;
       if (!hospital_id) {
         return res.status(400).json({
-          error: "AppointmentController-getHospitalAppointments: Missing hospitalid in headers"
+          error:
+            "AppointmentController-getHospitalAppointments: Missing hospitalid in headers",
         });
       }
-      
+
       // Call the service to get appointments associated with this hospital.
-      const appointments = await AppointmentService.getUpcomingAppointmentsByHospital(hospital_id);
-      
+      const appointments =
+        await AppointmentService.getUpcomingAppointmentsByHospital(hospital_id);
+
       const filteredResult = await SuspendController.filterData(
         appointments,
         user.role,
         filter
       );
-      
+
       return res.status(200).json(filteredResult);
     } catch (error) {
+      console.error("Error in getHospitalUpcomingAppointments:", error);
       return res.status(500).json({ error: error.message });
     }
   }
@@ -216,21 +227,24 @@ class AppointmentController {
       const { hospital_id, user, filter } = req.headers;
       if (!hospital_id) {
         return res.status(400).json({
-          error: "AppointmentController-getHospitalAppointments: Missing hospitalid in headers"
+          error:
+            "AppointmentController-getHospitalAppointments: Missing hospitalid in headers",
         });
       }
-      
+
       // Call the service to get appointments associated with this hospital.
-      const appointments = await AppointmentService.getPastAppointmentsByHospital(hospital_id);
-      
+      const appointments =
+        await AppointmentService.getPastAppointmentsByHospital(hospital_id);
+
       const filteredResult = await SuspendController.filterData(
         appointments,
         user.role,
         filter
       );
-      
+
       return res.status(200).json(filteredResult);
     } catch (error) {
+      console.error("Error in getHospitalHistoryOfAppointments:", error);
       return res.status(500).json({ error: error.message });
     }
   }
@@ -287,7 +301,7 @@ class AppointmentController {
       // Return the cancelled appointment details
       res.status(200).json(cancelled_appointment);
     } catch (cancelAppointmentError) {
-      // Handle errors in cancelling the appointment
+      console.error("Error in cancelAppointment:", cancelAppointmentError);
       res.status(500).json({ error: cancelAppointmentError.message });
     }
   }
@@ -311,13 +325,15 @@ class AppointmentController {
       //   req.body;
 
       // Expect start and end as full date-time strings, along with other details.
-    const { patient, doctor, start, end, purpose, status, suspended } = req.body;
+      const { patient, doctor, start, end, purpose, status, suspended } =
+        req.body;
 
-    if (!patient || !doctor || !start || !end || !purpose) {
-      return res.status(400).json({
-        error: "Missing required fields: patient, doctor, start, end, and purpose are required."
-      });
-    }
+      if (!patient || !doctor || !start || !end || !purpose) {
+        return res.status(400).json({
+          error:
+            "Missing required fields: patient, doctor, start, end, and purpose are required.",
+        });
+      }
 
       // // Validate required fields
       // if (!patient || !doctor || !appointmentDate || !purpose) {
@@ -390,8 +406,7 @@ class AppointmentController {
       // Return the created appointment details
       res.status(201).json(appointment);
     } catch (err) {
-      // Handle errors in creating the appointment
-      // res.status(500).json({ error: error.message });
+      console.error("Error in createAppointment:", err);
       const statusCode = err.status || 500;
       res.status(statusCode).json({ error: err.message });
     }
@@ -427,7 +442,7 @@ class AppointmentController {
         message: "Appointment successfully deleted",
       });
     } catch (deleteAppointmentError) {
-      // Handle errors in deleting the appointment
+      console.error("Error in deleteAppointment:", deleteAppointmentError);
       res.status(500).json({ error: deleteAppointmentError.message });
     }
   }
@@ -490,10 +505,7 @@ class AppointmentController {
       // Respond with the updated appointment data
       return res.status(200).json(updatedAppointment);
     } catch (updateAppointmentError) {
-      // Catch and return errors
-      // return res.status(500).json({
-      //   error: `AppointmentController-update appointment: ${updateAppointmentError.message}`,
-      // });
+      console.error("Error in updateAppointmentData:", updateAppointmentError);
       const statusCode = updateAppointmentError.status || 500;
       return res.status(statusCode).json({
         error: `AppointmentController-update appointment: ${updateAppointmentError.message}`,
