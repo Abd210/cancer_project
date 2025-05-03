@@ -147,6 +147,13 @@ class AuthService {
     // Extract user data
     user = { id: userSnapshot.docs[0].id, ...userSnapshot.docs[0].data() };
 
+    // Suspension check (skip for superadmin & device)
+    if (role !== "superadmin" && role !== "device" && user.suspended) {
+      throw new Error(
+        `authService-Login: Your account is suspended and cannot log in.`
+      );
+    }
+
     // Skip password verification for devices
     if (role === "device") {
       return { message: "Device authenticated successfully" };
