@@ -54,7 +54,7 @@ class DoctorController {
         }
 
         // Return the fetched doctor data with a 200 status code
-        res.status(200).json(doctor_data);
+        return res.status(200).json(doctor_data);
       } else if (user.role === "superadmin") {
         // If the user is a superadmin and a specific doctor's ID was not provided
         if (!doctorid) {
@@ -110,10 +110,10 @@ class DoctorController {
       }
 
       // Return the fetched doctor data with a 200 status code
-      res.status(200).json(doctor_data);
+      return res.status(200).json(doctor_data);
     } catch (fetchDoctorDataError) {
       console.error("Error in getDoctorData:", fetchDoctorDataError);
-      res.status(500).json({ error: fetchDoctorDataError.message });
+      return res.status(500).json({ error: fetchDoctorDataError.message });
     }
   }
 
