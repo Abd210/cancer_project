@@ -1,6 +1,5 @@
 // lib/pages/authentication/log_reg.dart
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/pages/patients/patient_page.dart';
 
 import 'package:frontend/providers/auth_provider.dart';
@@ -79,7 +78,9 @@ class _LogInState extends State<LogIn> {
         context,
         MaterialPageRoute(builder: (_) => destination),
       );
-      Fluttertoast.showToast(msg: resp.message ?? 'Login successful');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(resp.message ?? 'Login successful')),
+      );
     } catch (e) {
       _showError(e.toString());
     } finally {

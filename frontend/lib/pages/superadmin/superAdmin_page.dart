@@ -1,7 +1,6 @@
 // lib/pages/superadmin/superAdmin_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/shared/theme/app_theme.dart';
 import 'package:frontend/shared/widgets/logo_bar.dart';
 import 'package:frontend/pages/authentication/log_reg.dart';
@@ -45,7 +44,9 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
         context,
         MaterialPageRoute(builder: (context) => const LogIn()),
       );
-      Fluttertoast.showToast(msg: 'Logged out successfully.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logged out successfully')),
+      );
       return;
     }
     setState(() => _selectedIndex = index);

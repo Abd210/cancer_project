@@ -18,24 +18,24 @@ class BetterDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white, // or any background color you prefer
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal, // scroll sideways if many columns
+        color: Colors.white, // or any background color you prefer
         child: SingleChildScrollView(
-          scrollDirection: Axis.vertical, // scroll vertically if many rows
-          child: DataTable(
-            columns: columns,
-            rows: rows,
-            // Optional styling
-            headingRowColor: WidgetStateProperty.all(Colors.grey.shade200),
-            headingTextStyle: const TextStyle(fontWeight: FontWeight.bold),
-            dataRowHeight: 56,
-            headingRowHeight: 56,
-            columnSpacing: 24,
-            horizontalMargin: 16,
-            // If you want to adjust row color or striping, do so here
+          scrollDirection: Axis.horizontal, // scroll sideways if many columns
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical, // scroll vertically if many rows
+            child: DataTable(
+              columns: columns,
+              rows: rows,
+              // Optional styling
+              headingRowColor: WidgetStateProperty.all(Colors.grey.shade200),
+              headingTextStyle: const TextStyle(fontWeight: FontWeight.bold),
+              dataRowHeight: 56,
+              headingRowHeight: 56,
+              columnSpacing: 24,
+              horizontalMargin: 16,
+              // If you want to adjust row color or striping, do so here
+            ),
           ),
-        ),
       ),
     );
   }
@@ -69,11 +69,18 @@ class BetterPaginatedDataTable extends StatefulWidget {
 class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
   int _currentPage = 0;
   late int _rowsPerPage;
+  final ScrollController _horizontalScrollController = ScrollController();
   
   @override
   void initState() {
     super.initState();
     _rowsPerPage = widget.rowsPerPage;
+  }
+  
+  @override
+  void dispose() {
+    _horizontalScrollController.dispose();
+    super.dispose();
   }
   
   @override
@@ -100,41 +107,62 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: Container(
-            width: widget.width,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: widget.themeColor.withOpacity(0.5)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: MediaQuery.of(context).size.width - 40, // Full width minus padding
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Container(
+                width: widget.width,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: widget.themeColor.withOpacity(0.5)),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: DataTable(
-                    columns: widget.columns,
-                    rows: paginatedRows,
-                    headingRowColor: WidgetStateProperty.all(widget.themeColor.withOpacity(0.2)),
-                    headingTextStyle: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: widget.themeColor.withOpacity(0.8),
-                    ),
-                    dataRowHeight: 56,
-                    headingRowHeight: 56,
-                    columnSpacing: 24,
-                    horizontalMargin: 16,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: widget.themeColor.withOpacity(0.3)),
-                      borderRadius: BorderRadius.circular(8),
+                child: Scrollbar(
+                  controller: _horizontalScrollController,
+                  thumbVisibility: true,
+                  thickness: 8,
+                  radius: const Radius.circular(4),
+                  child: SingleChildScrollView(
+                    controller: _horizontalScrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: constraints.maxWidth,
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            dataTableTheme: DataTableThemeData(
+                              headingTextStyle: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: widget.themeColor.withOpacity(0.8),
+                              ),
+                              dataTextStyle: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          child: DataTable(
+                            columns: widget.columns,
+                            rows: paginatedRows,
+                            headingRowColor: WidgetStateProperty.all(widget.themeColor.withOpacity(0.2)),
+                            dataRowHeight: 56,
+                            headingRowHeight: 56,
+                            columnSpacing: 24,
+                            horizontalMargin: 16,
+                            border: TableBorder.all(
+                              color: widget.themeColor.withOpacity(0.3),
+                              width: 1,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            }
           ),
         ),
         // Pagination controls
@@ -144,102 +172,207 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
             color: widget.themeColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Rows per page selector
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Row(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 600) {
+                // Desktop layout
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Rows per page: ',
-                      style: TextStyle(
-                        color: widget.themeColor.withOpacity(0.8),
+                    // Rows per page selector
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Rows per page: ',
+                            style: TextStyle(
+                              color: widget.themeColor.withOpacity(0.8),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: widget.themeColor.withOpacity(0.5)),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: DropdownButton<int>(
+                              value: _rowsPerPage,
+                              underline: const SizedBox(),
+                              icon: Icon(Icons.arrow_drop_down, color: widget.themeColor),
+                              style: TextStyle(color: widget.themeColor.withOpacity(0.8)),
+                              items: widget.availableRowsPerPage
+                                  .map((int value) => DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Text('$value'),
+                                      ))
+                                  .toList(),
+                              onChanged: (newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    _rowsPerPage = newValue;
+                                    // Reset to first page when changing rows per page
+                                    _currentPage = 0;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: widget.themeColor.withOpacity(0.5)),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: DropdownButton<int>(
-                        value: _rowsPerPage,
-                        underline: const SizedBox(),
-                        icon: Icon(Icons.arrow_drop_down, color: widget.themeColor),
-                        style: TextStyle(color: widget.themeColor.withOpacity(0.8)),
-                        items: widget.availableRowsPerPage
-                            .map((int value) => DropdownMenuItem<int>(
-                                  value: value,
-                                  child: Text('$value'),
-                                ))
-                            .toList(),
-                        onChanged: (newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              _rowsPerPage = newValue;
-                              // Reset to first page when changing rows per page
-                              _currentPage = 0;
-                            });
-                          }
-                        },
-                      ),
+                    
+                    // Navigation controls
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.first_page),
+                          onPressed: _currentPage > 0
+                              ? () => setState(() => _currentPage = 0)
+                              : null,
+                          color: widget.themeColor,
+                          disabledColor: Colors.grey,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: _currentPage > 0
+                              ? () => setState(() => _currentPage--)
+                              : null,
+                          color: widget.themeColor,
+                          disabledColor: Colors.grey,
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          'Page ${_currentPage + 1} of $totalPages',
+                          style: TextStyle(
+                            color: widget.themeColor.withOpacity(0.8),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: _currentPage < totalPages - 1
+                              ? () => setState(() => _currentPage++)
+                              : null,
+                          color: widget.themeColor,
+                          disabledColor: Colors.grey,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.last_page),
+                          onPressed: _currentPage < totalPages - 1
+                              ? () => setState(() => _currentPage = totalPages - 1)
+                              : null,
+                          color: widget.themeColor,
+                          disabledColor: Colors.grey,
+                        ),
+                        const SizedBox(width: 16),
+                      ],
                     ),
                   ],
-                ),
-              ),
-              
-              // Navigation controls
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.first_page),
-                    onPressed: _currentPage > 0
-                        ? () => setState(() => _currentPage = 0)
-                        : null,
-                    color: widget.themeColor,
-                    disabledColor: Colors.grey,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: _currentPage > 0
-                        ? () => setState(() => _currentPage--)
-                        : null,
-                    color: widget.themeColor,
-                    disabledColor: Colors.grey,
-                  ),
-                  const SizedBox(width: 16),
-                  Text(
-                    'Page ${_currentPage + 1} of $totalPages',
-                    style: TextStyle(
-                      color: widget.themeColor.withOpacity(0.8),
-                      fontWeight: FontWeight.bold,
+                );
+              } else {
+                // Mobile/small screen layout
+                return Column(
+                  children: [
+                    // Rows per page selector
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Rows per page: ',
+                            style: TextStyle(
+                              color: widget.themeColor.withOpacity(0.8),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: widget.themeColor.withOpacity(0.5)),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: DropdownButton<int>(
+                              value: _rowsPerPage,
+                              underline: const SizedBox(),
+                              icon: Icon(Icons.arrow_drop_down, color: widget.themeColor),
+                              style: TextStyle(color: widget.themeColor.withOpacity(0.8)),
+                              items: widget.availableRowsPerPage
+                                  .map((int value) => DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Text('$value'),
+                                      ))
+                                  .toList(),
+                              onChanged: (newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    _rowsPerPage = newValue;
+                                    _currentPage = 0;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed: _currentPage < totalPages - 1
-                        ? () => setState(() => _currentPage++)
-                        : null,
-                    color: widget.themeColor,
-                    disabledColor: Colors.grey,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.last_page),
-                    onPressed: _currentPage < totalPages - 1
-                        ? () => setState(() => _currentPage = totalPages - 1)
-                        : null,
-                    color: widget.themeColor,
-                    disabledColor: Colors.grey,
-                  ),
-                  const SizedBox(width: 16),
-                ],
-              ),
-            ],
+                    
+                    // Navigation controls
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.first_page),
+                          onPressed: _currentPage > 0
+                              ? () => setState(() => _currentPage = 0)
+                              : null,
+                          color: widget.themeColor,
+                          disabledColor: Colors.grey,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: _currentPage > 0
+                              ? () => setState(() => _currentPage--)
+                              : null,
+                          color: widget.themeColor,
+                          disabledColor: Colors.grey,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            'Page ${_currentPage + 1} of $totalPages',
+                            style: TextStyle(
+                              color: widget.themeColor.withOpacity(0.8),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: _currentPage < totalPages - 1
+                              ? () => setState(() => _currentPage++)
+                              : null,
+                          color: widget.themeColor,
+                          disabledColor: Colors.grey,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.last_page),
+                          onPressed: _currentPage < totalPages - 1
+                              ? () => setState(() => _currentPage = totalPages - 1)
+                              : null,
+                          color: widget.themeColor,
+                          disabledColor: Colors.grey,
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }
+            },
           ),
         ),
       ],

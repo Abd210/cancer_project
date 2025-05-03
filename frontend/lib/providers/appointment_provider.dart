@@ -75,13 +75,20 @@ class AppointmentProvider {
     required String appointmentId,
     required Map<String, dynamic> updatedFields,
   }) async {
+    print('DEBUG UPDATE: appointmentId = $appointmentId');
     final url =
         Uri.parse('${ClassUtil.baseUrl}${ClassUtil.appointmentUpdateRoute}');
     final headers =
         ClassUtil.baseHeaders(token: token)..['appointmentid'] = appointmentId;
+    
+    print('DEBUG UPDATE: Headers = $headers');
+    print('DEBUG UPDATE: Body = ${jsonEncode(updatedFields)}');
 
     final res =
         await http.put(url, headers: headers, body: jsonEncode(updatedFields));
+    print('DEBUG UPDATE: Status code = ${res.statusCode}');
+    print('DEBUG UPDATE: Response body = ${res.body}');
+    
     if (res.statusCode != 200) {
       throw Exception(
         'Update failed [${res.statusCode}]: ${res.body}',
@@ -96,12 +103,18 @@ class AppointmentProvider {
     required String token,
     required String appointmentId,
   }) async {
+    print('DEBUG CANCEL: appointmentId = $appointmentId');
     final url =
         Uri.parse('${ClassUtil.baseUrl}${ClassUtil.appointmentCancelRoute}');
     final headers =
-        ClassUtil.baseHeaders(token: token)..['appointmentid'] = appointmentId;
+        ClassUtil.baseHeaders(token: token)..['appointment_id'] = appointmentId;
+    
+    print('DEBUG CANCEL: Headers = $headers');
 
     final res = await http.post(url, headers: headers);
+    print('DEBUG CANCEL: Status code = ${res.statusCode}');
+    print('DEBUG CANCEL: Response body = ${res.body}');
+    
     if (res.statusCode != 200) {
       throw Exception(
         'Cancel failed [${res.statusCode}]: ${res.body}',
@@ -116,12 +129,18 @@ class AppointmentProvider {
     required String token,
     required String appointmentId,
   }) async {
+    print('DEBUG DELETE: appointmentId = $appointmentId');
     final url =
         Uri.parse('${ClassUtil.baseUrl}${ClassUtil.appointmentDeleteRoute}');
     final headers =
-        ClassUtil.baseHeaders(token: token)..['appointmentid'] = appointmentId;
+        ClassUtil.baseHeaders(token: token)..['appointment_id'] = appointmentId;
+    
+    print('DEBUG DELETE: Headers = $headers');
 
     final res = await http.delete(url, headers: headers);
+    print('DEBUG DELETE: Status code = ${res.statusCode}');
+    print('DEBUG DELETE: Response body = ${res.body}');
+    
     if (res.statusCode != 200) {
       throw Exception(
         'Delete failed [${res.statusCode}]: ${res.body}',

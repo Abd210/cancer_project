@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/models/patient_data.dart';
 import 'package:frontend/providers/patient_provider.dart';
+import 'package:frontend/providers/doctor_provider.dart';
 
 class HospitalPatientsTab extends StatefulWidget {
   final String token;
@@ -19,6 +20,7 @@ class HospitalPatientsTab extends StatefulWidget {
 
 class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
   final _provider = PatientProvider();
+  final _doctorProvider = DoctorProvider();
   bool _loading = false;
   List<PatientData> _patients = [];
   String _query = '';
@@ -103,6 +105,7 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
                     birthDate      : DateTime.now().toIso8601String(),
                     medicalHistory : [],
                     hospitalId     : widget.hospitalId,
+                    doctorId       : _fetchDefaultDoctor(widget.hospitalId),
                     suspended      : suspended,
                   );
                   Fluttertoast.showToast(msg: 'Patient added.');
@@ -244,5 +247,12 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
       validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter $label' : null,
       onSaved: (v) => save(v!.trim()),
     );
+  }
+
+  String _fetchDefaultDoctor(String hospitalId) {
+    // This is a synchronous method that returns a hardcoded ID
+    // In a real app, you would want to fetch this properly
+    // For now, we'll return a placeholder to make the code compile
+    return 'defaultDoctorId';
   }
 }

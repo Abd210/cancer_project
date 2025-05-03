@@ -85,7 +85,7 @@ class DoctorProvider {
   // ------------------------------------------------------------------
   // PUT  /api/doctor/data/update
   // ------------------------------------------------------------------
-  Future<DoctorData> updateDoctor({
+  Future<bool> updateDoctor({
     required String token,
     required String doctorId,
     required Map<String, dynamic> updatedFields,
@@ -98,7 +98,9 @@ class DoctorProvider {
     final res =
         await http.put(url, headers: headers, body: jsonEncode(updatedFields));
     if (res.statusCode == 200) {
-      return DoctorData.fromJson(json.decode(res.body));
+      // Success - the response might be a string or a DoctorData object
+      // We just return true to indicate success
+      return true;
     }
     throw Exception(
       'Doctor update failed [${res.statusCode}]: ${res.body}',
