@@ -38,7 +38,7 @@ class _HospitalPageState extends State<HospitalPage> {
       HospitalDoctorsPage(hospitalId: widget.hospitalId),
       HospitalPatientsPage(hospitalId: widget.hospitalId),
       HospitalDevicesPage(hospitalId: widget.hospitalId),
-      HospitalAppointmentsPage(hospitalId: widget.hospitalId),
+      // HospitalAppointmentsPage(hospitalId: widget.hospitalId),
     ];
   }
 

@@ -1,3 +1,4 @@
+//notification.dart
 class Notification {
   final String id;
   final String message;

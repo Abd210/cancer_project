@@ -1,3 +1,4 @@
+//patient.dart
 class Patient {
   final String id;
   String name;
@@ -15,3 +16,4 @@ class Patient {
     required this.deviceId,
   });
 }
+//useless

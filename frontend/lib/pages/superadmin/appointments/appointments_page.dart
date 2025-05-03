@@ -27,7 +27,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
 
   // For GET filtering
   String _suspendFilter = 'unsuspended';
-  String _filterByRole = 'patient';
+  String _filterByRole = ''; // Default to empty to get all initially
   String _filterById = '';
 
   List<AppointmentData> _appointmentList = [];
@@ -44,8 +44,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       final list = await _appointmentProvider.getAppointmentsHistory(
         token: widget.token,
         suspendfilter: _suspendFilter,
-        filterbyrole: _filterByRole,
-        filterbyid: _filterById,
+        filterByRole: _filterByRole.isEmpty ? null : _filterByRole, // Pass null if empty
+        filterById: _filterById.isEmpty ? null : _filterById,       // Pass null if empty
       );
       setState(() {
         _appointmentList = list;
@@ -71,7 +71,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     final formKey = GlobalKey<FormState>();
     String patientId = '';
     String doctorId = '';
-    DateTime selectedDate = DateTime.now();
+    DateTime selectedStartDate = DateTime.now();
+    TimeOfDay selectedStartTime = TimeOfDay.now();
+    DateTime selectedEndDate = DateTime.now().add(const Duration(hours: 1));
+    TimeOfDay selectedEndTime = TimeOfDay.fromDateTime(selectedEndDate);
     String purpose = 'New Purpose';
     String status = 'scheduled';
     bool suspended = false;
@@ -86,6 +89,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
             builder: (ctx, setStateDialog) {
               return SingleChildScrollView(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min, // Important for SingleChildScrollView
                   children: [
                     TextFormField(
                       decoration:
@@ -103,26 +107,108 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       onSaved: (val) => doctorId = val!.trim(),
                     ),
                     const SizedBox(height: 10),
+                    // Start Date & Time Picker
                     Row(
                       children: [
-                        Text(
-                            'Date: ${DateFormat("yyyy-MM-dd").format(selectedDate)}'),
-                        const Spacer(),
+                        Expanded(
+                          child: Text(
+                              'Start: ${DateFormat("yyyy-MM-dd").format(selectedStartDate)} ${selectedStartTime.format(ctx)}'),
+                        ),
                         TextButton(
                           onPressed: () async {
-                            final picked = await showDatePicker(
+                            final pickedDate = await showDatePicker(
                               context: ctx,
-                              initialDate: selectedDate,
+                              initialDate: selectedStartDate,
                               firstDate: DateTime(2000),
                               lastDate: DateTime(2100),
                             );
-                            if (picked != null) {
-                              setStateDialog(() {
-                                selectedDate = picked;
-                              });
+                            if (pickedDate != null) {
+                              final pickedTime = await showTimePicker(
+                                context: ctx,
+                                initialTime: selectedStartTime,
+                              );
+                              if (pickedTime != null) {
+                                setStateDialog(() {
+                                  selectedStartDate = pickedDate;
+                                  selectedStartTime = pickedTime;
+                                  // Ensure end time is after start time
+                                  final startDateTime = DateTime(
+                                    selectedStartDate.year,
+                                    selectedStartDate.month,
+                                    selectedStartDate.day,
+                                    selectedStartTime.hour,
+                                    selectedStartTime.minute,
+                                  );
+                                  final endDateTime = DateTime(
+                                    selectedEndDate.year,
+                                    selectedEndDate.month,
+                                    selectedEndDate.day,
+                                    selectedEndTime.hour,
+                                    selectedEndTime.minute,
+                                  );
+                                  if (endDateTime.isBefore(startDateTime)) {
+                                    selectedEndDate = selectedStartDate;
+                                    selectedEndTime = TimeOfDay.fromDateTime(
+                                        startDateTime.add(const Duration(hours: 1)));
+                                  }
+                                });
+                              }
                             }
                           },
-                          child: const Text('Select Date'),
+                          child: const Text('Select Start'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // End Date & Time Picker
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                              'End: ${DateFormat("yyyy-MM-dd").format(selectedEndDate)} ${selectedEndTime.format(ctx)}'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            final pickedDate = await showDatePicker(
+                              context: ctx,
+                              initialDate: selectedEndDate,
+                              firstDate: selectedStartDate, // Can't end before start date
+                              lastDate: DateTime(2100),
+                            );
+                            if (pickedDate != null) {
+                              final pickedTime = await showTimePicker(
+                                context: ctx,
+                                initialTime: selectedEndTime,
+                              );
+                              if (pickedTime != null) {
+                                // Validate end time is after start time
+                                final startDateTime = DateTime(
+                                  selectedStartDate.year,
+                                  selectedStartDate.month,
+                                  selectedStartDate.day,
+                                  selectedStartTime.hour,
+                                  selectedStartTime.minute,
+                                );
+                                final potentialEndDateTime = DateTime(
+                                  pickedDate.year,
+                                  pickedDate.month,
+                                  pickedDate.day,
+                                  pickedTime.hour,
+                                  pickedTime.minute,
+                                );
+                                if (potentialEndDateTime.isAfter(startDateTime)) {
+                                  setStateDialog(() {
+                                    selectedEndDate = pickedDate;
+                                    selectedEndTime = pickedTime;
+                                  });
+                                } else {
+                                  Fluttertoast.showToast(
+                                      msg: 'End time must be after start time.');
+                                }
+                              }
+                            }
+                          },
+                          child: const Text('Select End'),
                         ),
                       ],
                     ),
@@ -165,13 +251,29 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 formKey.currentState!.save();
                 Navigator.pop(ctx);
 
+                final finalStartDateTime = DateTime(
+                  selectedStartDate.year,
+                  selectedStartDate.month,
+                  selectedStartDate.day,
+                  selectedStartTime.hour,
+                  selectedStartTime.minute,
+                );
+                final finalEndDateTime = DateTime(
+                  selectedEndDate.year,
+                  selectedEndDate.month,
+                  selectedEndDate.day,
+                  selectedEndTime.hour,
+                  selectedEndTime.minute,
+                );
+
                 setState(() => _isLoading = true);
                 try {
                   await _appointmentProvider.createAppointment(
                     token: widget.token,
                     patientId: patientId,
                     doctorId: doctorId,
-                    date: selectedDate,
+                    start: finalStartDateTime,
+                    end: finalEndDateTime,
                     purpose: purpose,
                     status: status,
                     suspended: suspended,
@@ -198,7 +300,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
 
     String patientId = appt.patientId;
     String doctorId = appt.doctorId;
-    DateTime selectedDate = appt.date;
+    DateTime selectedStartDate = appt.start;
+    TimeOfDay selectedStartTime = TimeOfDay.fromDateTime(appt.start);
+    DateTime selectedEndDate = appt.end;
+    TimeOfDay selectedEndTime = TimeOfDay.fromDateTime(appt.end);
     String purpose = appt.purpose;
     String status = appt.status;
     bool suspended = appt.suspended;
@@ -213,6 +318,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
             builder: (ctx, setStateDialog) {
               return SingleChildScrollView(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     TextFormField(
                       initialValue: patientId,
@@ -227,26 +333,108 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       onSaved: (val) => doctorId = val?.trim() ?? '',
                     ),
                     const SizedBox(height: 10),
+                    // Start Date & Time Picker
                     Row(
                       children: [
-                        Text(
-                            'Date: ${DateFormat("yyyy-MM-dd").format(selectedDate)}'),
-                        const Spacer(),
+                        Expanded(
+                          child: Text(
+                              'Start: ${DateFormat("yyyy-MM-dd").format(selectedStartDate)} ${selectedStartTime.format(ctx)}'),
+                        ),
                         TextButton(
                           onPressed: () async {
-                            final picked = await showDatePicker(
+                            final pickedDate = await showDatePicker(
                               context: ctx,
-                              initialDate: selectedDate,
+                              initialDate: selectedStartDate,
                               firstDate: DateTime(2000),
                               lastDate: DateTime(2100),
                             );
-                            if (picked != null) {
-                              setStateDialog(() {
-                                selectedDate = picked;
-                              });
+                            if (pickedDate != null) {
+                              final pickedTime = await showTimePicker(
+                                context: ctx,
+                                initialTime: selectedStartTime,
+                              );
+                              if (pickedTime != null) {
+                                setStateDialog(() {
+                                  selectedStartDate = pickedDate;
+                                  selectedStartTime = pickedTime;
+                                  // Ensure end time is after start time
+                                  final startDateTime = DateTime(
+                                    selectedStartDate.year,
+                                    selectedStartDate.month,
+                                    selectedStartDate.day,
+                                    selectedStartTime.hour,
+                                    selectedStartTime.minute,
+                                  );
+                                  final endDateTime = DateTime(
+                                    selectedEndDate.year,
+                                    selectedEndDate.month,
+                                    selectedEndDate.day,
+                                    selectedEndTime.hour,
+                                    selectedEndTime.minute,
+                                  );
+                                  if (endDateTime.isBefore(startDateTime)) {
+                                    selectedEndDate = selectedStartDate;
+                                    selectedEndTime = TimeOfDay.fromDateTime(
+                                        startDateTime.add(const Duration(hours: 1)));
+                                  }
+                                });
+                              }
                             }
                           },
-                          child: const Text('Select Date'),
+                          child: const Text('Select Start'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // End Date & Time Picker
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                              'End: ${DateFormat("yyyy-MM-dd").format(selectedEndDate)} ${selectedEndTime.format(ctx)}'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            final pickedDate = await showDatePicker(
+                              context: ctx,
+                              initialDate: selectedEndDate,
+                              firstDate: selectedStartDate, // Can't end before start date
+                              lastDate: DateTime(2100),
+                            );
+                            if (pickedDate != null) {
+                              final pickedTime = await showTimePicker(
+                                context: ctx,
+                                initialTime: selectedEndTime,
+                              );
+                              if (pickedTime != null) {
+                                // Validate end time is after start time
+                                final startDateTime = DateTime(
+                                  selectedStartDate.year,
+                                  selectedStartDate.month,
+                                  selectedStartDate.day,
+                                  selectedStartTime.hour,
+                                  selectedStartTime.minute,
+                                );
+                                final potentialEndDateTime = DateTime(
+                                  pickedDate.year,
+                                  pickedDate.month,
+                                  pickedDate.day,
+                                  pickedTime.hour,
+                                  pickedTime.minute,
+                                );
+                                if (potentialEndDateTime.isAfter(startDateTime)) {
+                                  setStateDialog(() {
+                                    selectedEndDate = pickedDate;
+                                    selectedEndTime = pickedTime;
+                                  });
+                                } else {
+                                  Fluttertoast.showToast(
+                                      msg: 'End time must be after start time.');
+                                }
+                              }
+                            }
+                          },
+                          child: const Text('Select End'),
                         ),
                       ],
                     ),
@@ -288,13 +476,28 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
               formKey.currentState!.save();
               Navigator.pop(ctx);
 
+              final finalStartDateTime = DateTime(
+                selectedStartDate.year,
+                selectedStartDate.month,
+                selectedStartDate.day,
+                selectedStartTime.hour,
+                selectedStartTime.minute,
+              );
+              final finalEndDateTime = DateTime(
+                selectedEndDate.year,
+                selectedEndDate.month,
+                selectedEndDate.day,
+                selectedEndTime.hour,
+                selectedEndTime.minute,
+              );
+
               setState(() => _isLoading = true);
               try {
                 final updatedFields = {
                   "patient": patientId,
                   "doctor": doctorId,
-                  "appointmentDate":
-                      DateFormat("yyyy-MM-dd").format(selectedDate),
+                  "start": finalStartDateTime.toIso8601String(),
+                  "end": finalEndDateTime.toIso8601String(),
                   "purpose": purpose,
                   "status": status,
                   "suspended": suspended,
@@ -363,10 +566,13 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
 
     final filtered = _appointmentList.where((appt) {
       final q = _searchQuery.toLowerCase();
+      // Check against relevant fields, handle potential nulls if necessary
       return appt.id.toLowerCase().contains(q) ||
           appt.status.toLowerCase().contains(q) ||
-          appt.patientName.toLowerCase().contains(q) ||
-          appt.doctorName.toLowerCase().contains(q) ||
+          (appt.patientName?.toLowerCase().contains(q) ?? false) || // Use patientName if available
+          (appt.doctorName?.toLowerCase().contains(q) ?? false) || // Use doctorName if available
+          appt.patientId.toLowerCase().contains(q) || // Fallback to IDs
+          appt.doctorId.toLowerCase().contains(q) ||
           appt.purpose.toLowerCase().contains(q);
     }).toList();
 
@@ -375,22 +581,27 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Filter and Search Row
             Row(
               children: [
+                // Suspend Filter Dropdown
                 Container(
                   width: 150,
                   margin: const EdgeInsets.only(right: 8),
                   child: DropdownButtonFormField<String>(
                     value: _suspendFilter,
                     decoration: const InputDecoration(
-                      labelText: 'Status Filter',
+                      labelText: 'Suspend Filter',
                       border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     ),
                     items: const [
                       DropdownMenuItem(
                           value: 'unsuspended', child: Text('Active')),
                       DropdownMenuItem(
                           value: 'suspended', child: Text('Suspended')),
+                      DropdownMenuItem(
+                          value: 'all', child: Text('All')),
                     ],
                     onChanged: (val) async {
                       setState(() => _suspendFilter = val ?? 'unsuspended');
@@ -399,149 +610,123 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                // Role Filter Dropdown
                 Container(
                   width: 120,
                   margin: const EdgeInsets.only(right: 8),
-                  child: TextFormField(
+                  child: DropdownButtonFormField<String>(
+                    value: _filterByRole.isEmpty ? null : _filterByRole, // Handle empty value
+                    hint: const Text('Role'),
                     decoration: const InputDecoration(
                       labelText: 'Role Filter',
                       border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     ),
-                    initialValue: _filterByRole,
-                    onChanged: (val) =>
-                        setState(() => _filterByRole = val.trim()),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('Any Role')),
+                      DropdownMenuItem(value: 'patient', child: Text('Patient')),
+                      DropdownMenuItem(value: 'doctor', child: Text('Doctor')),
+                    ],
+                    onChanged: (val) {
+                       setState(() => _filterByRole = val ?? '');
+                       // Optionally trigger fetch immediately or wait for ID input
+                    },
                   ),
                 ),
-                Container(
-                  width: 200,
-                  margin: const EdgeInsets.only(right: 8),
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'ID Filter',
-                      border: OutlineInputBorder(),
+                // ID Filter Text Field
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Filter by ID',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      ),
+                      initialValue: _filterById,
+                      onChanged: (val) => setState(() => _filterById = val.trim()),
+                      onEditingComplete: _fetchAppointments, // Fetch when done editing ID
                     ),
-                    initialValue: _filterById,
-                    onChanged: (val) =>
-                        setState(() => _filterById = val.trim()),
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: _fetchAppointments,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Fetch'),
-                ),
-                const Spacer(),
-                Container(
-                  width: 200,
+                // Search Field
+                Expanded(
+                  flex: 2,
                   child: TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Search',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: 'Search Appointments',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     ),
-                    onChanged: (val) => setState(() => _searchQuery = val),
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value);
+                    },
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
+                // Add Button
                 ElevatedButton.icon(
                   onPressed: _showAddAppointmentDialog,
                   icon: const Icon(Icons.add),
                   label: const Text('Add'),
                 ),
+                const SizedBox(width: 10),
+                // Refresh Button
+                ElevatedButton.icon(
+                  onPressed: _fetchAppointments,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Refresh'),
+                ),
               ],
             ),
             const SizedBox(height: 20),
+            // Data Table
             Expanded(
               child: filtered.isEmpty
                   ? const Center(child: Text('No appointments found.'))
-                  : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        child: DataTable(
-                          columns: const [
-                            DataColumn(label: Text('ID')),
-                            DataColumn(label: Text('Patient')),
-                            DataColumn(label: Text('Doctor')),
-                            DataColumn(label: Text('Date')),
-                            DataColumn(label: Text('Purpose')),
-                            DataColumn(label: Text('Status')),
-                            DataColumn(label: Text('Actions')),
-                          ],
-                          rows: filtered.map((appt) {
-                            return DataRow(cells: [
-                              DataCell(Text(appt.id)),
-                              DataCell(Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(appt.patientName),
-                                  Text(
-                                    appt.patientEmail,
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              )),
-                              DataCell(Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(appt.doctorName),
-                                  Text(
-                                    appt.doctorEmail,
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              )),
-                              DataCell(Text(
-                                  DateFormat('yyyy-MM-dd').format(appt.date))),
-                              DataCell(Text(appt.purpose)),
-                              DataCell(Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: appt.status == 'completed'
-                                      ? Colors.green[100]
-                                      : appt.status == 'cancelled'
-                                          ? Colors.red[100]
-                                          : Colors.blue[100],
-                                  borderRadius: BorderRadius.circular(12),
+                  : BetterDataTable(
+                      columns: const [
+                        DataColumn(label: Text('ID')),
+                        DataColumn(label: Text('Patient')),
+                        DataColumn(label: Text('Doctor')),
+                        DataColumn(label: Text('Start')),
+                        DataColumn(label: Text('End')),
+                        DataColumn(label: Text('Purpose')),
+                        DataColumn(label: Text('Status')),
+                        DataColumn(label: Text('Suspended')),
+                        DataColumn(label: Text('Actions')),
+                      ],
+                      rows: filtered.map((appt) {
+                        return DataRow(cells: [
+                          DataCell(Text(appt.id)),
+                          DataCell(Text(appt.patientName ?? appt.patientId)), // Show name or ID
+                          DataCell(Text(appt.doctorName ?? appt.doctorId)),   // Show name or ID
+                          DataCell(Text(DateFormat('yyyy-MM-dd HH:mm').format(appt.start))),
+                          DataCell(Text(DateFormat('yyyy-MM-dd HH:mm').format(appt.end))),
+                          DataCell(Text(appt.purpose)),
+                          DataCell(Text(appt.status)),
+                          DataCell(Text(appt.suspended.toString())),
+                          DataCell(
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () => _showEditAppointmentDialog(appt),
                                 ),
-                                child: Text(
-                                  appt.status,
-                                  style: TextStyle(
-                                    color: appt.status == 'completed'
-                                        ? Colors.green[900]
-                                        : appt.status == 'cancelled'
-                                            ? Colors.red[900]
-                                            : Colors.blue[900],
-                                  ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _deleteAppointment(appt.id),
                                 ),
-                              )),
-                              DataCell(
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit,
-                                          color: Colors.blue),
-                                      onPressed: () =>
-                                          _showEditAppointmentDialog(appt),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.red),
-                                      onPressed: () =>
-                                          _deleteAppointment(appt.id),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ]);
-                          }).toList(),
-                        ),
-                      ),
+                              ],
+                            ),
+                          ),
+                        ]);
+                      }).toList(),
                     ),
             ),
           ],

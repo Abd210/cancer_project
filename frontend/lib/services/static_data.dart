@@ -54,7 +54,7 @@ class StaticData {
       patientId: patients[index % patients.length].id,
       doctorId: doctors[index % doctors.length].id,
       dateTime: DateTime.now().add(Duration(days: index % 30)),
-      status: 'Scheduled',
+      status: 'Scheduled', start: DateTime.now(), end: DateTime.now(), purpose: '',
     ),
   );
 

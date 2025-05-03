@@ -58,9 +58,9 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
       HospitalsPage(token: widget.token), // 0
       DoctorsPage(token: widget.token),                // 1
       PatientsPage(token: widget.token),               // 2
-      const DevicesPage(),                // 3
+      DevicesPage(token: widget.token),                // 3 // Added token
       AppointmentsPage(token: widget.token),           // 4
-      const TicketsPage(),                // 5
+      TicketsPage(token: widget.token),                // 5
     ];
 
     return Scaffold(

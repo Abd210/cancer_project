@@ -1,3 +1,4 @@
+//hospital_data.dart
 class HospitalData {
   final String id;
   final String name;         // from "name"
