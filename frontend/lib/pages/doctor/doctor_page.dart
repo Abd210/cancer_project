@@ -29,8 +29,8 @@ class _DoctorPageState extends State<DoctorPage> {
 
   late final List<Widget> _pages;
   final List<SidebarItem> _doctorItems = [
-    SidebarItem(icon: Icons.person, label: 'Personal Data'),
-    SidebarItem(icon: Icons.group, label: 'Assigned Patients'),
+    SidebarItem(icon: Icons.group, label: 'Patients'),
+    SidebarItem(icon: Icons.person, label: 'My Data'),
     SidebarItem(icon: Icons.event, label: 'Appointments'),
     SidebarItem(icon: Icons.rocket, label: 'Tickets'),
     SidebarItem(icon: Icons.logout, label: 'Logout'),
@@ -40,10 +40,10 @@ class _DoctorPageState extends State<DoctorPage> {
   void initState() {
     super.initState();
     _pages = [
+      // Patients page
+      DoctorPatientsPage(doctorId: widget.doctorId, token: widget.token),
       // Personal Data page
       DoctorPersonalDataPage(doctorId: widget.doctorId, token: widget.token),
-      // Assigned Patients page
-      DoctorPatientsPage(doctorId: widget.doctorId, token: widget.token),
       // Appointments page
       DoctorAppointmentsPage(doctorId: widget.doctorId, token: widget.token),
       // Tickets page
