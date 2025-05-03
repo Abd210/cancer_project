@@ -150,6 +150,69 @@ class HospitalService {
     return "Hospital updated successfully.";
   }
 
+  // /**
+  //  * Deletes a hospital and all associated data (patients, doctors, admins, appointments, tests).
+  //  * @param {string} hospitalId - The ID of the hospital to delete.
+  //  * @returns {Promise<Object>} A message indicating the hospital and all associated records were successfully deleted.
+  //  * @throws {Error} If the hospital is not found.
+  //  */
+  // static async deleteHospital(hospitalId) {
+  //   const hospitalRef = db.collection("hospitals").doc(hospitalId);
+  //   const hospitalDoc = await hospitalRef.get();
+
+  //   if (!hospitalDoc.exists) {
+  //     throw new Error("Hospital not found.");
+  //   }
+
+  //   // Start Firestore transaction
+  //   const batch = db.batch();
+
+  //   // 🔹 Collect IDs of Patients and Doctors linked to the hospital
+  //   const collectIds = async (collection) => {
+  //     const snapshot = await db
+  //       .collection(collection)
+  //       .where("hospital", "==", hospitalId)
+  //       .get();
+  //     return snapshot.docs.map((doc) => doc.id);
+  //   };
+
+  //   const patientIds = await collectIds("patients");
+  //   const doctorIds = await collectIds("doctors");
+
+  //   // 🔹 Delete Patients, Doctors, and Admins linked to this hospital
+  //   const deleteLinkedRecords = async (collection) => {
+  //     const snapshot = await db
+  //       .collection(collection)
+  //       .where("hospital", "==", hospitalId)
+  //       .get();
+  //     snapshot.forEach((doc) => batch.delete(doc.ref));
+  //   };
+
+  //   await deleteLinkedRecords("patients");
+  //   await deleteLinkedRecords("doctors");
+  //   await deleteLinkedRecords("admins");
+
+  //   // 🔹 Delete Appointments linked to collected patient & doctor IDs
+  //   const deleteAppointmentsAndTests = async (collection, field) => {
+  //     const snapshot = await db
+  //       .collection(collection)
+  //       .where(field, "in", [...patientIds, ...doctorIds])
+  //       .get();
+  //     snapshot.forEach((doc) => batch.delete(doc.ref));
+  //   };
+
+  //   await deleteAppointmentsAndTests("appointments", "patient");
+  //   await deleteAppointmentsAndTests("appointments", "doctor");
+  //   await deleteAppointmentsAndTests("tests", "patient");
+  //   await deleteAppointmentsAndTests("tests", "doctor");
+
+  //   // 🔹 Delete the hospital itself
+  //   batch.delete(hospitalRef);
+  //   await batch.commit();
+
+  //   return { message: "Hospital and all associated records deleted successfully." };
+  // }
+
   /**
    * Deletes a hospital and all associated data (patients, doctors, admins, appointments, tests).
    * @param {string} hospitalId - The ID of the hospital to delete.
@@ -159,60 +222,70 @@ class HospitalService {
   static async deleteHospital(hospitalId) {
     const hospitalRef = db.collection("hospitals").doc(hospitalId);
     const hospitalDoc = await hospitalRef.get();
-
     if (!hospitalDoc.exists) {
       throw new Error("Hospital not found.");
     }
-
-    // Start Firestore transaction
+  
     const batch = db.batch();
-
-    // 🔹 Collect IDs of Patients and Doctors linked to the hospital
+  
+    // Helper to collect all IDs in a collection where hospital==hospitalId
     const collectIds = async (collection) => {
-      const snapshot = await db
+      const snap = await db
         .collection(collection)
         .where("hospital", "==", hospitalId)
         .get();
-      return snapshot.docs.map((doc) => doc.id);
+      return snap.docs.map(d => d.id);
     };
-
+  
     const patientIds = await collectIds("patients");
-    const doctorIds = await collectIds("doctors");
-
-    // 🔹 Delete Patients, Doctors, and Admins linked to this hospital
-    const deleteLinkedRecords = async (collection) => {
-      const snapshot = await db
-        .collection(collection)
+    const doctorIds  = await collectIds("doctors");
+  
+    // Delete Patients, Doctors, Admins linked to this hospital
+    for (const coll of ["patients","doctors","admins"]) {
+      const snap = await db
+        .collection(coll)
         .where("hospital", "==", hospitalId)
         .get();
-      snapshot.forEach((doc) => batch.delete(doc.ref));
-    };
-
-    await deleteLinkedRecords("patients");
-    await deleteLinkedRecords("doctors");
-    await deleteLinkedRecords("admins");
-
-    // 🔹 Delete Appointments linked to collected patient & doctor IDs
-    const deleteAppointmentsAndTests = async (collection, field) => {
-      const snapshot = await db
-        .collection(collection)
-        .where(field, "in", [...patientIds, ...doctorIds])
+      snap.forEach(d => batch.delete(d.ref));
+    }
+  
+    // 🔹 Delete Appointments by patient IDs
+    if (patientIds.length > 0) {
+      const apptByPatient = await db
+        .collection("appointments")
+        .where("patient", "in", patientIds)
         .get();
-      snapshot.forEach((doc) => batch.delete(doc.ref));
-    };
-
-    await deleteAppointmentsAndTests("appointments", "patient");
-    await deleteAppointmentsAndTests("appointments", "doctor");
-    await deleteAppointmentsAndTests("tests", "patient");
-    await deleteAppointmentsAndTests("tests", "doctor");
-
-    // 🔹 Delete the hospital itself
+      apptByPatient.forEach(d => batch.delete(d.ref));
+  
+      const testsByPatient = await db
+        .collection("tests")
+        .where("patient", "in", patientIds)
+        .get();
+      testsByPatient.forEach(d => batch.delete(d.ref));
+    }
+  
+    // 🔹 Delete Appointments by doctor IDs
+    if (doctorIds.length > 0) {
+      const apptByDoctor = await db
+        .collection("appointments")
+        .where("doctor", "in", doctorIds)
+        .get();
+      apptByDoctor.forEach(d => batch.delete(d.ref));
+  
+      const testsByDoctor = await db
+        .collection("tests")
+        .where("doctor", "in", doctorIds)
+        .get();
+      testsByDoctor.forEach(d => batch.delete(d.ref));
+    }
+  
+    // Finally, delete the hospital itself
     batch.delete(hospitalRef);
     await batch.commit();
-
+  
     return { message: "Hospital and all associated records deleted successfully." };
   }
-
+  
   static async findHospital(hospitalId) {
     const hospitalRef = db.collection("hospitals").doc(hospitalId);
     const hospitalDoc = await hospitalRef.get();
