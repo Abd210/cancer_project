@@ -53,6 +53,7 @@ class DoctorProvider {
     required String description,
     required String hospitalId,
     required bool suspended,
+    List<String> patients = const [],
   }) async {
     final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.registerRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
@@ -69,6 +70,7 @@ class DoctorProvider {
       'description': description,
       'hospital': hospitalId,
       'suspended': suspended,
+      'patients': patients,
     });
 
     final res = await http.post(url, headers: headers, body: body);

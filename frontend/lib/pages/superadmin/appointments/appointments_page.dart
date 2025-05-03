@@ -9,7 +9,7 @@ import 'package:frontend/models/appointment_data.dart';
 
 import '../../../shared/components/loading_indicator.dart';
 import '../../../shared/components/responsive_data_table.dart'
-    show BetterDataTable;
+    show BetterPaginatedDataTable;
 
 class AppointmentsPage extends StatefulWidget {
   final String token;
@@ -688,7 +688,9 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
             Expanded(
               child: filtered.isEmpty
                   ? const Center(child: Text('No appointments found.'))
-                  : BetterDataTable(
+                  : BetterPaginatedDataTable(
+                      themeColor: const Color(0xFFEC407A), // Pinkish color
+                      rowsPerPage: 10, // Show 10 rows per page
                       columns: const [
                         DataColumn(label: Text('ID')),
                         DataColumn(label: Text('Patient')),

@@ -10,6 +10,9 @@ class SearchAndPendingRow extends StatelessWidget {
 
   /// Called when the checkbox changes
   final Function(bool?) onTogglePending;
+  
+  /// Custom label for the pending checkbox
+  final String pendingLabel;
 
   const SearchAndPendingRow({
     super.key,
@@ -17,6 +20,7 @@ class SearchAndPendingRow extends StatelessWidget {
     required this.onSearchChanged,
     required this.showOnlyPending,
     required this.onTogglePending,
+    this.pendingLabel = 'Show Only Pending',
   });
 
   @override
@@ -44,7 +48,7 @@ class SearchAndPendingRow extends StatelessWidget {
               onChanged: onTogglePending,
               activeColor: Theme.of(context).primaryColor,
             ),
-            const Text('Show Only Pending'),
+            Text(pendingLabel),
           ],
         ),
       ],

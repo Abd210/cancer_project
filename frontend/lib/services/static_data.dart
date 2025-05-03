@@ -60,12 +60,16 @@ class StaticData {
 
   static List<Ticket> tickets = List.generate(
     50,
-        (index) => Ticket(
+    (index) => Ticket(
       id: 't$index',
-      requester: 'Requester ${index + 1}',
-      requestType: 'Data Update',
-      description: 'Request description $index',
-      date: DateTime.now().subtract(Duration(days: index)),
+      userId: patients[index % patients.length].id,
+      issue: 'Issue description $index',
+      status: index % 4 == 0 ? 'open' : 
+              index % 4 == 1 ? 'in_progress' : 
+              index % 4 == 2 ? 'resolved' : 'closed',
+      role: 'patient',
+      review: index % 3 == 0 ? 'Review for ticket $index' : '',
+      createdAt: DateTime.now().subtract(Duration(days: index)),
     ),
   );
 

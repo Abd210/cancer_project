@@ -3,7 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/providers/device_provider.dart';
 import 'package:frontend/models/device_data.dart';
 import '../../../shared/components/loading_indicator.dart';
-import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
+import '../../../shared/components/responsive_data_table.dart' show BetterPaginatedDataTable;
 
 class DevicesPage extends StatefulWidget {
   final String token;
@@ -137,8 +137,10 @@ class _DevicesPageState extends State<DevicesPage> {
 
   void _showEditDeviceDialog(DeviceData device) {
     final formKey = GlobalKey<FormState>();
-    String type = device.type;
+    String deviceCode = device.deviceCode;
     String? patientId = device.patientId;
+    String purpose = device.purpose;
+    String status = device.status;
     bool suspended = device.suspended;
 
     showDialog(
@@ -154,11 +156,34 @@ class _DevicesPageState extends State<DevicesPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextFormField(
-                      initialValue: type,
-                      decoration: const InputDecoration(labelText: 'Type'),
+                      initialValue: deviceCode,
+                      decoration: const InputDecoration(labelText: 'Device Code'),
                       validator: (val) =>
-                          val == null || val.isEmpty ? 'Enter device type' : null,
-                      onSaved: (val) => type = val!.trim(),
+                          val == null || val.isEmpty ? 'Enter device code' : null,
+                      onSaved: (val) => deviceCode = val!.trim(),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      initialValue: purpose,
+                      decoration: const InputDecoration(labelText: 'Purpose'),
+                      validator: (val) =>
+                          val == null || val.isEmpty ? 'Enter device purpose' : null,
+                      onSaved: (val) => purpose = val!.trim(),
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      value: status,
+                      decoration: const InputDecoration(labelText: 'Status'),
+                      items: const [
+                        DropdownMenuItem(value: 'operational', child: Text('Operational')),
+                        DropdownMenuItem(value: 'malfunctioned', child: Text('Malfunctioned')),
+                        DropdownMenuItem(value: 'standby', child: Text('Standby')),
+                      ],
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          status = value ?? 'operational';
+                        });
+                      },
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
@@ -197,7 +222,9 @@ class _DevicesPageState extends State<DevicesPage> {
                 setState(() => _isLoading = true);
                 try {
                   final updatedFields = {
-                    'type': type,
+                    'deviceCode': deviceCode,
+                    'purpose': purpose,
+                    'status': status,
                     'patient': patientId, // Send null or the ID
                     'suspended': suspended,
                   };
@@ -273,7 +300,7 @@ class _DevicesPageState extends State<DevicesPage> {
       // Then apply search
       if (_searchQuery.isEmpty) return true;
       return device.id.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          device.type.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          device.deviceCode.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           (device.patientId?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
     }).toList();
 
@@ -282,12 +309,13 @@ class _DevicesPageState extends State<DevicesPage> {
       return DataRow(
         cells: [
           DataCell(Text(device.id)),
-          DataCell(Text(device.type)),
+          DataCell(Text(device.deviceCode)),
           DataCell(
             device.patientId == null || device.patientId!.isEmpty
                 ? const Text('Not assigned')
                 : Text(device.patientId!),
           ),
+          DataCell(Text(device.status)),
           DataCell(Text(device.suspended ? 'Suspended' : 'Active')),
           DataCell(Row(
             mainAxisSize: MainAxisSize.min,
@@ -358,7 +386,9 @@ class _DevicesPageState extends State<DevicesPage> {
             Expanded(
               child: rows.isEmpty
                   ? const Center(child: Text('No devices found'))
-                  : BetterDataTable(
+                  : BetterPaginatedDataTable(
+                      themeColor: const Color(0xFFEC407A), // Pinkish color
+                      rowsPerPage: 10, // Show 10 rows per page
                       columns: const [
                         DataColumn(label: Text('ID')),
                         DataColumn(label: Text('Type')),

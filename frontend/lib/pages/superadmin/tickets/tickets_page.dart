@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/data_provider.dart';
 import '../../../models/ticket.dart';
 import '../../../shared/components/components.dart';
-import '../../../shared/components/responsive_data_table.dart' show BetterDataTable;
+import '../../../shared/components/responsive_data_table.dart' show BetterPaginatedDataTable;
 
 class TicketsPage extends StatefulWidget {
   final String token;
@@ -18,7 +18,7 @@ class TicketsPage extends StatefulWidget {
 
 class _TicketsPageState extends State<TicketsPage> {
   String _searchQuery = '';
-  bool _showOnlyPending = true;
+  bool _showOnlyOpen = true;
 
   void _showTicketDetails(BuildContext context, Ticket ticket) {
     showDialog(
@@ -29,29 +29,37 @@ class _TicketsPageState extends State<TicketsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Requester: ${ticket.requester}'),
+            Text('User ID: ${ticket.userId}'),
             const SizedBox(height: 10),
-            Text('Type: ${ticket.requestType}'),
+            Text('Role: ${ticket.role}'),
             const SizedBox(height: 10),
-            Text('Description: ${ticket.description}'),
+            Text('Issue: ${ticket.issue}'),
             const SizedBox(height: 10),
-            Text('Date: ${DateFormat('yyyy-MM-dd').format(ticket.date)}'),
+            Text('Created: ${ticket.createdAt != null ? DateFormat('yyyy-MM-dd').format(ticket.createdAt!) : "N/A"}'),
             const SizedBox(height: 10),
-            Text('Status: ${ticket.isApproved ? "Approved" : "Pending"}'),
+            Text('Status: ${ticket.status}'),
+            if (ticket.solvedAt != null) ...[
+              const SizedBox(height: 10),
+              Text('Solved: ${DateFormat('yyyy-MM-dd').format(ticket.solvedAt!)}'),
+            ],
+            if (ticket.review.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text('Review: ${ticket.review}'),
+            ],
           ],
         ),
         actions: [
-          if (!ticket.isApproved)
+          if (ticket.status == 'open' || ticket.status == 'in_progress')
             TextButton(
               onPressed: () {
                 Provider.of<DataProvider>(context, listen: false)
                     .approveTicket(ticket.id);
                 Navigator.pop(context);
-                Fluttertoast.showToast(msg: 'Ticket approved.');
+                Fluttertoast.showToast(msg: 'Ticket closed.');
               },
-              child: const Text('Approve', style: TextStyle(color: Colors.green)),
+              child: const Text('Close Ticket', style: TextStyle(color: Colors.green)),
             ),
-          if (!ticket.isApproved)
+          if (ticket.status == 'open')
             TextButton(
               onPressed: () {
                 Provider.of<DataProvider>(context, listen: false)
@@ -70,9 +78,9 @@ class _TicketsPageState extends State<TicketsPage> {
     );
   }
 
-  void _toggleShowOnlyPending(bool? value) {
+  void _toggleShowOnlyOpen(bool? value) {
     setState(() {
-      _showOnlyPending = value ?? false;
+      _showOnlyOpen = value ?? false;
     });
   }
 
@@ -80,17 +88,13 @@ class _TicketsPageState extends State<TicketsPage> {
   Widget build(BuildContext context) {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
-        // Filter tickets by query + showOnlyPending
+        // Filter tickets by query + showOnlyOpen
         List<Ticket> tickets = dataProvider.tickets
             .where((t) =>
-        t.requester.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            t.requestType
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()) ||
-            t.description
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()))
-            .where((t) => !_showOnlyPending || !t.isApproved)
+                t.userId.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                t.issue.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                t.role.toLowerCase().contains(_searchQuery.toLowerCase()))
+            .where((t) => !_showOnlyOpen || (t.status == 'open' || t.status == 'in_progress'))
             .toList();
 
         // Convert tickets to DataRow
@@ -98,24 +102,26 @@ class _TicketsPageState extends State<TicketsPage> {
           return DataRow(
             cells: [
               DataCell(Text(ticket.id)),
-              DataCell(Text(ticket.requester)),
-              DataCell(Text(ticket.requestType)),
-              DataCell(Text(ticket.description)),
-              DataCell(Text(DateFormat('yyyy-MM-dd').format(ticket.date))),
-              DataCell(Text(ticket.isApproved ? 'Approved' : 'Pending')),
+              DataCell(Text(ticket.userId)),
+              DataCell(Text(ticket.role)),
+              DataCell(Text(ticket.issue)),
+              DataCell(Text(ticket.createdAt != null 
+                ? DateFormat('yyyy-MM-dd').format(ticket.createdAt!)
+                : "N/A")),
+              DataCell(Text(ticket.status)),
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (!ticket.isApproved)
+                    if (ticket.status == 'open' || ticket.status == 'in_progress')
                       IconButton(
                         icon: const Icon(Icons.check, color: Colors.green),
                         onPressed: () {
                           dataProvider.approveTicket(ticket.id);
-                          Fluttertoast.showToast(msg: 'Ticket approved.');
+                          Fluttertoast.showToast(msg: 'Ticket closed.');
                         },
                       ),
-                    if (!ticket.isApproved)
+                    if (ticket.status == 'open')
                       IconButton(
                         icon: const Icon(Icons.close, color: Colors.red),
                         onPressed: () {
@@ -138,7 +144,7 @@ class _TicketsPageState extends State<TicketsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Our new search + pending row
+              // Our search + pending row
               SearchAndPendingRow(
                 searchLabel: 'Search Tickets',
                 onSearchChanged: (value) {
@@ -146,20 +152,23 @@ class _TicketsPageState extends State<TicketsPage> {
                     _searchQuery = value;
                   });
                 },
-                showOnlyPending: _showOnlyPending,
-                onTogglePending: _toggleShowOnlyPending,
+                showOnlyPending: _showOnlyOpen,
+                pendingLabel: 'Show Only Open Tickets',
+                onTogglePending: _toggleShowOnlyOpen,
               ),
               const SizedBox(height: 20),
 
               // Display the table
               Expanded(
-                child: BetterDataTable(
+                child: BetterPaginatedDataTable(
+                  themeColor: const Color(0xFFEC407A), // Pinkish color
+                  rowsPerPage: 10, // Show 10 rows per page
                   columns: const [
                     DataColumn(label: Text('ID')),
-                    DataColumn(label: Text('Requester')),
-                    DataColumn(label: Text('Type')),
-                    DataColumn(label: Text('Description')),
-                    DataColumn(label: Text('Date')),
+                    DataColumn(label: Text('User ID')),
+                    DataColumn(label: Text('Role')),
+                    DataColumn(label: Text('Issue')),
+                    DataColumn(label: Text('Created Date')),
                     DataColumn(label: Text('Status')),
                     DataColumn(label: Text('Actions')),
                   ],

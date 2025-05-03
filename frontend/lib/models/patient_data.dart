@@ -3,58 +3,56 @@ import 'package:flutter/foundation.dart';
 
 class PatientData {
   final String id; // maps to "id" (or "_id" if returned)
-  final String persId; // from "persId"
-  final String name;
+  final String persId;
   final String password; // as returned (if any)
-  final String role; // should be "patient"
-  final String mobileNumber;
+  final String name;
   final String email;
-  final String status;
-  final String diagnosis;
-  final DateTime birthDate; // Parse from nested object
-  final List<String> medicalHistory;
+  final String mobileNumber;
+  final DateTime birthDate;
   final String hospitalId; // from "hospital"
+  final String doctorId; // from "doctor"
+  final String status; // "recovering", "recovered", "active", "inactive"
+  final String diagnosis;
+  final List<String> medicalHistory;
+  final String role; // should be "patient"
   final bool suspended;
-  final DateTime createdAt; // Parse from nested object
-  final DateTime updatedAt; // Parse from nested object
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   PatientData({
     required this.id,
     required this.persId,
+    this.password = '',
     required this.name,
-    required this.password,
-    required this.role,
-    required this.mobileNumber,
     required this.email,
+    required this.mobileNumber,
+    required this.birthDate,
+    required this.hospitalId,
+    required this.doctorId,
     required this.status,
     required this.diagnosis,
-    required this.birthDate,
     required this.medicalHistory,
-    required this.hospitalId,
+    this.role = 'patient',
     required this.suspended,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory PatientData.fromJson(Map<String, dynamic> json) {
     try {
       // Helper function to parse timestamp objects
-      DateTime parseTimestamp(Map<String, dynamic>? timestamp) {
+      DateTime parseTimestamp(dynamic timestamp) {
         if (timestamp == null) return DateTime.now();
-        final seconds = timestamp['_seconds'] as int? ?? 0;
-        final nanoseconds = timestamp['_nanoseconds'] as int? ?? 0;
-        return DateTime.fromMillisecondsSinceEpoch(
-          seconds * 1000 + (nanoseconds ~/ 1000000),
-        );
-      }
-
-      // Parse birthDate from nested object
-      DateTime parseBirthDate(dynamic birthDate) {
-        if (birthDate is Map<String, dynamic>) {
-          return parseTimestamp(birthDate);
-        } else if (birthDate is String) {
+        
+        if (timestamp is Map<String, dynamic>) {
+          final seconds = timestamp['_seconds'] as int? ?? 0;
+          final nanoseconds = timestamp['_nanoseconds'] as int? ?? 0;
+          return DateTime.fromMillisecondsSinceEpoch(
+            seconds * 1000 + (nanoseconds ~/ 1000000),
+          );
+        } else if (timestamp is String) {
           try {
-            return DateTime.parse(birthDate);
+            return DateTime.parse(timestamp);
           } catch (e) {
             return DateTime.now();
           }
@@ -62,24 +60,37 @@ class PatientData {
         return DateTime.now();
       }
 
+      DateTime? _ts(dynamic v) {
+        if (v is Map<String,dynamic>) {
+          final s  = v['_seconds']     as int? ?? 0;
+          final ns = v['_nanoseconds'] as int? ?? 0;
+          return DateTime.fromMillisecondsSinceEpoch(
+            s*1000 + (ns ~/ 1000000),
+            isUtc: true).toLocal();
+        }
+        if (v is String) return DateTime.tryParse(v);
+        return null;
+      }
+
       return PatientData(
         id: json['id'] ?? json['_id'] ?? '',
         persId: json['persId'] ?? '',
-        name: json['name'] ?? '',
         password: json['password'] ?? '',
-        role: json['role'] ?? 'patient',
-        mobileNumber: json['mobileNumber'] ?? '',
+        name: json['name'] ?? '',
         email: json['email'] ?? '',
-        status: json['status'] ?? '',
+        mobileNumber: json['mobileNumber'] ?? '',
+        birthDate: parseTimestamp(json['birthDate']),
+        hospitalId: json['hospital'] ?? '',
+        doctorId: json['doctor'] ?? '',
+        status: json['status'] ?? 'active',
         diagnosis: json['diagnosis'] ?? '',
-        birthDate: parseBirthDate(json['birthDate']),
         medicalHistory: json['medicalHistory'] != null
             ? List<String>.from(json['medicalHistory'])
             : <String>[],
-        hospitalId: json['hospital'] ?? json['hospitalId'] ?? '',
+        role: json['role'] ?? 'patient',
         suspended: json['suspended'] ?? false,
-        createdAt: parseTimestamp(json['createdAt']),
-        updatedAt: parseTimestamp(json['updatedAt']),
+        createdAt: _ts(json['createdAt']),
+        updatedAt: _ts(json['updatedAt']),
       );
     } catch (e) {
       debugPrint('Error creating PatientData from JSON: $e\nJSON: $json');

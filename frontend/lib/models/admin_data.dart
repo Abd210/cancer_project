@@ -2,21 +2,25 @@
 class AdminData {
   final String id;
   final String persId;
+  final String password; // as returned by the API (if any)
   final String name;
   final String email;
   final String mobileNumber;
-  final String hospitalId;
-  final bool   suspended;
+  final String hospitalId; // maps to 'hospital' in backend
+  final String role; // should be "admin"
+  final bool suspended;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   AdminData({
     required this.id,
     required this.persId,
+    this.password = '',
     required this.name,
     required this.email,
     required this.mobileNumber,
     required this.hospitalId,
+    this.role = 'admin',
     required this.suspended,
     this.createdAt,
     this.updatedAt,
@@ -38,10 +42,12 @@ class AdminData {
     return AdminData(
       id          : json['id']     ?? json['_id'] ?? '',
       persId      : json['persId'] ?? '',
+      password    : json['password'] ?? '',
       name        : json['name']   ?? '',
       email       : json['email']  ?? '',
       mobileNumber: json['mobileNumber'] ?? '',
       hospitalId  : json['hospital'] ?? '',
+      role        : json['role'] ?? 'admin',
       suspended   : json['suspended'] ?? false,
       createdAt   : _ts(json['createdAt']),
       updatedAt   : _ts(json['updatedAt']),

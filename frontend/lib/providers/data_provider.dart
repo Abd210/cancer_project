@@ -253,8 +253,24 @@ Doctor? findDoctorByUsername(String username) {
       (t) => t.id == ticketId,
       orElse: () => throw Exception('Ticket not found'),
     );
-    ticket.isApproved = true;
-    notifyListeners();
+    // Update the status to "closed" instead of using isApproved
+    int index = _tickets.indexWhere((t) => t.id == ticketId);
+    if (index != -1) {
+      _tickets[index] = Ticket(
+        id: ticket.id,
+        userId: ticket.userId,
+        issue: ticket.issue,
+        status: "closed", // Change status to closed
+        role: ticket.role,
+        solvedAt: DateTime.now(),
+        review: ticket.review,
+        visibleTo: ticket.visibleTo,
+        suspended: ticket.suspended,
+        createdAt: ticket.createdAt,
+        updatedAt: DateTime.now(),
+      );
+      notifyListeners();
+    }
   }
 
   void rejectTicket(String ticketId) {

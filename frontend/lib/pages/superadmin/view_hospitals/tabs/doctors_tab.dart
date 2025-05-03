@@ -52,7 +52,7 @@ class _HospitalDoctorsTabState extends State<HospitalDoctorsTab> {
     String mobile   = existing?.mobileNumber ?? '';
     String password = '';
     String desc     = existing?.description  ?? '';
-    bool suspended  = existing?.isSuspended  ?? false;
+    bool suspended  = existing?.suspended  ?? false;
 
     showDialog(
       context: context,

@@ -10,7 +10,7 @@ import 'package:frontend/models/doctor_data.dart';
 
 import '../../../shared/components/loading_indicator.dart';
 import '../../../shared/components/responsive_data_table.dart'
-    show BetterDataTable;
+    show BetterPaginatedDataTable;
 
 class PatientsPage extends StatefulWidget {
   final String token;
@@ -65,7 +65,7 @@ class _PatientsPageState extends State<PatientsPage> {
     DateTime birthDate = DateTime.now();
     String medicalHistoryRaw = '';
     String hospitalId = '';
-    bool isSuspended = false;
+    bool suspended = false;
 
     showDialog(
       context: context,
@@ -153,10 +153,10 @@ class _PatientsPageState extends State<PatientsPage> {
                   children: [
                     const Text('Suspended?'),
                     Checkbox(
-                      value: isSuspended,
+                      value: suspended,
                       onChanged: (val) {
                         setState(() {
-                          isSuspended = val ?? false;
+                          suspended = val ?? false;
                         });
                       },
                     ),
@@ -193,7 +193,7 @@ class _PatientsPageState extends State<PatientsPage> {
                     birthDate: birthDate.toIso8601String().split('T')[0],
                     medicalHistory: medicalHistory,
                     hospitalId: hospitalId,
-                    suspended: isSuspended,
+                    suspended: suspended,
                   );
                   await _fetchPatients();
 
@@ -226,7 +226,7 @@ class _PatientsPageState extends State<PatientsPage> {
     DateTime birthDate = patient.birthDate;
     List<String> medHistory = patient.medicalHistory;
     String hospitalId = patient.hospitalId;
-    bool isSuspended = patient.suspended;
+    bool suspended = patient.suspended;
 
     showDialog(
       context: context,
@@ -326,10 +326,10 @@ class _PatientsPageState extends State<PatientsPage> {
                   children: [
                     const Text('Suspended?'),
                     Checkbox(
-                      value: isSuspended,
+                      value: suspended,
                       onChanged: (val) {
                         setState(() {
-                          isSuspended = val ?? false;
+                          suspended = val ?? false;
                         });
                       },
                     ),
@@ -359,7 +359,7 @@ class _PatientsPageState extends State<PatientsPage> {
                     "birthDate": birthDate.toIso8601String().split('T')[0],
                     "medicalHistory": medHistory,
                     "hospital": hospitalId,
-                    "suspended": isSuspended,
+                    "suspended": suspended,
                   };
 
                   await _patientProvider.updatePatient(
@@ -502,49 +502,49 @@ class _PatientsPageState extends State<PatientsPage> {
             Expanded(
               child: filteredPatients.isEmpty
                   ? const Center(child: Text('No patients found.'))
-                  : ListView.builder(
-                      itemCount: filteredPatients.length,
-                      itemBuilder: (context, index) {
-                        final patient = filteredPatients[index];
-                        return Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(12),
-                            title: Text(
-                              patient.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                  : BetterPaginatedDataTable(
+                      themeColor: const Color(0xFFEC407A), // Pinkish color
+                      rowsPerPage: 10, // Show 10 rows per page
+                      columns: const [
+                        DataColumn(label: Text('Name')),
+                        DataColumn(label: Text('Pers ID')),
+                        DataColumn(label: Text('Email')),
+                        DataColumn(label: Text('Diagnosis')),
+                        DataColumn(label: Text('Status')),
+                        DataColumn(label: Text('Suspended')),
+                        DataColumn(label: Text('Hospital')),
+                        DataColumn(label: Text('Actions')),
+                      ],
+                      rows: filteredPatients.map((patient) {
+                        return DataRow(
+                          cells: [
+                            DataCell(Text(patient.name)),
+                            DataCell(Text(patient.persId)),
+                            DataCell(Text(patient.email)),
+                            DataCell(Text(patient.diagnosis)),
+                            DataCell(Text(patient.status)),
+                            DataCell(Text(patient.suspended.toString())),
+                            DataCell(Text(patient.hospitalId)),
+                            DataCell(
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: Colors.blue),
+                                    onPressed: () => _showEditPatientDialog(patient),
+                                    tooltip: 'Edit',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => _deletePatient(patient.id),
+                                    tooltip: 'Delete',
+                                  ),
+                                ],
                               ),
                             ),
-                            subtitle: Text(
-                              'persId: ${patient.persId}\n'
-                              'Email: ${patient.email}\n'
-                              'Diagnosis: ${patient.diagnosis}\n'
-                              'Status: ${patient.status}\n'
-                              'Suspended: ${patient.suspended}\n'
-                              'Hospital: ${patient.hospitalId}',
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.blue),
-                                  onPressed: () =>
-                                      _showEditPatientDialog(patient),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  onPressed: () => _deletePatient(patient.id),
-                                ),
-                              ],
-                            ),
-                          ),
+                          ],
                         );
-                      },
+                      }).toList(),
                     ),
             ),
           ],
