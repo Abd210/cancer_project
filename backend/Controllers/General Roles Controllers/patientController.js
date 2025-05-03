@@ -10,14 +10,13 @@ class PatientController {
    * Fetches patient data based on the provided _id from the request headers.
    * Handles authorization logic, ensuring that patients can only access their own data.
    *
-   * @param {Object} req - The Express request object, containing headers with the patient’s _id, user information, and role.
+   * @param {Object} req - The Express request object, containing headers with the patient's _id, user information, and role.
    * @param {Object} res - The Express response object, used to send the patient data or error messages.
    *
-   * @returns {Object} A JSON response containing the patient’s data or an error message.
+   * @returns {Object} A JSON response containing the patient's data or an error message.
    */
-  //
-
   static async getPatientData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure _id, user, and role from the request headers
       const { user, patientid, filter, hospitalid } = req.headers;
@@ -88,7 +87,7 @@ class PatientController {
       // Return the fetched patient data with a 200 status code
       res.status(200).json(patient_data);
     } catch (fetchPatientDataError) {
-      // Catch any errors during the data fetching process and return a 500 status with the error message
+      console.error("Error in getPatientData:", fetchPatientDataError);
       res.status(500).json({ error: fetchPatientDataError.message });
     }
   }
@@ -97,12 +96,13 @@ class PatientController {
    * Fetches the diagnosis data for a specific patient based on their _id.
    * Ensures that only authorized users (e.g., the patient themselves) can access their diagnosis.
    *
-   * @param {Object} req - The Express request object, containing headers with the patient’s _id, user information, and role.
+   * @param {Object} req - The Express request object, containing headers with the patient's _id, user information, and role.
    * @param {Object} res - The Express response object, used to send the diagnosis data or error messages.
    *
    * @returns {Object} A JSON response containing the patient's diagnosis or an error message.
    */
   static async getDiagnosis(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure patientid, user, and role from the request headers
       const { patientid, user } = req.headers;
@@ -130,12 +130,13 @@ class PatientController {
       // Return the patient's diagnosis data with a 200 status code
       res.status(200).json(patient_data.diagnosis);
     } catch (fetchPatientDiagnosisError) {
-      // Catch any errors during the diagnosis data fetching process and return a 500 status with the error message
+      console.error("Error in getDiagnosis:", fetchPatientDiagnosisError);
       res.status(500).json({ error: fetchPatientDiagnosisError.message });
     }
   }
 
   static async updatePatientData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure role and patientId from the request headers
       const { user, patientid } = req.headers;
@@ -184,12 +185,13 @@ class PatientController {
       // Return the updated patient data
       res.status(200).json(updatedPatient);
     } catch (updatePatientError) {
-      // Handle errors during the update process
-      res.status(500).json({ error: `PatientController-update patient: ${updatePatientError.message}` });
+      console.error("Error in updatePatientData:", updatePatientError);
+      res.status(500).json({ error: updatePatientError.message });
     }
   }
 
   static async deletePatientData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { patientid } = req.headers;
 
@@ -211,10 +213,8 @@ class PatientController {
       // Respond with success
       return res.status(200).json({ message: "Patient deleted successfully" });
     } catch (deletePatientError) {
-      // Catch and return errors
-      return res.status(500).json({
-        error: `PatientController-delete patient: ${deletePatientError.message}`,
-      });
+      console.error("Error in deletePatientData:", deletePatientError);
+      res.status(500).json({ error: deletePatientError.message });
     }
   }
 }

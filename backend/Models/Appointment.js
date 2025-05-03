@@ -18,8 +18,8 @@ class Appointment {
     // appointmentDate,
     // startTime,
     // endTime,
-    start,   // Full Date
-    end,     // Full Date
+    start, // Full Date
+    end, // Full Date
     purpose,
     status = "scheduled",
     suspended = false,
@@ -65,8 +65,8 @@ class Appointment {
     // this.startTime = startTime;
     // this.endTime = endTime;
     // this.appointmentDate = appointmentDate;
-    this.start = start;  // Full date and time
-    this.end = end;      // Full date and time
+    this.start = start; // Full date and time
+    this.end = end; // Full date and time
     this.purpose = purpose;
     this.status = status;
     this.suspended = suspended;
@@ -80,6 +80,7 @@ class Appointment {
       const docRef = await appointmentsCollection.add({ ...this });
       return docRef.id;
     } catch (error) {
+      console.error("Error in Appointment.save:", error);
       throw new Error("Error saving appointment: " + error.message);
     }
   }

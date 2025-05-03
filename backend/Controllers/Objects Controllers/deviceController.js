@@ -4,16 +4,19 @@ const SuspendController = require("../suspendController");
 
 class DeviceController {
   static async createDevice(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const deviceData = req.body;
       const newDevice = await DeviceService.createDevice(deviceData);
       res.status(201).json(newDevice);
     } catch (error) {
+      console.error("Error in createDevice:", error);
       res.status(500).json({ error: error.message });
     }
   }
 
   static async updateDevice(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { deviceId } = req.headers;
       const updateFields = req.body;
@@ -43,6 +46,7 @@ class DeviceController {
   }
 
   static async deleteDevice(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { deviceId } = req.headers;
 
@@ -53,11 +57,13 @@ class DeviceController {
       const result = await DeviceService.deleteDevice(deviceId);
       res.status(200).json({ message: "Device deleted successfully" });
     } catch (error) {
+      console.error("Error in deleteDevice:", error);
       res.status(500).json({ error: error.message });
     }
   }
 
   static async uploadDeviceData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { deviceId, testData } = req.body;
 
@@ -90,11 +96,13 @@ class DeviceController {
 
       res.status(200).json({ message: "Data uploaded successfully", test });
     } catch (error) {
+      console.error("Error in uploadDeviceData:", error);
       res.status(500).json({ error: error.message });
     }
   }
 
   static async getDeviceData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { user, suspendfilter } = req.headers;
       const { deviceId } = req.headers;
@@ -125,6 +133,7 @@ class DeviceController {
 
       res.status(200).json(filteredDevice);
     } catch (error) {
+      console.error("Error in getDeviceData:", error);
       res.status(500).json({ error: error.message });
     }
   }

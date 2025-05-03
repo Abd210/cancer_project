@@ -20,6 +20,7 @@ class TestController {
    * @returns {Object} Returns a JSON response with the test details or an error message.
    */
   static async getTestDetails(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { user, filterbyid, filterbyrole, suspendfilter } = req.headers;
 
@@ -51,7 +52,7 @@ class TestController {
       // Return the entire test object in the response
       res.status(200).json(filtered_data);
     } catch (fetchTestDetailsError) {
-      // Handle errors in fetching the test details
+      console.error("Error in getTestDetails:", fetchTestDetailsError);
       res.status(500).json({ error: fetchTestDetailsError.message });
     }
   }
@@ -66,6 +67,7 @@ class TestController {
    * @returns {Object} Returns a JSON response with the created test or an error message.
    */
   static async createTest(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const {
         patient,
@@ -122,7 +124,7 @@ class TestController {
       // Return the created test record in the response
       res.status(201).json(test);
     } catch (error) {
-      // Handle errors in creating the test
+      console.error("Error in createTest:", error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -137,6 +139,7 @@ class TestController {
    * @returns {Object} A JSON response with a success message or an error message.
    */
   static async deleteTest(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { testid } = req.headers;
 
@@ -158,7 +161,7 @@ class TestController {
       // Respond with success
       return res.status(200).json({ message: "Test deleted successfully" });
     } catch (deleteTestError) {
-      // Catch and return errors
+      console.error("Error in deleteTest:", deleteTestError);
       res.status(500).json({
         error: `TestController-deleteTest: ${deleteTestError.message}`,
       });
@@ -166,6 +169,7 @@ class TestController {
   }
 
   static async updateTestData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { testid, user } = req.headers;
 
@@ -213,8 +217,8 @@ class TestController {
       // Respond with the updated test data
       return res.status(200).json(updatedTest);
     } catch (updateTestError) {
-      // Catch and return errors
-      return res.status(500).json({
+      console.error("Error in updateTestData:", updateTestError);
+      res.status(500).json({
         error: `TestController-update test: ${updateTestError.message}`,
       });
     }

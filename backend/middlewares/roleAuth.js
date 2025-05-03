@@ -4,6 +4,7 @@ const SuperAdminService = require("../Services/superadminService.js");
 const AdminService = require("../Services/adminService");
 const PatientService = require("../Services/patientService");
 const DoctorService = require("../Services/doctorService");
+const HospitalService = require("../Services/hospitalService");
 
 const identifyUserRole = async (req, res, next) => {
   let { email, mobileNumber } = req.body;
@@ -12,18 +13,24 @@ const identifyUserRole = async (req, res, next) => {
 
     try {
       user = await PatientService.findPatient(null, email, mobileNumber);
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error in roleAuth - finding patient:", error);
+    }
 
     if (!user) {
       try {
         user = await DoctorService.findDoctor(null, email, mobileNumber);
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error in roleAuth - finding doctor:", error);
+      }
     }
 
     if (!user) {
       try {
         user = await AdminService.findAdmin(null, email, mobileNumber);
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error in roleAuth - finding admin:", error);
+      }
     }
 
     if (!user) {
@@ -33,7 +40,17 @@ const identifyUserRole = async (req, res, next) => {
           email,
           mobileNumber
         );
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error in roleAuth - finding super admin:", error);
+      }
+    }
+
+    if (!user) {
+      try {
+        user = await HospitalService.findHospital(null, email, mobileNumber);
+      } catch (error) {
+        console.error("Error in roleAuth - finding hospital:", error);
+      }
     }
 
     if (!user) {
@@ -46,9 +63,11 @@ const identifyUserRole = async (req, res, next) => {
     req.headers["role"] = user.role;
     next();
   } catch (roleIdentificationError) {
-    res.status(400).json({
-      error: `roleAuth - IdentifyUserRole: ${roleIdentificationError}`,
-    });
+    console.error(
+      "Error in roleAuth - role identification:",
+      roleIdentificationError
+    );
+    res.status(500).json({ error: roleIdentificationError.message });
   }
 };
 
@@ -97,11 +116,13 @@ const authorize = (roles = []) => {
         }
         next(); // Proceed to the next middleware
       } catch (error) {
+        console.error("Error in roleAuth - authorization:", error);
         return res
           .status(403)
           .json({ error: "jwtAuth - Authorize: Unauthorized" });
       }
     } catch (error) {
+      console.error("Error in roleAuth - authorization:", error);
       return res
         .status(500)
         .json({ error: "jwtAuth - Authorize: Internal Server Error" });

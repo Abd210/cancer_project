@@ -13,9 +13,10 @@ class DoctorController {
    * @param {Object} req - The Express request object, containing the doctorid in the headers.
    * @param {Object} res - The Express response object used to send the result or errors.
    *
-   * @returns {Object} A JSON response containing the doctor’s public data or an error message.
+   * @returns {Object} A JSON response containing the doctor's public data or an error message.
    */
   static async getPublicData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Extract the doctorid from the request headers
       const { doctorid } = req.headers;
@@ -30,15 +31,16 @@ class DoctorController {
       // Call the DoctorService to fetch the public data for the doctor
       const public_data = await DoctorService.getPublicData(doctorid);
 
-      // Respond with the doctor’s public data and a 200 status
+      // Respond with the doctor's public data and a 200 status
       res.status(200).json(public_data);
     } catch (fetchDoctorPublicDataError) {
-      // Handle any errors that occur during the data fetching process
+      console.error("Error in getPublicData:", fetchDoctorPublicDataError);
       res.status(500).json({ error: fetchDoctorPublicDataError.message });
     }
   }
 
   static async getDoctorData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure _id, user, and role from the request headers
       const { user, doctorid, filter, hospitalid } = req.headers;
@@ -110,7 +112,7 @@ class DoctorController {
       // Return the fetched doctor data with a 200 status code
       res.status(200).json(doctor_data);
     } catch (fetchDoctorDataError) {
-      // Catch any errors during the data fetching process and return a 500 status with the error message
+      console.error("Error in getDoctorData:", fetchDoctorDataError);
       res.status(500).json({ error: fetchDoctorDataError.message });
     }
   }
@@ -124,6 +126,7 @@ class DoctorController {
    * @returns {Object} A JSON response containing an array of patient data or an error message.
    */
   static async getAssignedPatients(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { doctor_id, user, filter } = req.headers;
       if (!doctor_id) {
@@ -133,7 +136,9 @@ class DoctorController {
       }
 
       // Call the doctor service to retrieve assigned patients.
-      const patients = await DoctorService.getPatientsAssignedToDoctor(doctor_id);
+      const patients = await DoctorService.getPatientsAssignedToDoctor(
+        doctor_id
+      );
 
       const filtered_data = await SuspendController.filterData(
         patients,
@@ -141,8 +146,9 @@ class DoctorController {
         filter
       );
       return res.status(200).json(filtered_data); // Return the filtered patient data
-    } catch (err) {
-      return res.status(500).json({ error: err.message });
+    } catch (fetchDoctorDataError) {
+      console.error("Error in getAssignedPatients:", fetchDoctorDataError);
+      res.status(500).json({ error: fetchDoctorDataError.message });
     }
   }
 
@@ -193,11 +199,9 @@ class DoctorController {
 
       // Respond with the updated doctor data
       return res.status(200).json(updatedDoctor);
-    } catch (updateDoctorError) {
-      // Catch and return errors
-      return res.status(500).json({
-        error: `DoctorController-update doctor: ${updateDoctorError.message}`,
-      });
+    } catch (err) {
+      console.error("Error in updateDoctorData:", err);
+      res.status(500).json({ error: err.message });
     }
   }
 
@@ -223,10 +227,8 @@ class DoctorController {
       // Respond with success
       return res.status(200).json({ message: "Doctor deleted successfully" });
     } catch (deleteDoctorError) {
-      // Catch and return errors
-      return res.status(500).json({
-        error: `DoctorController-delete doctor: ${deleteDoctorError.message}`,
-      });
+      console.error("Error in deleteDoctorData:", deleteDoctorError);
+      res.status(500).json({ error: deleteDoctorError.message });
     }
   }
 }
