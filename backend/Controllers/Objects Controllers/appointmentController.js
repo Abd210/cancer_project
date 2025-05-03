@@ -14,6 +14,7 @@ class AppointmentController {
    * Retrieves all upcoming appointments (ignores specific patient/doctor filtering).
    */
   static async getAllUpcomingAppointments(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { suspendfilter, user } = req.headers;
 
@@ -46,6 +47,7 @@ class AppointmentController {
    */
 
   static async getUpcomingAppointmentsForSpecificPatientOrDoctor(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { entity_role, suspendfilter, user, entity_id } = req.headers;
 

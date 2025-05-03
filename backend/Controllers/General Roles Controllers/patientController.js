@@ -15,9 +15,8 @@ class PatientController {
    *
    * @returns {Object} A JSON response containing the patient's data or an error message.
    */
-  //
-
   static async getPatientData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure _id, user, and role from the request headers
       const { user, patientid, filter, hospitalid } = req.headers;
@@ -103,6 +102,7 @@ class PatientController {
    * @returns {Object} A JSON response containing the patient's diagnosis or an error message.
    */
   static async getDiagnosis(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure patientid, user, and role from the request headers
       const { patientid, user } = req.headers;
@@ -136,6 +136,7 @@ class PatientController {
   }
 
   static async updatePatientData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure role and patientId from the request headers
       const { user, patientid } = req.headers;
@@ -190,6 +191,7 @@ class PatientController {
   }
 
   static async deletePatientData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { patientid } = req.headers;
 

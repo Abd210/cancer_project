@@ -21,6 +21,7 @@ class HospitalController {
    */
 
   static async register(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure the hospital registration details from the request body
       const { name, address, mobileNumbers, emails, suspended } = req.body;
@@ -56,6 +57,7 @@ class HospitalController {
   }
 
   static async getHospitalData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure user, and role from the request headers
       const { user, hospitalid, filter } = req.headers;
@@ -106,6 +108,7 @@ class HospitalController {
   }
 
   static async updateHospitalData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { user, hospitalid } = req.headers;
 
@@ -163,6 +166,7 @@ class HospitalController {
   }
 
   static async deleteHospital(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { hospitalid } = req.headers;
 

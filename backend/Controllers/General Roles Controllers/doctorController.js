@@ -16,6 +16,7 @@ class DoctorController {
    * @returns {Object} A JSON response containing the doctor's public data or an error message.
    */
   static async getPublicData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Extract the doctorid from the request headers
       const { doctorid } = req.headers;
@@ -39,6 +40,7 @@ class DoctorController {
   }
 
   static async getDoctorData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure _id, user, and role from the request headers
       const { user, doctorid, filter, hospitalid } = req.headers;
@@ -124,6 +126,7 @@ class DoctorController {
    * @returns {Object} A JSON response containing an array of patient data or an error message.
    */
   static async getAssignedPatients(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { doctor_id, user, filter } = req.headers;
       if (!doctor_id) {

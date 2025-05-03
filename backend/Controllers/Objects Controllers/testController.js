@@ -20,6 +20,7 @@ class TestController {
    * @returns {Object} Returns a JSON response with the test details or an error message.
    */
   static async getTestDetails(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { user, filterbyid, filterbyrole, suspendfilter } = req.headers;
 
@@ -66,6 +67,7 @@ class TestController {
    * @returns {Object} Returns a JSON response with the created test or an error message.
    */
   static async createTest(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const {
         patient,
@@ -137,6 +139,7 @@ class TestController {
    * @returns {Object} A JSON response with a success message or an error message.
    */
   static async deleteTest(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { testid } = req.headers;
 
@@ -166,6 +169,7 @@ class TestController {
   }
 
   static async updateTestData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { testid, user } = req.headers;
 

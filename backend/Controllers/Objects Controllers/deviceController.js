@@ -4,6 +4,7 @@ const SuspendController = require("../suspendController");
 
 class DeviceController {
   static async createDevice(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const deviceData = req.body;
       const newDevice = await DeviceService.createDevice(deviceData);
@@ -15,6 +16,7 @@ class DeviceController {
   }
 
   static async updateDevice(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { deviceId } = req.headers;
       const updateFields = req.body;
@@ -44,6 +46,7 @@ class DeviceController {
   }
 
   static async deleteDevice(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { deviceId } = req.headers;
 
@@ -60,6 +63,7 @@ class DeviceController {
   }
 
   static async uploadDeviceData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { deviceId, testData } = req.body;
 
@@ -98,6 +102,7 @@ class DeviceController {
   }
 
   static async getDeviceData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { user, suspendfilter } = req.headers;
       const { deviceId } = req.headers;

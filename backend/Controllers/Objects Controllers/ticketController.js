@@ -17,6 +17,7 @@ class TicketController {
    * @returns {Object} A JSON response containing the created ticket or an error message.
    */
   static async createTicket(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure the necessary data from the request body
       const { role, issue, user, visibleTo } = req.body;

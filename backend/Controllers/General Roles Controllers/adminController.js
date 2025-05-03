@@ -7,6 +7,7 @@ const SuspendController = require("../suspendController");
  */
 class AdminController {
   static async updateAdminData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { user, adminid } = req.headers;
 
@@ -61,6 +62,7 @@ class AdminController {
    * @returns {Object} A JSON response indicating success or failure of the deletion.
    */
   static async deleteAdmin(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       const { adminid } = req.headers;
 
@@ -90,6 +92,7 @@ class AdminController {
   }
 
   static async getAdminData(req, res) {
+    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure _id, user, and role from the request headers
       const { user, adminid, filter, hospitalid } = req.headers;
