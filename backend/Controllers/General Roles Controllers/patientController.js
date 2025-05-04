@@ -7,19 +7,17 @@ const SuspendController = require("../suspendController");
  */
 class PatientController {
   /**
-   * Fetches patient data based on the provided _id from the request headers.
-   * Handles authorization logic, ensuring that patients can only access their own data.
+   * Fetches patient personal data.
+   * Based on the user's role and provided parameters, retrieves patient data.
    *
-   * @param {Object} req - The Express request object, containing headers with the patient's _id, user information, and role.
-   * @param {Object} res - The Express response object, used to send the patient data or error messages.
-   *
-   * @returns {Object} A JSON response containing the patient's data or an error message.
+   * @param {Object} req - The Express request object
+   * @param {Object} res - The Express response object
+   * @returns {Object} - JSON object containing patient data
    */
   static async getPatientData(req, res) {
-    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure _id, user, and role from the request headers
-      const { user, patientid, filter, hospitalid } = req.headers;
+      const { user, patientid, filter, hospitalid, doctorid } = req.headers;
 
       // If the user's role is "patient", ensure they can only access their own data
       if (user.role === "patient") {
@@ -31,18 +29,29 @@ class PatientController {
 
         // Return the fetched patient data with a 200 status code
         res.status(200).json(patient_data);
-      } else if (user.role === "superadmin") {
-        // If the user is a superadmin and a specific patient's ID was not provided
+      } else if (user.role === "superadmin" || user.role === "doctor") {
+        // If the user is a superadmin/doctor and a specific patient's ID was not provided
         if (!patientid) {
           if (filter) {
-            if (hospitalid) {
-              console.log(
-                "PatientController- Get Patient Data: Fetching patient data by hospital"
+            // Check if doctor filter is applied
+            if (doctorid) {
+              // Retrieve all patients' data assigned to specified doctor
+              const allPatients = await PatientService.findAllPatientsByDoctor(
+                doctorid
               );
+
+              const filtered_data = await SuspendController.filterData(
+                allPatients,
+                user.role,
+                filter
+              );
+              return res.status(200).json(filtered_data); // Return filtered patient data
+            }
+            // Check if hospital filter is applied
+            else if (hospitalid) {
               // Retrieve all patients' data from specified hospital if no patientid is given and hospitalid is provided
               const allPatients =
                 await PatientService.findAllPatientsByHospital(hospitalid);
-              console.log(allPatients);
 
               const filtered_data = await SuspendController.filterData(
                 allPatients,
@@ -75,7 +84,6 @@ class PatientController {
         });
       }
 
-      console.log("PatientController- Get Patient Data: Fetching patient data");
       // Call the PatientService to find the patient data based on the _id
       const patient_data = await PatientService.getPatientData(patientid);
 
@@ -87,7 +95,6 @@ class PatientController {
       // Return the fetched patient data with a 200 status code
       res.status(200).json(patient_data);
     } catch (fetchPatientDataError) {
-      console.error("Error in getPatientData:", fetchPatientDataError);
       res.status(500).json({ error: fetchPatientDataError.message });
     }
   }

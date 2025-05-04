@@ -126,28 +126,67 @@ class DoctorController {
    * @returns {Object} A JSON response containing an array of patient data or an error message.
    */
   static async getAssignedPatients(req, res) {
-    console.log(`[${req.method}] ${req.originalUrl}`);
     try {
-      const { doctor_id, user, filter } = req.headers;
-      if (!doctor_id) {
+      // Check for either doctor_id or doctorid in the headers
+      const { doctor_id, doctorid, filter } = req.headers;
+      // Use whatever is available
+      const doctorIdentifier = doctor_id || doctorid;
+
+      // Extract user info safely
+      let userRole = "doctor"; // Default role
+      if (req.headers.user) {
+        try {
+          // Try to parse if user is a JSON string
+          const userObj =
+            typeof req.headers.user === "string"
+              ? JSON.parse(req.headers.user)
+              : req.headers.user;
+          userRole = userObj.role || "doctor";
+        } catch (e) {
+          // Keep default role
+        }
+      }
+
+      if (!doctorIdentifier) {
         return res.status(400).json({
-          error: "DoctorController-getAssignedPatients: Missing doctorid",
+          error:
+            "DoctorController-getAssignedPatients: Missing doctor identifier (doctor_id or doctorid)",
         });
       }
 
       // Call the doctor service to retrieve assigned patients.
       const patients = await DoctorService.getPatientsAssignedToDoctor(
-        doctor_id
+        doctorIdentifier
       );
 
-      const filtered_data = await SuspendController.filterData(
-        patients,
-        user.role,
-        filter
-      );
-      return res.status(200).json(filtered_data); // Return the filtered patient data
+      // Apply filtering based on filter parameter
+      let resultData = patients;
+      if (filter) {
+        try {
+          if (typeof SuspendController !== "undefined" && SuspendController) {
+            resultData = await SuspendController.filterData(
+              patients,
+              userRole,
+              filter
+            );
+          } else {
+            // Manual filtering if SuspendController is not available
+            if (filter.toLowerCase() === "suspended") {
+              resultData = patients.filter(
+                (patient) => patient.suspended === true
+              );
+            } else if (filter.toLowerCase() === "unsuspended") {
+              resultData = patients.filter((patient) => !patient.suspended);
+            }
+            // 'all' filter returns all patients
+          }
+        } catch (filterError) {
+          // Continue with unfiltered data
+        }
+      }
+
+      return res.status(200).json(resultData);
     } catch (fetchDoctorDataError) {
-      console.error("Error in getAssignedPatients:", fetchDoctorDataError);
       res.status(500).json({ error: fetchDoctorDataError.message });
     }
   }

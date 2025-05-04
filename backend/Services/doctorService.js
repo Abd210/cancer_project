@@ -74,26 +74,28 @@ class DoctorService {
   /**
    * Retrieves all patients assigned to a specific doctor.
    * It queries the "patients" collection for documents where the "doctor" field equals the provided doctorId.
-   * 
+   *
    * @param {string} doctorId - The ID of the doctor.
    * @returns {Promise<Array>} A list of patient objects.
    */
   static async getPatientsAssignedToDoctor(doctorId) {
     if (!doctorId) {
-      throw new Error("doctorService-getPatientsAssignedToDoctor: Missing doctorId");
+      throw new Error(
+        "doctorService-getPatientsAssignedToDoctor: Missing doctorId"
+      );
     }
 
-    const snapshot = await db.collection("patients")
+    const snapshot = await db
+      .collection("patients")
       .where("doctor", "==", doctorId)
       .get();
 
     if (snapshot.empty) {
       return []; // No patients found
     }
-    
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
 
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  }
 
   /**
    * Fetch all doctors
@@ -133,7 +135,13 @@ class DoctorService {
   // }
   static async checkUniqueness(field, value, excludeId = null) {
     // Include hospitals too
-    const collections = ["patients", "doctors", "admins", "superadmins", "hospitals"];
+    const collections = [
+      "patients",
+      "doctors",
+      "admins",
+      "superadmins",
+      "hospitals",
+    ];
 
     let field_updated;
     switch (field) {
@@ -146,10 +154,10 @@ class DoctorService {
       default:
         throw new Error("Invalid field provided.");
     }
-    
+
     for (const collection of collections) {
       let snapshot;
-      
+
       if (collection === "hospitals") {
         // In hospitals, emails and mobileNumbers are arrays
         snapshot = await db
@@ -163,7 +171,7 @@ class DoctorService {
           .where(field, "==", value)
           .get();
       }
-      
+
       for (const doc of snapshot.docs) {
         // If we're excluding our own record, skip it
         if (doc.id !== excludeId) {
@@ -197,7 +205,7 @@ class DoctorService {
       "hospital",
       "patients",
       "schedule",
-      "suspended"
+      "suspended",
     ];
 
     // ░░░ 2. Remove disallowed or undefined fields  ░░░
@@ -235,7 +243,11 @@ class DoctorService {
       if (typeof updateFields.mobileNumber !== "string") {
         throw new Error("Invalid mobileNumber: must be a string");
       }
-      await this.checkUniqueness("mobileNumber", updateFields.mobileNumber, doctorId);
+      await this.checkUniqueness(
+        "mobileNumber",
+        updateFields.mobileNumber,
+        doctorId
+      );
     }
 
     // if (updateFields.persId)
@@ -305,9 +317,14 @@ class DoctorService {
 
     if (updateFields.hospital !== undefined) {
       if (typeof updateFields.hospital !== "string") {
-        throw new Error("Invalid hospital: must be a Firestore document reference");
+        throw new Error(
+          "Invalid hospital: must be a Firestore document reference"
+        );
       }
-      const hospitalDoc = await db.collection("hospitals").doc(updateFields.hospital).get();
+      const hospitalDoc = await db
+        .collection("hospitals")
+        .doc(updateFields.hospital)
+        .get();
       if (!hospitalDoc.exists) {
         throw new Error("Invalid hospital: Hospital does not exist");
       }
@@ -361,19 +378,29 @@ class DoctorService {
       // Identify removed and added patients
       const oldPatients = currentDoctorData.patients || [];
       const newPatients = updateFields.patients;
-      const removedPatients = oldPatients.filter((p) => !newPatients.includes(p));
+      const removedPatients = oldPatients.filter(
+        (p) => !newPatients.includes(p)
+      );
       const addedPatients = newPatients.filter((p) => !oldPatients.includes(p));
 
       // Remove doctor from removed patients
       await Promise.all(
         removedPatients.map(async (patientId) => {
-          await PatientService.updatePatient(patientId, { doctor: null }, { role: "superadmin" });
+          await PatientService.updatePatient(
+            patientId,
+            { doctor: null },
+            { role: "superadmin" }
+          );
         })
       );
       // Add doctor to newly added patients
       await Promise.all(
         addedPatients.map(async (patientId) => {
-          await PatientService.updatePatient(patientId, { doctor: doctorId }, { role: "superadmin" });
+          await PatientService.updatePatient(
+            patientId,
+            { doctor: doctorId },
+            { role: "superadmin" }
+          );
         })
       );
     }
@@ -388,9 +415,11 @@ class DoctorService {
             typeof s.end === "string"
         )
       ) {
-        throw new Error("updateDoctor: schedule must be an array of { day, start, end }");
+        throw new Error(
+          "updateDoctor: schedule must be an array of { day, start, end }"
+        );
       }
-    }    
+    }
 
     // 🔹 Remove any undefined values before updating Firestore
     // Object.keys(updateFields).forEach((key) => {
@@ -422,10 +451,12 @@ class DoctorService {
     // 🔹 Set `doctor` field to null for all patients in the doctor's list
     const updatePatientDoctorField = async () => {
       if (patients.length > 0) {
-          const patientRefs = patients.map(patientId => db.collection("patients").doc(patientId));
-          patientRefs.forEach(patientRef => {
-              batch.update(patientRef, { doctor: null });
-          });
+        const patientRefs = patients.map((patientId) =>
+          db.collection("patients").doc(patientId)
+        );
+        patientRefs.forEach((patientRef) => {
+          batch.update(patientRef, { doctor: null });
+        });
       }
     };
 

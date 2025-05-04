@@ -34,7 +34,7 @@ router.post(
 router.get(
   "/hospital/data",
   authenticate, // Middleware to ensure the user is authenticated
-  authorize("superadmin"), // Middleware to ensure only superadmins can access this
+  authorize(["patient", "doctor", "admin", "superadmin"]), // Allow all roles to access
   hospitalController.getHospitalData // Controller method to handle the request
 );
 

@@ -55,7 +55,7 @@ router.get(
 router.put(
   "/patient/personal-data/update", // Endpoint
   authenticate, // Middleware to ensure the user is authenticated
-  authorize(["admin", "superadmin"]), // Middleware to ensure only superadmins can access this
+  authorize(["doctor", "admin", "superadmin"]), // Allow doctors to update patient data
   patientController.updatePatientData // Controller function to handle the request
 );
 

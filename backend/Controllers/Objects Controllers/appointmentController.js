@@ -273,12 +273,13 @@ class AppointmentController {
       }
 
       // Check the user's role and ensure they are authorized to cancel the appointment
+      const userId = user.id || user._id;
       if (user.role !== "admin" && user.role !== "superadmin") {
         if (user.role === "patient") {
           const appointment = await AppointmentService.findAppointment(
             appointment_id
           );
-          if (appointment.patient.toString() !== user._id) {
+          if (appointment.patient.toString() !== userId) {
             return res.status(403).json({
               error: "AppointmentController-Cancel: Unauthorized",
             });
@@ -287,7 +288,7 @@ class AppointmentController {
           const appointment = await AppointmentService.findAppointment(
             appointment_id
           );
-          if (appointment.doctor.toString() !== user._id) {
+          if (appointment.doctor.toString() !== userId) {
             return res.status(403).json({
               error: "AppointmentController-Cancel: Unauthorized",
             });

@@ -7,6 +7,7 @@ import '../../models/doctor_data.dart';
 import '../../models/hospital_data.dart';
 import '../../providers/doctor_provider.dart';
 import '../../providers/hospital_provider.dart';
+import '../shared/hospital_details_page.dart';
 
 // Doctor pages
 import 'notifications/doctor_notifications_page.dart';
@@ -132,6 +133,7 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
   Future<void> _fetchDoctorData() async {
     setState(() => _isLoading = true);
     try {
+      print('DOCTOR PAGE: Fetching doctor data with token');
       // For doctor's personal data, the backend uses the token to extract the doctor's ID
       // We don't need to pass the doctorId explicitly for personal data
       final List<DoctorData> doctors = await _doctorProvider.getDoctors(
@@ -149,24 +151,11 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
       }
 
       final doctorData = doctors.first;
+      print(
+          'DOCTOR PAGE: Doctor data fetched successfully: ${doctorData.name}');
 
-      // Fetch hospital data to get the hospital name
-      String hospitalName = 'Unknown Hospital';
-      if (doctorData.hospitalId.isNotEmpty) {
-        try {
-          final hospitals = await _hospitalProvider.getHospitals(
-            token: widget.token,
-            hospitalId: doctorData.hospitalId,
-          );
-
-          if (hospitals.isNotEmpty) {
-            hospitalName = hospitals.first.name;
-          }
-        } catch (e) {
-          // If we fail to get hospital name, we'll just use the default
-          print('Failed to fetch hospital data: $e');
-        }
-      }
+      // Format a displayable hospital name from the hospitalId, instead of making a separate API call
+      String hospitalName = _formatHospitalName(doctorData.hospitalId);
 
       setState(() {
         _doctorData = doctorData;
@@ -175,6 +164,7 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
         _errorMessage = null;
       });
     } catch (e) {
+      print('DOCTOR PAGE: Error fetching doctor data: $e');
       setState(() {
         _isLoading = false;
         _errorMessage = 'Failed to load doctor data: $e';
@@ -186,6 +176,43 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
         );
       }
     }
+  }
+
+  // Format a hospital name from the ID without requiring a separate API call
+  String _formatHospitalName(String hospitalId) {
+    if (hospitalId.isEmpty) {
+      return 'No Hospital Assigned';
+    }
+
+    // Extract meaningful information from the ID if possible
+    if (hospitalId.length > 8) {
+      // Shorten ID for display if it's long
+      String shortId = hospitalId.substring(0, 8);
+      return 'Hospital #$shortId';
+    }
+
+    return 'Hospital #$hospitalId';
+  }
+
+  // View hospital details if available
+  Future<void> _viewHospitalDetails() async {
+    if (_doctorData?.hospitalId.isEmpty ?? true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hospital information available')),
+      );
+      return;
+    }
+
+    // Navigate to hospital details page with permission-aware implementation
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HospitalDetailsPage(
+          hospitalId: _doctorData!.hospitalId,
+          token: widget.token,
+        ),
+      ),
+    );
   }
 
   @override
@@ -268,24 +295,12 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
                             size: 20, color: Colors.grey),
                         const SizedBox(width: 8),
                         InkWell(
-                          onTap: () {
-                            // Navigate to hospital details
-                            if (_doctorData!.hospitalId.isNotEmpty) {
-                              // You can navigate to a hospital details page here
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Viewing hospital details: ${_hospitalName ?? "Unknown Hospital"}'),
-                                ),
-                              );
-                            }
-                          },
+                          onTap: _viewHospitalDetails,
                           child: Text(
                             _hospitalName ?? 'Unknown Hospital',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.blue,
+                            style: const TextStyle(
                               decoration: TextDecoration.underline,
+                              color: Colors.blue,
                             ),
                           ),
                         ),
@@ -510,110 +525,6 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
-  }
-}
-
-class DoctorPatientsPage extends StatelessWidget {
-  final String doctorId;
-  final String token;
-
-  const DoctorPatientsPage(
-      {super.key, required this.doctorId, required this.token});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Assigned Patients'),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: ListView.builder(
-        itemCount: 5, // Placeholder count
-        itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: ListTile(
-              leading: const CircleAvatar(
-                child: Icon(Icons.person),
-              ),
-              title: Text('Patient ${index + 1}'),
-              subtitle: Text('Patient ID: P10${index + 1}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.visibility, color: Colors.blue),
-                    onPressed: () {
-                      // View patient details
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.event, color: Colors.green),
-                    onPressed: () {
-                      // Schedule appointment
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class DoctorAppointmentsPage extends StatelessWidget {
-  final String doctorId;
-  final String token;
-
-  const DoctorAppointmentsPage(
-      {super.key, required this.doctorId, required this.token});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Appointments'),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: ListView.builder(
-        itemCount: 3, // Placeholder count
-        itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.green,
-                child: Icon(Icons.event, color: Colors.white),
-              ),
-              title: Text('Appointment with Patient ${index + 1}'),
-              subtitle: Text(
-                  'Date: ${DateTime.now().add(Duration(days: index + 1)).toString().substring(0, 16)}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    onPressed: () {
-                      // Edit appointment
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      // Cancel appointment
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
   }
 }
 

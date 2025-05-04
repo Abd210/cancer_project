@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../providers/patient_provider.dart';
+import '../../../models/patient_data.dart';
 
 /// ---------------------------------------------------------------------------
 /// SINGLE-FILE PATIENT PAGE
@@ -14,7 +16,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 /// - No animation between tabs
 /// ---------------------------------------------------------------------------
 class PatientPage extends StatefulWidget {
-  const PatientPage({Key? key}) : super(key: key);
+  final String? doctorId;
+  final String? token;
+
+  const PatientPage({Key? key, this.doctorId, this.token}) : super(key: key);
 
   @override
   State<PatientPage> createState() => _PatientPageState();
@@ -27,13 +32,21 @@ class _PatientPageState extends State<PatientPage> {
   int _currentIndex = 0;
 
   // We define the 5 sub-pages
-  final List<Widget> _pages = [
-    const HomeTab(),         // 0
-    const AppointmentsTab(), // 1
-    const TicketsTab(),      // 2
-    const NotificationsTab(),// 3
-    const ProfileTab(),      // 4
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      HomeTab(
+          doctorId: widget.doctorId,
+          token: widget.token), // Pass doctorId and token
+      const AppointmentsTab(),
+      const TicketsTab(),
+      const NotificationsTab(),
+      const ProfileTab(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +61,35 @@ class _PatientPageState extends State<PatientPage> {
         ),
         centerTitle: true,
         actions: [
+          // Debug button to force API call
+          if (widget.doctorId != null && widget.token != null)
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.red),
+              onPressed: () {
+                print("Manually triggering API call");
+                // Fallback approach using a brand new API call
+                final patientProvider = PatientProvider();
+                patientProvider
+                    .getPatientsForDoctor(
+                  token: widget.token!,
+                  doctorId: widget.doctorId!,
+                )
+                    .then((patients) {
+                  print("Manual API call returned ${patients.length} patients");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text("Found ${patients.length} patients")),
+                  );
+                }).catchError((error) {
+                  print("Manual API call error: $error");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text("Error: $error"),
+                        backgroundColor: Colors.red),
+                  );
+                });
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.search, color: pinkColor),
             onPressed: () {
@@ -75,35 +117,40 @@ class _PatientPageState extends State<PatientPage> {
           BottomNavigationBarItem(
             icon: SvgPicture.string(
               _currentIndex == 0 ? homeActiveSvg : homeInactiveSvg,
-              height: 24, width: 24,
+              height: 24,
+              width: 24,
             ),
             label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.string(
               _currentIndex == 1 ? calendarActiveSvg : calendarInactiveSvg,
-              height: 24, width: 24,
+              height: 24,
+              width: 24,
             ),
             label: 'Appointments',
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.string(
               _currentIndex == 2 ? ticketActiveSvg : ticketInactiveSvg,
-              height: 24, width: 24,
+              height: 24,
+              width: 24,
             ),
             label: 'Tickets',
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.string(
               _currentIndex == 3 ? bellActiveSvg : bellInactiveSvg,
-              height: 24, width: 24,
+              height: 24,
+              width: 24,
             ),
             label: 'Alerts',
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.string(
               _currentIndex == 4 ? userActiveSvg : userInactiveSvg,
-              height: 24, width: 24,
+              height: 24,
+              width: 24,
             ),
             label: 'Profile',
           ),
@@ -175,7 +222,9 @@ class _SearchBottomSheetState extends State<_SearchBottomSheet> {
                     onPressed: () {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Searching for: ${_searchCtrl.text}")),
+                        SnackBar(
+                            content:
+                                Text("Searching for: ${_searchCtrl.text}")),
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -203,7 +252,10 @@ class _SearchBottomSheetState extends State<_SearchBottomSheet> {
 // -----------------------------------------------------------------------------
 /// Displays patient info + device info in pink cards, referencing PDF logic
 class HomeTab extends StatefulWidget {
-  const HomeTab({Key? key}) : super(key: key);
+  final String? doctorId;
+  final String? token;
+
+  const HomeTab({Key? key, this.doctorId, this.token}) : super(key: key);
 
   static const Color pinkColor = Color.fromARGB(255, 218, 73, 143);
 
@@ -215,11 +267,98 @@ class _HomeTabState extends State<HomeTab> {
   bool isLoading = true;
   late _PatientInfo _patient;
   late _DeviceInfo _device;
+  final PatientProvider _patientProvider = PatientProvider();
+  List<PatientData> _patients = [];
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Fake loading
+
+    // Debug information
+    print('HomeTab.initState called');
+    print('doctorId: ${widget.doctorId}');
+    print('token: ${widget.token != null ? "has token" : "no token"}');
+
+    if (widget.doctorId != null && widget.token != null) {
+      // Fetch patients from the backend
+      _fetchPatientsForDoctor();
+    } else {
+      print('Using static data because doctorId or token is null');
+      // Fake loading with static data (for backward compatibility)
+      _loadStaticData();
+    }
+  }
+
+  Future<void> _fetchPatientsForDoctor() async {
+    try {
+      setState(() {
+        isLoading = true;
+        _errorMessage = null;
+      });
+
+      print('Fetching patients for doctor: ${widget.doctorId}');
+      print('Using token: ${widget.token}');
+
+      final patients = await _patientProvider.getPatientsForDoctor(
+        token: widget.token!,
+        doctorId: widget.doctorId!,
+      );
+
+      print('Received ${patients.length} patients from API');
+
+      setState(() {
+        _patients = patients;
+        isLoading = false;
+
+        // If we have patients, use the first one for display
+        if (_patients.isNotEmpty) {
+          final patient = _patients.first;
+          print('First patient: ${patient.name}, ${patient.diagnosis}');
+          _patient = _PatientInfo(
+            name: patient.name,
+            email: patient.email,
+            phone: patient.mobileNumber,
+            address: "No address provided", // PatientData doesn't have address
+            problem: patient.diagnosis,
+            status: patient.status,
+            gender: "Not specified", // PatientData doesn't have gender
+            doctor:
+                "Dr. Unknown", // Use static value as PatientData doesn't have doctorName
+            hospital: "Hospital", // PatientData doesn't have hospitalName
+          );
+
+          _device = const _DeviceInfo(
+            id: "102567",
+            mac: "33:24:XX:XX:XX:XX",
+            isOn: true,
+          );
+        } else {
+          print('No patients found for doctor ${widget.doctorId}');
+        }
+      });
+    } catch (e) {
+      print('ERROR fetching patients: $e');
+      setState(() {
+        isLoading = false;
+        _errorMessage = 'Failed to load patients: $e';
+      });
+
+      // Show the error in a snackbar for better visibility
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+  }
+
+  void _loadStaticData() {
+    // Fake loading with static data
     Timer(const Duration(seconds: 1), () {
       setState(() {
         isLoading = false;
@@ -246,9 +385,116 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
+    print(
+        'HomeTab.build: isLoading=$isLoading, hasError=${_errorMessage != null}, patientCount=${_patients.length}');
+
     if (isLoading) {
       return const _SkeletonListView(count: 2);
     }
+
+    // Show error message if there was a problem
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            const Text(
+              "Error Loading Patients",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _fetchPatientsForDoctor,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HomeTab.pinkColor,
+                  ),
+                  child: const Text("Try Again"),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    // DEBUG: Print details about the requests
+                    print("DEBUG INFO:");
+                    print("doctorId: ${widget.doctorId}");
+                    print("token: ${widget.token?.substring(0, 10)}...");
+
+                    // Make an explicit API call
+                    final provider = PatientProvider();
+                    provider
+                        .getPatientsForDoctor(
+                      token: widget.token!,
+                      doctorId: widget.doctorId!,
+                    )
+                        .then((patients) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text("Found ${patients.length} patients")),
+                      );
+                    }).catchError((e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("API Error: $e"),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: const Text("Debug Call"),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // If no patients found when using real data
+    if (widget.doctorId != null && widget.token != null && _patients.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.person_off, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
+              "No patients found",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "You don't have any patients assigned to you yet",
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _fetchPatientsForDoctor,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: HomeTab.pinkColor,
+              ),
+              child: const Text("Refresh"),
+            ),
+          ],
+        ),
+      );
+    }
+
     // Show 2 advanced pink cards
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -257,6 +503,62 @@ class _HomeTabState extends State<HomeTab> {
           _buildPatientInfoCard(),
           const SizedBox(height: 16),
           _buildDeviceInfoCard(),
+
+          // Only show patient list if we have more than one patient
+          if (widget.doctorId != null &&
+              widget.token != null &&
+              _patients.length > 1)
+            _buildPatientsListCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientsListCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: 16),
+      decoration: _cardBoxDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Your Patients",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const Divider(),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _patients.length,
+            itemBuilder: (context, index) {
+              final patient = _patients[index];
+              return ListTile(
+                title: Text(patient.name),
+                subtitle: Text(patient.diagnosis),
+                trailing: Icon(Icons.circle,
+                    color: patient.suspended ? Colors.red : Colors.green,
+                    size: 12),
+                onTap: () {
+                  setState(() {
+                    _patient = _PatientInfo(
+                      name: patient.name,
+                      email: patient.email,
+                      phone: patient.mobileNumber,
+                      address:
+                          "No address provided", // PatientData doesn't have address
+                      problem: patient.diagnosis,
+                      status: patient.status,
+                      gender:
+                          "Not specified", // PatientData doesn't have gender
+                      doctor: "Dr. Unknown", // No doctorName in PatientData
+                      hospital: "Hospital", // No hospitalName in PatientData
+                    );
+                  });
+                },
+              );
+            },
+          ),
         ],
       ),
     );
@@ -298,7 +600,8 @@ class _HomeTabState extends State<HomeTab> {
                 onPressed: () {
                   // Fake refresh
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Patient info refreshed (static).")),
+                    const SnackBar(
+                        content: Text("Patient info refreshed (static).")),
                   );
                 },
                 child: const Text("Refresh"),
@@ -357,7 +660,10 @@ class _HomeTabState extends State<HomeTab> {
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          SizedBox(width: 80, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600))),
+          SizedBox(
+              width: 80,
+              child: Text(label,
+                  style: const TextStyle(fontWeight: FontWeight.w600))),
           Expanded(child: Text(value)),
         ],
       ),
@@ -425,7 +731,8 @@ class _HomeTabState extends State<HomeTab> {
                     Navigator.pop(context);
                     // In real usage, you'd send these changes to your backend for approval
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Change request submitted (static).")),
+                      const SnackBar(
+                          content: Text("Change request submitted (static).")),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -714,10 +1021,13 @@ class _AppointmentsTabState extends State<AppointmentsTab> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
               decoration: BoxDecoration(
-                color: appt.status == "Canceled" ? Colors.red[100] : Colors.green[100],
+                color: appt.status == "Canceled"
+                    ? Colors.red[100]
+                    : Colors.green[100],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(appt.status, style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(appt.status,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
             )
         ],
       ),
@@ -773,7 +1083,8 @@ class _AppointmentsTabState extends State<AppointmentsTab> {
                           context: context,
                           initialDate: chosen,
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
                         );
                         if (pick != null) {
                           setState(() => chosen = pick);
@@ -985,7 +1296,8 @@ class _TicketsTabState extends State<TicketsTab> {
                 color: Colors.green[100],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text("Closed", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text("Closed",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             )
         ],
       ),
@@ -1043,7 +1355,8 @@ class _TicketsTabState extends State<TicketsTab> {
                     setState(() => _tickets.insert(0, newTicket));
                     Navigator.pop(context);
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: HomeTab.pinkColor),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: HomeTab.pinkColor),
                   child: const Text("Submit"),
                 ),
                 const SizedBox(height: 12),
