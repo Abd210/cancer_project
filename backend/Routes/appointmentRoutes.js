@@ -130,7 +130,7 @@ router.post(
 router.post(
   "/appointment/new",
   authenticate,
-  authorize(["patient", "doctor", "admin", "superadmin"]),
+  authorize(["doctor", "admin", "superadmin"]),
   appointmentController.createAppointment
 );
 
