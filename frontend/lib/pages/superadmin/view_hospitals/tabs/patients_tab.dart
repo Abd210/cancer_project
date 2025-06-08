@@ -48,14 +48,14 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
 
   void _showUpsert([PatientData? existing]) {
     final formKey = GlobalKey<FormState>();
-    String persId     = existing?.persId ?? '';
-    String name       = existing?.name   ?? '';
-    String email      = existing?.email  ?? '';
-    String mobile     = existing?.mobileNumber ?? '';
-    String password   = '';
-    String status     = existing?.status    ?? '';
-    String diagnosis  = existing?.diagnosis ?? '';
-    bool suspended    = existing?.suspended ?? false;
+    String persId = existing?.persId ?? '';
+    String name = existing?.name ?? '';
+    String email = existing?.email ?? '';
+    String mobile = existing?.mobileNumber ?? '';
+    String password = '';
+    String status = existing?.status ?? '';
+    String diagnosis = existing?.diagnosis ?? '';
+    bool suspended = existing?.suspended ?? false;
 
     showDialog(
       context: context,
@@ -65,14 +65,14 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
           key: formKey,
           child: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              _txt('Personal ID', initial: persId, save: (v) => persId    = v),
-              _txt('Name',        initial: name,   save: (v) => name      = v),
-              _txt('Email',       initial: email,  save: (v) => email     = v),
-              _txt('Mobile',      initial: mobile, save: (v) => mobile    = v),
+              _txt('Personal ID', initial: persId, save: (v) => persId = v),
+              _txt('Name', initial: name, save: (v) => name = v),
+              _txt('Email', initial: email, save: (v) => email = v),
+              _txt('Mobile', initial: mobile, save: (v) => mobile = v),
               if (existing == null)
                 _txt('Password', obscure: true, save: (v) => password = v),
-              _txt('Status',     initial: status, save: (v) => status    = v),
-              _txt('Diagnosis',  initial: diagnosis, save: (v) => diagnosis = v),
+              _txt('Status', initial: status, save: (v) => status = v),
+              _txt('Diagnosis', initial: diagnosis, save: (v) => diagnosis = v),
               Row(children: [
                 const Text('Suspended?'),
                 Checkbox(
@@ -94,19 +94,19 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
               try {
                 if (existing == null) {
                   await _provider.createPatient(
-                    token          : widget.token,
-                    persId         : persId,
-                    name           : name,
-                    password       : password.isEmpty ? '123' : password,
-                    mobileNumber   : mobile,
-                    email          : email,
-                    status         : status,
-                    diagnosis      : diagnosis,
-                    birthDate      : DateTime.now().toIso8601String(),
-                    medicalHistory : [],
-                    hospitalId     : widget.hospitalId,
-                    doctorId       : _fetchDefaultDoctor(widget.hospitalId),
-                    suspended      : suspended,
+                    token: widget.token,
+                    persId: persId,
+                    name: name,
+                    password: password.isEmpty ? '123' : password,
+                    mobileNumber: mobile,
+                    email: email,
+                    status: status,
+                    diagnosis: diagnosis,
+                    birthDate: DateTime.now().toIso8601String(),
+                    medicalHistory: [],
+                    hospitalId: widget.hospitalId,
+                    doctorId: _fetchDefaultDoctor(widget.hospitalId),
+                    suspended: suspended,
                   );
                   Fluttertoast.showToast(msg: 'Patient added.');
                 } else {
@@ -144,8 +144,12 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
       builder: (_) => AlertDialog(
         title: const Text('Delete this patient?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
-          TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('Yes')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('No')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Yes')),
         ],
       ),
     );
@@ -169,7 +173,7 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
     final list = _patients.where((p) {
       final q = _query.toLowerCase();
       return p.name.toLowerCase().contains(q) ||
-             p.email.toLowerCase().contains(q);
+          p.email.toLowerCase().contains(q);
     }).toList();
 
     return Column(
@@ -213,22 +217,26 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
                       DataColumn(label: Text('Diagnosis')),
                       DataColumn(label: Text('Actions')),
                     ],
-                    rows: list.map((p) => DataRow(cells: [
-                      DataCell(Text(p.name)),
-                      DataCell(Text(p.email)),
-                      DataCell(Text(p.status)),
-                      DataCell(Text(p.diagnosis)),
-                      DataCell(Row(children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _showUpsert(p),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _delete(p.id),
-                        ),
-                      ])),
-                    ])).toList(),
+                    rows: list
+                        .map((p) => DataRow(cells: [
+                              DataCell(Text(p.name)),
+                              DataCell(Text(p.email)),
+                              DataCell(Text(p.status)),
+                              DataCell(Text(p.diagnosis)),
+                              DataCell(Row(children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.blue),
+                                  onPressed: () => _showUpsert(p),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
+                                  onPressed: () => _delete(p.id),
+                                ),
+                              ])),
+                            ]))
+                        .toList(),
                   ),
                 ),
         ),

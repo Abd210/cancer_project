@@ -1,12 +1,13 @@
 import 'dart:convert';
-import 'dart:math' as math;
+
 import 'package:http/http.dart' as http;
 import 'package:frontend/utils/static.dart';
 import 'package:frontend/models/patient_data.dart';
-import 'package:flutter/foundation.dart';
+import 'package:frontend/models/appointment_data.dart';
+import 'package:frontend/providers/appointment_provider.dart';
+
 import 'package:frontend/main.dart'
     show httpClient, Logger; // Import our custom Logger
-import 'package:flutter/material.dart';
 
 class PatientProvider {
   // ------------------------------------------------------------------
@@ -213,6 +214,33 @@ class PatientProvider {
       throw Exception(
         'Patient delete failed [${res.statusCode}]: ${res.body}',
       );
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // GET PATIENT APPOINTMENTS HISTORY
+  // ------------------------------------------------------------------
+  Future<List<AppointmentData>> getPatientAppointmentHistory({
+    required String token,
+    required String patientId,
+    String suspendfilter = 'unsuspended',
+  }) async {
+    try {
+      Logger.log(
+          'getPatientAppointmentHistory: Starting with patientId=$patientId');
+
+      final historyList = await AppointmentProvider().getAppointmentsHistory(
+        token: token,
+        suspendfilter: suspendfilter,
+        filterByRole: 'patient',
+        filterById: patientId,
+      );
+      Logger.log(
+          'getPatientAppointmentHistory: Got ${historyList.length} history appointments');
+      return historyList;
+    } catch (e) {
+      Logger.log('Error in getPatientAppointmentHistory: $e');
+      rethrow;
     }
   }
 

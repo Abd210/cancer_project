@@ -13,21 +13,18 @@ class DoctorProvider {
     String? filter,
     String? hospitalId,
   }) async {
-    final url =
-        Uri.parse('${ClassUtil.baseUrl}${ClassUtil.doctorDataRoute}');
+    final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.doctorDataRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
-    if (_isNotEmpty(doctorId))  headers['doctorid']  = doctorId!;
-    if (_isNotEmpty(filter))    headers['filter']    = filter!;
-    if (_isNotEmpty(hospitalId))headers['hospitalid']= hospitalId!;
+    if (_isNotEmpty(doctorId)) headers['doctorid'] = doctorId!;
+    if (_isNotEmpty(filter)) headers['filter'] = filter!;
+    if (_isNotEmpty(hospitalId)) headers['hospitalid'] = hospitalId!;
 
     final res = await http.get(url, headers: headers);
     if (res.statusCode == 200) {
       final decoded = json.decode(res.body);
       if (decoded is List) {
-        return decoded
-            .map<DoctorData>((e) => DoctorData.fromJson(e))
-            .toList();
+        return decoded.map<DoctorData>((e) => DoctorData.fromJson(e)).toList();
       } else if (decoded is Map<String, dynamic>) {
         return [DoctorData.fromJson(decoded)];
       }
@@ -35,6 +32,31 @@ class DoctorProvider {
     }
     throw Exception(
       'Doctor GET failed [${res.statusCode}]: ${res.body}',
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // GET  /api/doctor/public-data
+  // ------------------------------------------------------------------
+  Future<DoctorData> getDoctorPublicData({
+    required String token,
+    required String doctorId,
+  }) async {
+    final url =
+        Uri.parse('${ClassUtil.baseUrl}${ClassUtil.doctorPublicDataRoute}');
+    final headers = ClassUtil.baseHeaders(token: token);
+    headers['doctorid'] = doctorId;
+
+    final res = await http.get(url, headers: headers);
+    if (res.statusCode == 200) {
+      final decoded = json.decode(res.body);
+      if (decoded is Map<String, dynamic>) {
+        return DoctorData.fromJson(decoded);
+      }
+      throw Exception('Unexpected doctor public data payload: $decoded');
+    }
+    throw Exception(
+      'Doctor public data GET failed [${res.statusCode}]: ${res.body}',
     );
   }
 
@@ -92,8 +114,8 @@ class DoctorProvider {
   }) async {
     final url =
         Uri.parse('${ClassUtil.baseUrl}${ClassUtil.doctorDataUpdateRoute}');
-    final headers =
-        ClassUtil.baseHeaders(token: token)..['doctorid'] = doctorId;
+    final headers = ClassUtil.baseHeaders(token: token)
+      ..['doctorid'] = doctorId;
 
     final res =
         await http.put(url, headers: headers, body: jsonEncode(updatedFields));
@@ -114,10 +136,9 @@ class DoctorProvider {
     required String token,
     required String doctorId,
   }) async {
-    final url =
-        Uri.parse('${ClassUtil.baseUrl}${ClassUtil.doctorDeleteRoute}');
-    final headers =
-        ClassUtil.baseHeaders(token: token)..['doctorid'] = doctorId;
+    final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.doctorDeleteRoute}');
+    final headers = ClassUtil.baseHeaders(token: token)
+      ..['doctorid'] = doctorId;
 
     final res = await http.delete(url, headers: headers);
     if (res.statusCode != 200 && res.statusCode != 204) {

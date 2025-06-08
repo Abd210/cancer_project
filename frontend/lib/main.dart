@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 
 // Custom Logger that works in all build modes
 class Logger {
-  static bool _loggingEnabled = true;
+  static bool _loggingEnabled = false;
 
   // In-memory log storage (limited to last 100 entries)
   static final List<LogEntry> _logHistory = [];
@@ -43,17 +43,6 @@ class Logger {
     _logHistory.add(entry);
     if (_logHistory.length > _maxLogEntries) {
       _logHistory.removeAt(0);
-    }
-
-    try {
-      // Use debugPrint which is safer and more reliable across platforms
-      debugPrint('[$name] $message');
-
-      // Also use print for terminal visibility in some environments
-      print('[$name] $message');
-    } catch (e) {
-      // Fallback if logging fails
-      print('Logging error: $e');
     }
   }
 }
@@ -209,9 +198,6 @@ final http.Client httpClient = LoggingClient();
 void main() {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Disable logging by default
-  Logger.setLoggingEnabled(false);
 
   runApp(
     MultiProvider(

@@ -1,11 +1,11 @@
 class SuspendService {
   /**
    * Filters data based on the user's role and the "suspended" status of the data.
-   * 
+   *
    * @param {Object|Array} data - The data to filter. Can be a single object or an array of objects.
    * @param {string} role - The role of the user making the request.
    * @param {string} filter - The filter criteria for superadmins ("suspended", "unsuspended", "all").
-   * 
+   *
    * @returns {Object|Array} The filtered data based on the role and filter criteria.
    * @throws {Error} If the filter is invalid for superadmins or if there are no unsuspended records for non-superadmins.
    */
@@ -45,8 +45,13 @@ class SuspendService {
         ? data
         : null;
 
-      if (!filteredData || (Array.isArray(filteredData) && filteredData.length === 0)) {
-        throw new Error("SuspendService: No unsuspended records available.");
+      if (
+        !filteredData ||
+        (Array.isArray(filteredData) && filteredData.length === 0)
+      ) {
+        // Instead of throwing an error, return an empty array for non-superadmins
+        // when no unsuspended records are found. This allows the frontend to display an empty state.
+        return [];
       }
 
       return filteredData;

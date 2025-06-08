@@ -19,13 +19,18 @@ class AppointmentProvider {
         Uri.parse('${ClassUtil.baseUrl}${ClassUtil.appointmentHistoryRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
-    // IMPORTANT: The backend expects these exact lowercase header keys
-    headers['filterbyid'] = filterById ?? '';
-    headers['filterbyrole'] = filterByRole ?? '';
+    if (filterById != null) {
+      headers['filterbyid'] = filterById;
+    }
+    if (filterByRole != null) {
+      headers['filterbyrole'] = filterByRole;
+    }
     headers['suspendfilter'] = suspendfilter;
 
     try {
-      Logger.log('Fetching appointment history: $url, headers: $headers');
+      Logger.log('Fetching appointment history: $url');
+      Logger.log(
+          'Headers before sending: token: $token, filterById: "$filterById", filterByRole: "$filterByRole", suspendfilter: "$suspendfilter"');
       final res = await httpClient.get(url, headers: headers);
       // Only log a small part of the body to avoid huge logs
       if (res.body.isNotEmpty) {
@@ -97,6 +102,53 @@ class AppointmentProvider {
       return allAppointments;
     } catch (e) {
       Logger.log('Error in getAppointmentsForDoctor: $e');
+      rethrow;
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // GET PATIENT APPOINTMENTS - combines upcoming and history
+  // ------------------------------------------------------------------
+  Future<List<AppointmentData>> getAppointmentsForPatient({
+    required String token,
+    required String patientId,
+    String suspendfilter = 'all',
+  }) async {
+    try {
+      Logger.log(
+          'getAppointmentsForPatient: Starting with patientId=$patientId');
+
+      // Get upcoming appointments
+      List<AppointmentData> upcomingList = await getUpcoming(
+        token: token,
+        entityRole: 'patient',
+        entityId: patientId,
+        suspendfilter: suspendfilter,
+      );
+      Logger.log(
+          'getAppointmentsForPatient: Got ${upcomingList.length} upcoming appointments');
+
+      // Get past appointments
+      final pastList = await getAppointmentsHistory(
+        token: token,
+        suspendfilter: suspendfilter,
+        filterByRole: 'patient',
+        filterById: patientId,
+      );
+      Logger.log(
+          'getAppointmentsForPatient: Got ${pastList.length} past appointments');
+
+      // Combine both lists
+      final allAppointments = [...pastList, ...upcomingList];
+
+      // Sort by date (newest first)
+      allAppointments.sort((a, b) => b.start.compareTo(a.start));
+
+      Logger.log(
+          'getAppointmentsForPatient: Returning ${allAppointments.length} total appointments');
+      return allAppointments;
+    } catch (e) {
+      Logger.log('Error in getAppointmentsForPatient: $e');
       rethrow;
     }
   }

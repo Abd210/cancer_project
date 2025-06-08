@@ -21,14 +21,14 @@ class PatientController {
 
       // If the user's role is "patient", ensure they can only access their own data
       if (user.role === "patient") {
-        const patient_data = await PatientService.getPatientData(user._id);
+        const patient_data = await PatientService.getPatientData(user.id);
         // Check if the patient data exists
         if (!patient_data) {
           return res.status(404).json({ error: "Patient not found" });
         }
 
         // Return the fetched patient data with a 200 status code
-        res.status(200).json(patient_data);
+        return res.status(200).json(patient_data);
       } else if (user.role === "superadmin" || user.role === "doctor") {
         // If the user is a superadmin/doctor and a specific patient's ID was not provided
         if (!patientid) {
@@ -76,6 +76,17 @@ class PatientController {
                 "PatientController- Get Patient Data: Please provide either a filter or a patient's id", // Specific error for missing filter
             });
           }
+        } else {
+          // If patientid is provided for superadmin/doctor, proceed to fetch specific patient data
+          const patient_data = await PatientService.getPatientData(patientid);
+
+          // Check if the patient data exists
+          if (!patient_data) {
+            return res.status(404).json({ error: "Patient not found" });
+          }
+
+          // Return the fetched patient data with a 200 status code
+          return res.status(200).json(patient_data);
         }
       } else {
         // If the role is neither 'patient' nor 'superadmin', deny access
@@ -83,17 +94,6 @@ class PatientController {
           error: "PatientController- Get Patient Data: Access denied", // Access denied error
         });
       }
-
-      // Call the PatientService to find the patient data based on the _id
-      const patient_data = await PatientService.getPatientData(patientid);
-
-      // Check if the patient data exists
-      if (!patient_data) {
-        return res.status(404).json({ error: "Patient not found" });
-      }
-
-      // Return the fetched patient data with a 200 status code
-      res.status(200).json(patient_data);
     } catch (fetchPatientDataError) {
       res.status(500).json({ error: fetchPatientDataError.message });
     }

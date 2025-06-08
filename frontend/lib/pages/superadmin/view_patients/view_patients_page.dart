@@ -117,11 +117,11 @@ class _PatientsPageState extends State<PatientsPage> {
     String? selectedHospitalId;
     String? selectedDoctorId;
     bool suspended = false;
-    
+
     // Hospital search
     TextEditingController hospitalSearchController = TextEditingController();
     List<HospitalData> filteredHospitals = List.from(_hospitalList);
-    
+
     // Doctor search
     TextEditingController doctorSearchController = TextEditingController();
     List<DoctorData> filteredDoctors = [];
@@ -134,19 +134,20 @@ class _PatientsPageState extends State<PatientsPage> {
             children: [
               Icon(Icons.person_add, color: const Color(0xFFEC407A)),
               const SizedBox(width: 10),
-              const Text('Add New Patient', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Add New Patient',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
           content: Container(
             width: MediaQuery.of(context).size.width * 0.8,
             constraints: const BoxConstraints(maxWidth: 800),
             child: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                  children: [
                     // Personal Information section
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -158,15 +159,14 @@ class _PatientsPageState extends State<PatientsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Personal Information', 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFEC407A),
-                            )
-                          ),
+                          Text('Personal Information',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFEC407A),
+                              )),
                           const SizedBox(height: 16),
-                          
+
                           // Two-column layout for form fields
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,46 +175,52 @@ class _PatientsPageState extends State<PatientsPage> {
                               Expanded(
                                 child: Column(
                                   children: [
-                TextFormField(
+                                    TextFormField(
                                       decoration: const InputDecoration(
                                         labelText: 'Full Name',
                                         prefixIcon: Icon(Icons.person),
                                         border: OutlineInputBorder(),
                                       ),
-                  validator: (val) =>
-                      val == null || val.isEmpty ? 'Enter name' : null,
-                  onSaved: (val) => name = val!.trim(),
-                ),
+                                      validator: (val) =>
+                                          val == null || val.isEmpty
+                                              ? 'Enter name'
+                                              : null,
+                                      onSaved: (val) => name = val!.trim(),
+                                    ),
                                     const SizedBox(height: 16),
-                TextFormField(
+                                    TextFormField(
                                       decoration: const InputDecoration(
                                         labelText: 'Email Address',
                                         prefixIcon: Icon(Icons.email),
                                         border: OutlineInputBorder(),
                                       ),
-                  validator: (val) =>
-                      val == null || val.isEmpty ? 'Enter email' : null,
-                  onSaved: (val) => email = val!.trim(),
-                ),
+                                      validator: (val) =>
+                                          val == null || val.isEmpty
+                                              ? 'Enter email'
+                                              : null,
+                                      onSaved: (val) => email = val!.trim(),
+                                    ),
                                     const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
+                                    TextFormField(
+                                      decoration: const InputDecoration(
                                         labelText: 'Birth Date (YYYY-MM-DD)',
                                         prefixIcon: Icon(Icons.calendar_today),
                                         border: OutlineInputBorder(),
                                       ),
-                  validator: (val) =>
-                      val == null || val.isEmpty ? 'Enter birth date' : null,
-                  onSaved: (val) {
-                    if (val != null && val.isNotEmpty) {
-                      try {
-                        birthDate = DateTime.parse(val);
-                      } catch (e) {
-                        birthDate = DateTime.now();
-                      }
-                    }
-                  },
-                ),
+                                      validator: (val) =>
+                                          val == null || val.isEmpty
+                                              ? 'Enter birth date'
+                                              : null,
+                                      onSaved: (val) {
+                                        if (val != null && val.isNotEmpty) {
+                                          try {
+                                            birthDate = DateTime.parse(val);
+                                          } catch (e) {
+                                            birthDate = DateTime.now();
+                                          }
+                                        }
+                                      },
+                                    ),
                                   ],
                                 ),
                               ),
@@ -223,26 +229,31 @@ class _PatientsPageState extends State<PatientsPage> {
                               Expanded(
                                 child: Column(
                                   children: [
-                TextFormField(
-                  decoration: const InputDecoration(
+                                    TextFormField(
+                                      decoration: const InputDecoration(
                                         labelText: 'Personal ID',
                                         prefixIcon: Icon(Icons.badge),
                                         border: OutlineInputBorder(),
                                       ),
                                       validator: (val) =>
-                                          val == null || val.isEmpty ? 'Enter persId' : null,
+                                          val == null || val.isEmpty
+                                              ? 'Enter persId'
+                                              : null,
                                       onSaved: (val) => persId = val!.trim(),
                                     ),
                                     const SizedBox(height: 16),
-                TextFormField(
+                                    TextFormField(
                                       decoration: const InputDecoration(
                                         labelText: 'Mobile Number',
                                         prefixIcon: Icon(Icons.phone),
                                         border: OutlineInputBorder(),
                                       ),
                                       validator: (val) =>
-                                          val == null || val.isEmpty ? 'Enter mobile number' : null,
-                                      onSaved: (val) => mobileNumber = val!.trim(),
+                                          val == null || val.isEmpty
+                                              ? 'Enter mobile number'
+                                              : null,
+                                      onSaved: (val) =>
+                                          mobileNumber = val!.trim(),
                                     ),
                                     const SizedBox(height: 16),
                                     TextFormField(
@@ -253,7 +264,9 @@ class _PatientsPageState extends State<PatientsPage> {
                                       ),
                                       obscureText: true,
                                       validator: (val) =>
-                                          val == null || val.isEmpty ? 'Enter password' : null,
+                                          val == null || val.isEmpty
+                                              ? 'Enter password'
+                                              : null,
                                       onSaved: (val) => password = val!.trim(),
                                     ),
                                   ],
@@ -264,9 +277,9 @@ class _PatientsPageState extends State<PatientsPage> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Medical Information section
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -278,15 +291,14 @@ class _PatientsPageState extends State<PatientsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Medical Information', 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFEC407A),
-                            )
-                          ),
+                          Text('Medical Information',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFEC407A),
+                              )),
                           const SizedBox(height: 16),
-                          
+
                           // Status dropdown
                           DropdownButtonFormField<String>(
                             decoration: const InputDecoration(
@@ -297,10 +309,15 @@ class _PatientsPageState extends State<PatientsPage> {
                             value: status,
                             isExpanded: true,
                             items: const [
-                              DropdownMenuItem(value: 'recovering', child: Text('Recovering')),
-                              DropdownMenuItem(value: 'recovered', child: Text('Recovered')),
-                              DropdownMenuItem(value: 'active', child: Text('Active')),
-                              DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
+                              DropdownMenuItem(
+                                  value: 'recovering',
+                                  child: Text('Recovering')),
+                              DropdownMenuItem(
+                                  value: 'recovered', child: Text('Recovered')),
+                              DropdownMenuItem(
+                                  value: 'active', child: Text('Active')),
+                              DropdownMenuItem(
+                                  value: 'inactive', child: Text('Inactive')),
                             ],
                             onChanged: (val) {
                               if (val != null) {
@@ -309,7 +326,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          
+
                           TextFormField(
                             decoration: const InputDecoration(
                               labelText: 'Diagnosis',
@@ -320,23 +337,25 @@ class _PatientsPageState extends State<PatientsPage> {
                             onSaved: (val) => diagnosis = val?.trim() ?? '',
                           ),
                           const SizedBox(height: 16),
-                          
+
                           TextFormField(
                             decoration: const InputDecoration(
                               labelText: 'Medical History (comma-separated)',
                               prefixIcon: Icon(Icons.history),
                               border: OutlineInputBorder(),
-                              hintText: 'Enter previous conditions separated by commas',
+                              hintText:
+                                  'Enter previous conditions separated by commas',
                             ),
                             maxLines: 3,
-                            onSaved: (val) => medicalHistoryRaw = val?.trim() ?? '',
+                            onSaved: (val) =>
+                                medicalHistoryRaw = val?.trim() ?? '',
                           ),
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Hospital Assignment section
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -348,15 +367,14 @@ class _PatientsPageState extends State<PatientsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Hospital Assignment', 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFEC407A),
-                            )
-                          ),
+                          Text('Hospital Assignment',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFEC407A),
+                              )),
                           const SizedBox(height: 16),
-                          
+
                           // Hospital search field
                           TextField(
                             controller: hospitalSearchController,
@@ -364,17 +382,19 @@ class _PatientsPageState extends State<PatientsPage> {
                               labelText: 'Search Hospitals',
                               prefixIcon: const Icon(Icons.search),
                               border: const OutlineInputBorder(),
-                              suffixIcon: hospitalSearchController.text.isNotEmpty 
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      hospitalSearchController.clear();
-                                      setDialogState(() {
-                                        filteredHospitals = List.from(_hospitalList);
-                                      });
-                                    },
-                                  )
-                                : null,
+                              suffixIcon:
+                                  hospitalSearchController.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            hospitalSearchController.clear();
+                                            setDialogState(() {
+                                              filteredHospitals =
+                                                  List.from(_hospitalList);
+                                            });
+                                          },
+                                        )
+                                      : null,
                             ),
                             onChanged: (query) {
                               setDialogState(() {
@@ -382,18 +402,24 @@ class _PatientsPageState extends State<PatientsPage> {
                                   filteredHospitals = List.from(_hospitalList);
                                 } else {
                                   filteredHospitals = _hospitalList
-                                    .where((hospital) => 
-                                      hospital.name.toLowerCase().contains(query.toLowerCase()) ||
-                                      hospital.address.toLowerCase().contains(query.toLowerCase()) ||
-                                      hospital.id.toLowerCase().contains(query.toLowerCase()))
-                                    .toList();
+                                      .where((hospital) =>
+                                          hospital.name
+                                              .toLowerCase()
+                                              .contains(query.toLowerCase()) ||
+                                          hospital.address
+                                              .toLowerCase()
+                                              .contains(query.toLowerCase()) ||
+                                          hospital.id
+                                              .toLowerCase()
+                                              .contains(query.toLowerCase()))
+                                      .toList();
                                 }
                               });
                             },
                           ),
-                          
+
                           const SizedBox(height: 16),
-                          
+
                           // Hospital dropdown
                           DropdownButtonFormField<String>(
                             decoration: const InputDecoration(
@@ -407,20 +433,24 @@ class _PatientsPageState extends State<PatientsPage> {
                             items: filteredHospitals.map((hospital) {
                               return DropdownMenuItem<String>(
                                 value: hospital.id,
-                                child: Text('${hospital.name} (${hospital.address})'),
+                                child: Text(
+                                    '${hospital.name} (${hospital.address})'),
                               );
                             }).toList(),
-                            validator: (val) =>
-                                val == null || val.isEmpty ? 'Select a hospital' : null,
+                            validator: (val) => val == null || val.isEmpty
+                                ? 'Select a hospital'
+                                : null,
                             onChanged: (val) {
                               setDialogState(() {
                                 selectedHospitalId = val;
                                 // Filter doctors by selected hospital
                                 if (val != null) {
                                   filteredDoctors = _doctorList
-                                    .where((doctor) => doctor.hospitalId == val)
-                                    .toList();
-                                  selectedDoctorId = null; // Reset doctor selection
+                                      .where(
+                                          (doctor) => doctor.hospitalId == val)
+                                      .toList();
+                                  selectedDoctorId =
+                                      null; // Reset doctor selection
                                   doctorSearchController.clear();
                                 } else {
                                   filteredDoctors = [];
@@ -428,154 +458,169 @@ class _PatientsPageState extends State<PatientsPage> {
                               });
                             },
                           ),
-                          
+
                           const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Checkbox(
+                          Row(
+                            children: [
+                              Checkbox(
                                 value: suspended,
-                      onChanged: (val) {
+                                onChanged: (val) {
                                   setDialogState(() {
                                     suspended = val ?? false;
-                        });
-                      },
+                                  });
+                                },
                                 activeColor: const Color(0xFFEC407A),
-                    ),
+                              ),
                               const Text('Account Suspended'),
-                  ],
-                ),
-              ],
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    
+
                     // Add Doctor Selection section if hospital is selected
-                    if (selectedHospitalId != null && filteredDoctors.isNotEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(top: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Doctor Assignment', 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFEC407A),
-                            )
-                          ),
-                          const SizedBox(height: 16),
-                          
-                          // Doctor search field
-                          TextField(
-                            controller: doctorSearchController,
-                            decoration: InputDecoration(
-                              labelText: 'Search Doctors',
-                              prefixIcon: const Icon(Icons.search),
-                              border: const OutlineInputBorder(),
-                              suffixIcon: doctorSearchController.text.isNotEmpty 
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      doctorSearchController.clear();
-                                      setDialogState(() {
-                                        filteredDoctors = _doctorList
-                                          .where((doctor) => doctor.hospitalId == selectedHospitalId)
-                                          .toList();
-                                      });
-                                    },
-                                  )
-                                : null,
+                    if (selectedHospitalId != null &&
+                        filteredDoctors.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Doctor Assignment',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEC407A),
+                                )),
+                            const SizedBox(height: 16),
+
+                            // Doctor search field
+                            TextField(
+                              controller: doctorSearchController,
+                              decoration: InputDecoration(
+                                labelText: 'Search Doctors',
+                                prefixIcon: const Icon(Icons.search),
+                                border: const OutlineInputBorder(),
+                                suffixIcon:
+                                    doctorSearchController.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear),
+                                            onPressed: () {
+                                              doctorSearchController.clear();
+                                              setDialogState(() {
+                                                filteredDoctors = _doctorList
+                                                    .where((doctor) =>
+                                                        doctor.hospitalId ==
+                                                        selectedHospitalId)
+                                                    .toList();
+                                              });
+                                            },
+                                          )
+                                        : null,
+                              ),
+                              onChanged: (query) {
+                                setDialogState(() {
+                                  if (query.isEmpty) {
+                                    filteredDoctors = _doctorList
+                                        .where((doctor) =>
+                                            doctor.hospitalId ==
+                                            selectedHospitalId)
+                                        .toList();
+                                  } else {
+                                    filteredDoctors = _doctorList
+                                        .where((doctor) =>
+                                            doctor.hospitalId ==
+                                                selectedHospitalId &&
+                                            (doctor.name.toLowerCase().contains(
+                                                    query.toLowerCase()) ||
+                                                doctor.email
+                                                    .toLowerCase()
+                                                    .contains(
+                                                        query.toLowerCase()) ||
+                                                doctor.persId
+                                                    .toLowerCase()
+                                                    .contains(
+                                                        query.toLowerCase())))
+                                        .toList();
+                                  }
+                                });
+                              },
                             ),
-                            onChanged: (query) {
-                              setDialogState(() {
-                                if (query.isEmpty) {
-                                  filteredDoctors = _doctorList
-                                    .where((doctor) => doctor.hospitalId == selectedHospitalId)
-                                    .toList();
-                                } else {
-                                  filteredDoctors = _doctorList
-                                    .where((doctor) => 
-                                      doctor.hospitalId == selectedHospitalId &&
-                                      (doctor.name.toLowerCase().contains(query.toLowerCase()) ||
-                                       doctor.email.toLowerCase().contains(query.toLowerCase()) ||
-                                       doctor.persId.toLowerCase().contains(query.toLowerCase())))
-                                    .toList();
-                                }
-                              });
-                            },
-                          ),
-                          
-                          const SizedBox(height: 16),
-                          
-                          // Doctor dropdown
-                          DropdownButtonFormField<String>(
-                            decoration: const InputDecoration(
-                              labelText: 'Select Doctor',
-                              prefixIcon: Icon(Icons.person),
-                              border: OutlineInputBorder(),
+
+                            const SizedBox(height: 16),
+
+                            // Doctor dropdown
+                            DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Select Doctor',
+                                prefixIcon: Icon(Icons.person),
+                                border: OutlineInputBorder(),
+                              ),
+                              value: selectedDoctorId,
+                              hint: const Text('Choose a doctor'),
+                              isExpanded: true,
+                              items: filteredDoctors.map((doctor) {
+                                return DropdownMenuItem<String>(
+                                  value: doctor.id,
+                                  child:
+                                      Text('${doctor.name} (${doctor.persId})'),
+                                );
+                              }).toList(),
+                              validator: (val) => val == null || val.isEmpty
+                                  ? 'Select a doctor'
+                                  : null,
+                              onChanged: (val) {
+                                setDialogState(() {
+                                  selectedDoctorId = val;
+                                });
+                              },
                             ),
-                            value: selectedDoctorId,
-                            hint: const Text('Choose a doctor'),
-                            isExpanded: true,
-                            items: filteredDoctors.map((doctor) {
-                              return DropdownMenuItem<String>(
-                                value: doctor.id,
-                                child: Text('${doctor.name} (${doctor.persId})'),
-                              );
-                            }).toList(),
-                            validator: (val) =>
-                                val == null || val.isEmpty ? 'Select a doctor' : null,
-                            onChanged: (val) {
-                              setDialogState(() {
-                                selectedDoctorId = val;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    )
-                    else if (selectedHospitalId != null && filteredDoctors.isEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(top: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Doctor Assignment', 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFEC407A),
-                            )
-                          ),
-                          const SizedBox(height: 16),
-                          const Center(
-                            child: Text(
-                              'No doctors available for the selected hospital. Please add doctors to this hospital first.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.red),
+                          ],
+                        ),
+                      )
+                    else if (selectedHospitalId != null &&
+                        filteredDoctors.isEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Doctor Assignment',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEC407A),
+                                )),
+                            const SizedBox(height: 16),
+                            const Center(
+                              child: Text(
+                                'No doctors available for the selected hospital. Please add doctors to this hospital first.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.red),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
+              ),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
+          actions: [
+            TextButton(
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Cancel'),
             ),
@@ -586,59 +631,60 @@ class _PatientsPageState extends State<PatientsPage> {
                 backgroundColor: const Color(0xFFEC407A),
                 foregroundColor: Colors.white,
               ),
-            onPressed: () async {
-              if (formKey.currentState!.validate()) {
-                formKey.currentState!.save();
-                  
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  formKey.currentState!.save();
+
                   // Ensure hospital is selected
-                  if (selectedHospitalId == null || selectedHospitalId!.isEmpty) {
+                  if (selectedHospitalId == null ||
+                      selectedHospitalId!.isEmpty) {
                     Fluttertoast.showToast(msg: 'Please select a hospital');
                     return;
                   }
-                  
+
                   // Ensure doctor is selected
                   if (selectedDoctorId == null || selectedDoctorId!.isEmpty) {
                     Fluttertoast.showToast(msg: 'Please select a doctor');
                     return;
                   }
-                  
-                Navigator.pop(ctx);
 
-                final medicalHistory = medicalHistoryRaw
-                    .split(',')
-                    .map((s) => s.trim())
-                    .where((s) => s.isNotEmpty)
-                    .toList();
+                  Navigator.pop(ctx);
 
-                setState(() => _isLoading = true);
-                try {
-                  await _patientProvider.createPatient(
-                    token: widget.token,
-                    persId: persId,
-                    name: name,
-                    password: password,
-                    mobileNumber: mobileNumber,
-                    email: email,
-                    status: status,
-                    diagnosis: diagnosis,
-                    birthDate: birthDate.toIso8601String().split('T')[0],
-                    medicalHistory: medicalHistory,
+                  final medicalHistory = medicalHistoryRaw
+                      .split(',')
+                      .map((s) => s.trim())
+                      .where((s) => s.isNotEmpty)
+                      .toList();
+
+                  setState(() => _isLoading = true);
+                  try {
+                    await _patientProvider.createPatient(
+                      token: widget.token,
+                      persId: persId,
+                      name: name,
+                      password: password,
+                      mobileNumber: mobileNumber,
+                      email: email,
+                      status: status,
+                      diagnosis: diagnosis,
+                      birthDate: birthDate.toIso8601String().split('T')[0],
+                      medicalHistory: medicalHistory,
                       hospitalId: selectedHospitalId!,
                       doctorId: selectedDoctorId!,
                       suspended: suspended,
-                  );
-                  await _fetchPatients();
+                    );
+                    await _fetchPatients();
 
-                  Fluttertoast.showToast(msg: 'Patient added successfully.');
-                } catch (e) {
-                  Fluttertoast.showToast(msg: 'Failed to add patient: $e');
-                } finally {
-                  setState(() => _isLoading = false);
+                    Fluttertoast.showToast(msg: 'Patient added successfully.');
+                  } catch (e) {
+                    Fluttertoast.showToast(msg: 'Failed to add patient: $e');
+                  } finally {
+                    setState(() => _isLoading = false);
+                  }
                 }
-              }
-            },
-          ),
-        ],
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -659,7 +705,7 @@ class _PatientsPageState extends State<PatientsPage> {
     final List<String> originalMedHistory = List.from(patient.medicalHistory);
     final String originalHospitalId = patient.hospitalId;
     final bool originalSuspended = patient.suspended;
-    
+
     // Editable values
     String persId = originalPersId;
     String name = originalName;
@@ -690,19 +736,20 @@ class _PatientsPageState extends State<PatientsPage> {
             children: [
               Icon(Icons.edit, color: const Color(0xFFEC407A)),
               const SizedBox(width: 10),
-              Text('Edit Patient: ${patient.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text('Edit Patient: ${patient.name}',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
           content: Container(
             width: MediaQuery.of(context).size.width * 0.8,
             constraints: const BoxConstraints(maxWidth: 800),
             child: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                  children: [
                     // Personal Information section
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -714,15 +761,14 @@ class _PatientsPageState extends State<PatientsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Personal Information', 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFEC407A),
-                            )
-                          ),
+                          Text('Personal Information',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFEC407A),
+                              )),
                           const SizedBox(height: 16),
-                          
+
                           // Two-column layout for form fields
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -731,52 +777,63 @@ class _PatientsPageState extends State<PatientsPage> {
                               Expanded(
                                 child: Column(
                                   children: [
-                TextFormField(
-                  initialValue: name,
+                                    TextFormField(
+                                      initialValue: name,
                                       decoration: const InputDecoration(
                                         labelText: 'Full Name',
                                         prefixIcon: Icon(Icons.person),
                                         border: OutlineInputBorder(),
                                       ),
-                  validator: (val) =>
-                      val == null || val.isEmpty ? 'Enter name' : null,
-                  onSaved: (val) => name = val!.trim(),
-                ),
+                                      validator: (val) =>
+                                          val == null || val.isEmpty
+                                              ? 'Enter name'
+                                              : null,
+                                      onSaved: (val) => name = val!.trim(),
+                                    ),
                                     const SizedBox(height: 16),
-                TextFormField(
+                                    TextFormField(
                                       initialValue: email,
                                       decoration: InputDecoration(
                                         labelText: 'Email Address',
                                         prefixIcon: const Icon(Icons.email),
                                         border: const OutlineInputBorder(),
-                                        helperText: 'This is your login identifier',
-                                        helperStyle: TextStyle(color: Colors.grey.shade600),
+                                        helperText:
+                                            'This is your login identifier',
+                                        helperStyle: TextStyle(
+                                            color: Colors.grey.shade600),
                                       ),
-                                      enabled: false, // Disable email editing to prevent uniqueness errors
-                  validator: (val) =>
-                      val == null || val.isEmpty ? 'Enter email' : null,
-                  onSaved: (val) => email = val!.trim(),
-                ),
+                                      enabled:
+                                          false, // Disable email editing to prevent uniqueness errors
+                                      validator: (val) =>
+                                          val == null || val.isEmpty
+                                              ? 'Enter email'
+                                              : null,
+                                      onSaved: (val) => email = val!.trim(),
+                                    ),
                                     const SizedBox(height: 16),
-                TextFormField(
-                  initialValue: birthDate.toIso8601String().split('T')[0],
-                  decoration: const InputDecoration(
+                                    TextFormField(
+                                      initialValue: birthDate
+                                          .toIso8601String()
+                                          .split('T')[0],
+                                      decoration: const InputDecoration(
                                         labelText: 'Birth Date (YYYY-MM-DD)',
                                         prefixIcon: Icon(Icons.calendar_today),
                                         border: OutlineInputBorder(),
                                       ),
                                       validator: (val) =>
-                                          val == null || val.isEmpty ? 'Enter birth date' : null,
-                  onSaved: (val) {
-                    if (val != null && val.isNotEmpty) {
-                      try {
-                        birthDate = DateTime.parse(val);
-                      } catch (e) {
+                                          val == null || val.isEmpty
+                                              ? 'Enter birth date'
+                                              : null,
+                                      onSaved: (val) {
+                                        if (val != null && val.isNotEmpty) {
+                                          try {
+                                            birthDate = DateTime.parse(val);
+                                          } catch (e) {
                                             birthDate = originalBirthDate;
-                      }
-                    }
-                  },
-                ),
+                                          }
+                                        }
+                                      },
+                                    ),
                                   ],
                                 ),
                               ),
@@ -793,7 +850,9 @@ class _PatientsPageState extends State<PatientsPage> {
                                         border: OutlineInputBorder(),
                                       ),
                                       validator: (val) =>
-                                          val == null || val.isEmpty ? 'Enter persId' : null,
+                                          val == null || val.isEmpty
+                                              ? 'Enter persId'
+                                              : null,
                                       onSaved: (val) => persId = val!.trim(),
                                     ),
                                     const SizedBox(height: 16),
@@ -805,8 +864,11 @@ class _PatientsPageState extends State<PatientsPage> {
                                         border: OutlineInputBorder(),
                                       ),
                                       validator: (val) =>
-                                          val == null || val.isEmpty ? 'Enter mobile number' : null,
-                                      onSaved: (val) => mobileNumber = val!.trim(),
+                                          val == null || val.isEmpty
+                                              ? 'Enter mobile number'
+                                              : null,
+                                      onSaved: (val) =>
+                                          mobileNumber = val!.trim(),
                                     ),
                                     const SizedBox(height: 16),
                                     TextFormField(
@@ -815,11 +877,14 @@ class _PatientsPageState extends State<PatientsPage> {
                                         labelText: 'Password',
                                         prefixIcon: Icon(Icons.lock),
                                         border: OutlineInputBorder(),
-                                        hintText: 'Leave empty to keep current password',
+                                        hintText:
+                                            'Leave empty to keep current password',
                                       ),
                                       obscureText: true,
-                                      validator: null, // Allow empty password during update
-                                      onSaved: (val) => password = val?.trim() ?? '',
+                                      validator:
+                                          null, // Allow empty password during update
+                                      onSaved: (val) =>
+                                          password = val?.trim() ?? '',
                                     ),
                                   ],
                                 ),
@@ -829,9 +894,9 @@ class _PatientsPageState extends State<PatientsPage> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Medical Information section
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -843,15 +908,14 @@ class _PatientsPageState extends State<PatientsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Medical Information', 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFEC407A),
-                            )
-                          ),
+                          Text('Medical Information',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFEC407A),
+                              )),
                           const SizedBox(height: 16),
-                          
+
                           // Status dropdown
                           DropdownButtonFormField<String>(
                             decoration: const InputDecoration(
@@ -862,10 +926,15 @@ class _PatientsPageState extends State<PatientsPage> {
                             value: status,
                             isExpanded: true,
                             items: const [
-                              DropdownMenuItem(value: 'recovering', child: Text('Recovering')),
-                              DropdownMenuItem(value: 'recovered', child: Text('Recovered')),
-                              DropdownMenuItem(value: 'active', child: Text('Active')),
-                              DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
+                              DropdownMenuItem(
+                                  value: 'recovering',
+                                  child: Text('Recovering')),
+                              DropdownMenuItem(
+                                  value: 'recovered', child: Text('Recovered')),
+                              DropdownMenuItem(
+                                  value: 'active', child: Text('Active')),
+                              DropdownMenuItem(
+                                  value: 'inactive', child: Text('Inactive')),
                             ],
                             onChanged: (val) {
                               if (val != null) {
@@ -874,7 +943,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          
+
                           TextFormField(
                             initialValue: diagnosis,
                             decoration: const InputDecoration(
@@ -886,31 +955,32 @@ class _PatientsPageState extends State<PatientsPage> {
                             onSaved: (val) => diagnosis = val?.trim() ?? '',
                           ),
                           const SizedBox(height: 16),
-                          
-                TextFormField(
-                  initialValue: medHistory.join(', '),
-                  decoration: const InputDecoration(
+
+                          TextFormField(
+                            initialValue: medHistory.join(', '),
+                            decoration: const InputDecoration(
                               labelText: 'Medical History (comma-separated)',
                               prefixIcon: Icon(Icons.history),
                               border: OutlineInputBorder(),
-                              hintText: 'Enter previous conditions separated by commas',
+                              hintText:
+                                  'Enter previous conditions separated by commas',
                             ),
                             maxLines: 3,
-                  onSaved: (val) {
-                    final raw = val ?? '';
-                    medHistory = raw
-                        .split(',')
-                        .map((s) => s.trim())
-                        .where((s) => s.isNotEmpty)
-                        .toList();
-                  },
-                ),
+                            onSaved: (val) {
+                              final raw = val ?? '';
+                              medHistory = raw
+                                  .split(',')
+                                  .map((s) => s.trim())
+                                  .where((s) => s.isNotEmpty)
+                                  .toList();
+                            },
+                          ),
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Hospital Assignment section
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -922,15 +992,14 @@ class _PatientsPageState extends State<PatientsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Hospital Assignment', 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFEC407A),
-                            )
-                          ),
+                          Text('Hospital Assignment',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFEC407A),
+                              )),
                           const SizedBox(height: 16),
-                          
+
                           // Hospital display (not editable in this form)
                           InputDecorator(
                             decoration: const InputDecoration(
@@ -949,39 +1018,41 @@ class _PatientsPageState extends State<PatientsPage> {
                                     ),
                                   ),
                                   Tooltip(
-                                    message: 'To change hospital, please create a new patient account',
-                                    child: Icon(Icons.info_outline, color: Colors.grey.shade600),
+                                    message:
+                                        'To change hospital, please create a new patient account',
+                                    child: Icon(Icons.info_outline,
+                                        color: Colors.grey.shade600),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Checkbox(
+                          Row(
+                            children: [
+                              Checkbox(
                                 value: suspended,
-                      onChanged: (val) {
+                                onChanged: (val) {
                                   setDialogState(() {
                                     suspended = val ?? false;
-                        });
-                      },
+                                  });
+                                },
                                 activeColor: const Color(0xFFEC407A),
-                    ),
+                              ),
                               const Text('Account Suspended'),
-                  ],
-                ),
-              ],
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
+              ),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
+          actions: [
+            TextButton(
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Cancel'),
             ),
@@ -992,70 +1063,83 @@ class _PatientsPageState extends State<PatientsPage> {
                 backgroundColor: const Color(0xFFEC407A),
                 foregroundColor: Colors.white,
               ),
-            onPressed: () async {
-              if (formKey.currentState!.validate()) {
-                formKey.currentState!.save();
-                Navigator.pop(ctx);
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  formKey.currentState!.save();
+                  Navigator.pop(ctx);
 
-                setState(() => _isLoading = true);
-                try {
+                  setState(() => _isLoading = true);
+                  try {
                     // Only include fields that have actually changed
                     final Map<String, dynamic> updatedFields = {};
-                    
+
                     if (name != originalName) updatedFields["name"] = name;
-                    if (persId != originalPersId) updatedFields["persId"] = persId;
-                    if (password.isNotEmpty && password != originalPassword) updatedFields["password"] = password;
-                    if (mobileNumber != originalMobileNumber) updatedFields["mobileNumber"] = mobileNumber;
-                    
+                    if (persId != originalPersId)
+                      updatedFields["persId"] = persId;
+                    if (password.isNotEmpty && password != originalPassword)
+                      updatedFields["password"] = password;
+                    if (mobileNumber != originalMobileNumber)
+                      updatedFields["mobileNumber"] = mobileNumber;
+
                     // Format birthDate for comparison
-                    String birthDateStr = birthDate.toIso8601String().split('T')[0];
-                    String originalBirthDateStr = originalBirthDate.toIso8601String().split('T')[0];
-                    if (birthDateStr != originalBirthDateStr) updatedFields["birthDate"] = birthDateStr;
-                    
-                    if (status != originalStatus) updatedFields["status"] = status;
-                    if (diagnosis != originalDiagnosis) updatedFields["diagnosis"] = diagnosis;
-                    
+                    String birthDateStr =
+                        birthDate.toIso8601String().split('T')[0];
+                    String originalBirthDateStr =
+                        originalBirthDate.toIso8601String().split('T')[0];
+                    if (birthDateStr != originalBirthDateStr)
+                      updatedFields["birthDate"] = birthDateStr;
+
+                    if (status != originalStatus)
+                      updatedFields["status"] = status;
+                    if (diagnosis != originalDiagnosis)
+                      updatedFields["diagnosis"] = diagnosis;
+
                     // Check if medHistory has changed
-                    bool medHistoryChanged = medHistory.length != originalMedHistory.length;
+                    bool medHistoryChanged =
+                        medHistory.length != originalMedHistory.length;
                     if (!medHistoryChanged) {
                       for (int i = 0; i < medHistory.length; i++) {
-                        if (i >= originalMedHistory.length || medHistory[i] != originalMedHistory[i]) {
+                        if (i >= originalMedHistory.length ||
+                            medHistory[i] != originalMedHistory[i]) {
                           medHistoryChanged = true;
                           break;
                         }
                       }
                     }
-                    if (medHistoryChanged) updatedFields["medicalHistory"] = medHistory;
-                    
-                    if (suspended != originalSuspended) updatedFields["suspended"] = suspended;
-                    
+                    if (medHistoryChanged)
+                      updatedFields["medicalHistory"] = medHistory;
+
+                    if (suspended != originalSuspended)
+                      updatedFields["suspended"] = suspended;
+
                     // Only make the API call if there are changes
                     if (updatedFields.isNotEmpty) {
-                  await _patientProvider.updatePatient(
-                    token: widget.token,
-                    patientId: patient.id,
-                    updatedFields: updatedFields,
-                  );
-                  await _fetchPatients();
-                      Fluttertoast.showToast(msg: 'Patient updated successfully');
+                      await _patientProvider.updatePatient(
+                        token: widget.token,
+                        patientId: patient.id,
+                        updatedFields: updatedFields,
+                      );
+                      await _fetchPatients();
+                      Fluttertoast.showToast(
+                          msg: 'Patient updated successfully');
                     } else {
                       Fluttertoast.showToast(msg: 'No changes detected');
                     }
-                } catch (e) {
+                  } catch (e) {
                     // Try to refresh the list even if there was an error
                     try {
                       await _fetchPatients();
                     } catch (_) {
                       // Ignore any error from the refresh attempt
                     }
-                  Fluttertoast.showToast(msg: 'Failed to update patient: $e');
-                } finally {
-                  setState(() => _isLoading = false);
+                    Fluttertoast.showToast(msg: 'Failed to update patient: $e');
+                  } finally {
+                    setState(() => _isLoading = false);
+                  }
                 }
-              }
-            },
-          ),
-        ],
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -1205,21 +1289,24 @@ class _PatientsPageState extends State<PatientsPage> {
                             DataCell(Text(patient.hospitalId)),
                             DataCell(
                               Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.blue),
-                                    onPressed: () => _showEditPatientDialog(patient),
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.blue),
+                                    onPressed: () =>
+                                        _showEditPatientDialog(patient),
                                     tooltip: 'Edit',
-                                ),
-                                IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deletePatient(patient.id),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    onPressed: () => _deletePatient(patient.id),
                                     tooltip: 'Delete',
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
                           ],
                         );
                       }).toList(),

@@ -15,7 +15,7 @@ class LogIn extends StatefulWidget {
 }
 
 class _LogInState extends State<LogIn> {
-  final _emailCtrl = TextEditingController(text: 'saul.goodman@yahoo.com');
+  final _emailCtrl = TextEditingController(text: 'nina@');
   final _passwordCtrl = TextEditingController(text: '123');
   bool _isLoading = false;
 
@@ -72,7 +72,7 @@ class _LogInState extends State<LogIn> {
           // Use a known valid doctor ID directly for testing
           destination = PatientPage(
             token: resp.token,
-            doctorId: "6495a3d017ed7c6d6fcd4534", // Use a sample doctor ID here
+            patientId: resp.userId,
           );
           break;
         default:
