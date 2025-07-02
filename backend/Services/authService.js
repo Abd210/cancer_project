@@ -68,6 +68,11 @@ class AuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userData = { ...userRegistrationData, password: hashedPassword };
 
+    // For admin role, ensure hospital field is always present (set to null if not provided)
+    if (role === "admin" && (userData.hospital === undefined || userData.hospital === "")) {
+      userData.hospital = null;
+    }
+
     // Determine the correct Firestore collection
     let collectionRef;
     switch (role) {
@@ -94,6 +99,12 @@ class AuthService {
     const userRef = await collectionRef.add(userData);
     newUser = { id: userRef.id, ...userData };
     msg = "Registration successful";
+
+    // Handle bidirectional admin-hospital relationship if admin is being created with hospital
+    if (role === "admin" && hospital) {
+      const HospitalService = require("./hospitalService");
+      await HospitalService._manageBidirectionalHospitalAdminRelation(hospital, userRef.id, null);
+    }
 
     return { message: msg, user: newUser };
   }

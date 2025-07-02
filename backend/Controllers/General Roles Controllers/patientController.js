@@ -29,7 +29,12 @@ class PatientController {
 
         // Return the fetched patient data with a 200 status code
         return res.status(200).json(patient_data);
-      } else if (user.role === "superadmin" || user.role === "doctor") {
+      } else if (
+        user.role === "superadmin" ||
+        user.role === "doctor" ||
+        user.role === "admin"
+      ) {
+        console.log("user.role", user.role);
         // If the user is a superadmin/doctor and a specific patient's ID was not provided
         if (!patientid) {
           if (filter) {

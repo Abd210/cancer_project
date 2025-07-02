@@ -9,11 +9,12 @@ class HospitalService {
    * @param {string} hospitalData.address - The address of the hospital.
    * @param {Array<string>} hospitalData.mobileNumbers - The mobile numbers of the hospital.
    * @param {Array<string>} hospitalData.emails - The emails of the hospital.
+   * @param {string} [hospitalData.admin] - The Firestore ID of the hospital's admin.
    * @param {boolean} [hospitalData.suspended] - The suspended status of the hospital.
    * @returns {Promise<Object>} The newly registered hospital data including its ID.
    * @throws {Error} If a hospital with the same name and address already exists or if emails/mobile numbers are not unique.
    */
-  static async register({ name, address, mobileNumbers, emails, suspended }) {
+  static async register({ name, address, mobileNumbers, emails, admin: adminId, suspended }) {
     const hospitalRef = db.collection("hospitals");
 
     // Check if a hospital with the same name and address already exists
@@ -32,18 +33,39 @@ class HospitalService {
     await this._checkUniqueFields("emails", emails);
     await this._checkUniqueFields("mobileNumbers", mobileNumbers);
 
+    // Validate admin if provided
+    if (adminId !== undefined) {
+      if (typeof adminId !== "string" || adminId.trim() === "") {
+        throw new Error("Invalid admin: must be a non-empty string");
+      }
+      
+      // Check if the admin exists in the admins collection
+      const adminDoc = await db.collection("admins").doc(adminId).get();
+      if (!adminDoc.exists) {
+        throw new Error("Admin not found with the provided ID");
+      }
+    }
+
     // Add new hospital
     const newHospital = {
       name,
       address,
       mobileNumbers,
       emails,
+      admin: adminId,
       createdAt: admin.firestore.Timestamp.now(),
       suspended: suspended || false,
     };
 
     const docRef = await hospitalRef.add(newHospital);
-    return { id: docRef.id, ...newHospital };
+    const hospitalId = docRef.id;
+
+    // Handle bidirectional relationship if admin is provided
+    if (adminId) {
+      await this._manageBidirectionalHospitalAdminRelation(hospitalId, adminId, null);
+    }
+
+    return { id: hospitalId, ...newHospital };
   }
 
   /**
@@ -64,11 +86,50 @@ class HospitalService {
   }
 
   /**
+   * Helper function to manage bidirectional hospital-admin relationship
+   * @param {string} hospitalId - The hospital's ID
+   * @param {string|null} newAdminId - The new admin ID (null to clear)
+   * @param {string|null} oldAdminId - The previous admin ID (null if none)
+   */
+  static async _manageBidirectionalHospitalAdminRelation(hospitalId, newAdminId, oldAdminId) {
+    const batch = db.batch();
+
+    // 1. Clear the hospital field from the old admin (if any)
+    if (oldAdminId) {
+      const oldAdminRef = db.collection("admins").doc(oldAdminId);
+      batch.update(oldAdminRef, { hospital: null });
+    }
+
+    // 2. If there's a new admin, handle the assignment
+    if (newAdminId) {
+      const newAdminRef = db.collection("admins").doc(newAdminId);
+      const newAdminDoc = await newAdminRef.get();
+      
+      if (newAdminDoc.exists) {
+        const adminData = newAdminDoc.data();
+        
+        // 3. If the new admin already has a hospital, clear that hospital's admin field
+        if (adminData.hospital && adminData.hospital !== hospitalId) {
+          const previousHospitalRef = db.collection("hospitals").doc(adminData.hospital);
+          batch.update(previousHospitalRef, { admin: null });
+        }
+        
+        // 4. Set this hospital as the admin's hospital
+        batch.update(newAdminRef, { hospital: hospitalId });
+      }
+    }
+
+    // Execute all updates atomically
+    await batch.commit();
+  }
+
+  /**
    * Updates hospital details, ensuring uniqueness for emails and mobile numbers.
    * @param {string} hospitalId - The ID of the hospital to update.
    * @param {Object} updateFields - The fields to update.
    * @param {Array<string>} [updateFields.emails] - The new emails of the hospital.
    * @param {Array<string>} [updateFields.mobileNumbers] - The new mobile numbers of the hospital.
+   * @param {string} [updateFields.admin] - The Firestore ID of the hospital's admin.
    * @returns {Promise<Object>} A message indicating the hospital was updated successfully.
    * @throws {Error} If the hospital is not found or if emails/mobile numbers are not unique.
    */
@@ -81,7 +142,7 @@ class HospitalService {
     }
 
     // 1. Whitelist allowed fields
-    const ALLOWED_FIELDS = ["name","address","mobileNumbers","emails","suspended"];
+    const ALLOWED_FIELDS = ["name","address","mobileNumbers","emails","admin","suspended"];
     Object.keys(updateFields).forEach(key => {
       if (!ALLOWED_FIELDS.includes(key)) {
         throw new Error(`Field '${key}' is not allowed`);
@@ -140,6 +201,35 @@ class HospitalService {
       }
       if (updateFields.suspended && user.role !== "superadmin") {
         throw new Error("Only superadmins can suspend doctors");
+      }
+    }
+
+    if (updateFields.admin !== undefined) {
+      if (updateFields.admin === null || updateFields.admin === "") {
+        // Allow clearing the admin field
+        updateFields.admin = null;
+      } else {
+        if (typeof updateFields.admin !== "string") {
+          throw new Error("Invalid admin: must be a string or null");
+        }
+        
+        // Check if the admin exists in the admins collection
+        const adminDoc = await db.collection("admins").doc(updateFields.admin).get();
+        if (!adminDoc.exists) {
+          throw new Error("Admin not found with the provided ID");
+        }
+      }
+    }
+
+    // Handle bidirectional admin-hospital relationship if admin field is being updated
+    if (updateFields.admin !== undefined) {
+      const currentHospitalData = hospitalDoc.data();
+      const oldAdminId = currentHospitalData.admin;
+      const newAdminId = updateFields.admin;
+      
+      // Only manage bidirectional relationship if the admin is actually changing
+      if (oldAdminId !== newAdminId) {
+        await this._manageBidirectionalHospitalAdminRelation(hospitalId, newAdminId, oldAdminId);
       }
     }
 

@@ -23,7 +23,7 @@ class AdminService {
       if (!adminDoc.exists) {
         throw new Error("adminService-findAdmin: Invalid Admin Id");
       }
-      return adminDoc.data();
+      return { id: adminDoc.id, ...adminDoc.data() };
     } else {
       let querySnapshot;
 
@@ -45,7 +45,8 @@ class AdminService {
         );
       }
 
-      return querySnapshot.docs[0].data();
+      const doc = querySnapshot.docs[0];
+      return { id: doc.id, ...doc.data() };
     }
   }
 
@@ -96,6 +97,44 @@ class AdminService {
   }
 
   /**
+   * Helper function to manage bidirectional admin-hospital relationship
+   * @param {string} adminId - The admin's ID
+   * @param {string|null} newHospitalId - The new hospital ID (null to clear)
+   * @param {string|null} oldHospitalId - The previous hospital ID (null if none)
+   */
+  static async _manageBidirectionalAdminHospitalRelation(adminId, newHospitalId, oldHospitalId) {
+    const batch = db.batch();
+
+    // 1. Clear the admin field from the old hospital (if any)
+    if (oldHospitalId) {
+      const oldHospitalRef = db.collection("hospitals").doc(oldHospitalId);
+      batch.update(oldHospitalRef, { admin: null });
+    }
+
+    // 2. If there's a new hospital, handle the assignment
+    if (newHospitalId) {
+      const newHospitalRef = db.collection("hospitals").doc(newHospitalId);
+      const newHospitalDoc = await newHospitalRef.get();
+      
+      if (newHospitalDoc.exists) {
+        const hospitalData = newHospitalDoc.data();
+        
+        // 3. If the new hospital already has an admin, clear that admin's hospital field
+        if (hospitalData.admin && hospitalData.admin !== adminId) {
+          const previousAdminRef = db.collection("admins").doc(hospitalData.admin);
+          batch.update(previousAdminRef, { hospital: null });
+        }
+        
+        // 4. Set this admin as the hospital's admin
+        batch.update(newHospitalRef, { admin: adminId });
+      }
+    }
+
+    // Execute all updates atomically
+    await batch.commit();
+  }
+
+  /**
    * Updates an admin account in Firestore.
    * @param {string} adminId - The Firestore document ID of the admin.
    * @param {Object} updateFields - Fields to update.
@@ -131,16 +170,21 @@ class AdminService {
     });
 
     if (updateFields.hospital !== undefined) {
-      if (typeof updateFields.hospital !== "string") {
-        throw new Error("Invalid hospital: must be a Firestore document reference");
-      }
-      // Check the hospital exists
-      const hospitalDoc = await db
-        .collection("hospitals")
-        .doc(updateFields.hospital)
-        .get();
-      if (!hospitalDoc.exists) {
-        throw new Error("adminService-updateAdmin: Hospital not found");
+      if (updateFields.hospital === null || updateFields.hospital === "") {
+        // Allow clearing the hospital assignment
+        updateFields.hospital = null;
+      } else {
+        if (typeof updateFields.hospital !== "string") {
+          throw new Error("Invalid hospital: must be a Firestore document reference");
+        }
+        // Check the hospital exists
+        const hospitalDoc = await db
+          .collection("hospitals")
+          .doc(updateFields.hospital)
+          .get();
+        if (!hospitalDoc.exists) {
+          throw new Error("adminService-updateAdmin: Hospital not found");
+        }
       }
     }
 
@@ -274,6 +318,18 @@ class AdminService {
       }
       if (updateFields.suspended && user.role !== "superadmin") {
         throw new Error("adminService-updateAdmin: Only superadmins can suspend admins");
+      }
+    }
+
+    // Handle bidirectional hospital-admin relationship if hospital field is being updated
+    if (updateFields.hospital !== undefined) {
+      const currentAdminData = adminDoc.data();
+      const oldHospitalId = currentAdminData.hospital;
+      const newHospitalId = updateFields.hospital;
+      
+      // Only manage bidirectional relationship if the hospital is actually changing
+      if (oldHospitalId !== newHospitalId) {
+        await this._manageBidirectionalAdminHospitalRelation(adminId, newHospitalId, oldHospitalId);
       }
     }
 

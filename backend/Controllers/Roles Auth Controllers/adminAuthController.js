@@ -35,15 +35,14 @@ class AdminAuthController {
         !name ||
         !password ||
         !email ||
-        !mobileNumber ||
-        !hospital
+        !mobileNumber
       ) {
         return res.status(400).json({
           error: `Missing required fields: ${!persId ? "pers. id, " : ""}${
             !name ? "name, " : ""
           }${!password ? "password, " : ""}${!email ? "email, " : ""}${
-            !mobileNumber ? "mobile number, " : ""
-          }${!hospital ? "hospital" : ""}`.slice(0, -2),
+            !mobileNumber ? "mobile number" : ""
+          }`.slice(0, -2),
         });
       }
 

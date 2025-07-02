@@ -27,9 +27,9 @@ class Admin {
       throw new Error("Invalid email: must be a string");
     if (typeof mobileNumber !== "string")
       throw new Error("Invalid mobileNumber: must be a string");
-    if (typeof hospital !== "string")
+    if (hospital !== null && hospital !== undefined && typeof hospital !== "string")
       throw new Error(
-        "Invalid hospital: must be a Firestore document reference"
+        "Invalid hospital: must be a Firestore document reference, null, or undefined"
       );
     if (!ROLES.includes(role))
       throw new Error(`Invalid role: ${role}. Allowed: ${ROLES.join(", ")}`);

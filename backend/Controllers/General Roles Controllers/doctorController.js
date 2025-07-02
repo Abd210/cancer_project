@@ -55,7 +55,7 @@ class DoctorController {
 
         // Return the fetched doctor data with a 200 status code
         return res.status(200).json(doctor_data);
-      } else if (user.role === "superadmin") {
+      } else if (user.role === "superadmin" || user.role === "admin") {
         // If the user is a superadmin and a specific doctor's ID was not provided
         if (!doctorid) {
           if (filter) {

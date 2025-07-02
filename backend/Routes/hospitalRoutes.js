@@ -12,10 +12,12 @@ const { authorize } = require("../middlewares/roleAuth");
  *   - authorize: Restricts access to users with the "superadmin" role.
  * Request Body (JSON):
  *   - token: The JWT token for authentication.
- *   - hospital_name: The name of the hospital to be registered.
- *   - hospital_address: The address of the hospital.
- *   - mobile_numbers: An array of mobile numbers associated with the hospital.
+ *   - name: The name of the hospital to be registered.
+ *   - address: The address of the hospital.
+ *   - mobileNumbers: An array of mobile numbers associated with the hospital.
  *   - emails: An array of email addresses associated with the hospital.
+ *   - admin: (Optional) The Firestore ID of the hospital's admin.
+ *   - suspended: (Optional) Boolean indicating if the hospital is suspended.
  * Response:
  *   - Success (201): Returns the details of the newly registered hospital.
  *   - Conflict (409): If a hospital with the same name and address already exists.

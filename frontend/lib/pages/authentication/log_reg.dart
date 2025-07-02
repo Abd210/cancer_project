@@ -4,6 +4,7 @@ import 'package:frontend/pages/patients/patient_page.dart';
 
 import 'package:frontend/providers/auth_provider.dart';
 import '../superadmin/superAdmin_page.dart';
+import '../admin/admin_page.dart';
 import '../doctor/doctor_page.dart';
 import '../hospital/hospital_page.dart';
 
@@ -62,8 +63,7 @@ class _LogInState extends State<LogIn> {
           destination = SuperAdminDashboard(token: resp.token);
           break;
         case 'admin':
-          destination = SuperAdminDashboard(token: resp.token);
-          //HospitalPage(hospitalId: resp.hospitalId ?? '');
+          destination = AdminDashboard(token: resp.token);
           break;
         case 'doctor':
           destination = DoctorPage(doctorId: resp.userId, token: resp.token);

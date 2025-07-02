@@ -24,7 +24,7 @@ class HospitalController {
     console.log(`[${req.method}] ${req.originalUrl}`);
     try {
       // Destructure the hospital registration details from the request body
-      const { name, address, mobileNumbers, emails, suspended } = req.body;
+      const { name, address, mobileNumbers, emails, admin, suspended } = req.body;
 
       // Validate if all required fields are provided
       if (!name || !address || !mobileNumbers || !emails) {
@@ -43,6 +43,7 @@ class HospitalController {
         address,
         mobileNumbers,
         emails,
+        admin,
         suspended,
       });
 

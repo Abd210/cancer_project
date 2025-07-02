@@ -85,19 +85,25 @@ class HospitalProvider {
     required List<String> mobileNumbers,
     required List<String> emails,
     bool suspended = false,
+    String? admin,
   }) async {
     final url =
         Uri.parse('${ClassUtil.baseUrl}${ClassUtil.hospitalRegisterRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
-    final body = jsonEncode({
+    final body = {
       'name': hospitalName,
       'address': hospitalAddress,
       'mobileNumbers': mobileNumbers,
       'emails': emails,
       'suspended': suspended,
-    });
+    };
+    
+    // Only include admin field if provided
+    if (admin != null && admin.isNotEmpty) {
+      body['admin'] = admin;
+    }
 
-    final resp = await http.post(url, headers: headers, body: body);
+    final resp = await http.post(url, headers: headers, body: jsonEncode(body));
     if (resp.statusCode == 200 || resp.statusCode == 201) {
       return HospitalData.fromJson(json.decode(resp.body));
     }

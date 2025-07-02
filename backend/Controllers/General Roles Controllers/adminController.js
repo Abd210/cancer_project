@@ -99,14 +99,14 @@ class AdminController {
 
       // If the user's role is "admin", ensure they can only access their own data
       if (user.role === "admin") {
-        const admin_data = await AdminService.getAdminData(user._id);
+        const admin_data = await AdminService.findAdmin(user.id, null, null);
         // Check if the admin data exists
         if (!admin_data) {
           return res.status(404).json({ error: "Admin not found" });
         }
 
         // Return the fetched admin data with a 200 status code
-        res.status(200).json(admin_data);
+        return res.status(200).json(admin_data);
       } else if (user.role === "superadmin") {
         // If the user is a superadmin and a specific admin's ID was not provided
         if (!adminid) {
@@ -154,7 +154,7 @@ class AdminController {
 
       console.log("AdminController- Get Admin Data: Fetching admin data");
       // Call the AdminService to find the admin data based on the _id
-      const admin_data = await AdminService.findAdmin(adminid);
+      const admin_data = await AdminService.findAdmin(adminid, null, null);
 
       // Check if the admin data exists
       if (!admin_data) {
@@ -162,7 +162,7 @@ class AdminController {
       }
 
       // Return the fetched admin data with a 200 status code
-      res.status(200).json(admin_data);
+      return res.status(200).json(admin_data);
     } catch (fetchAdminDataError) {
       console.error("Error in getAdminData:", fetchAdminDataError);
       return res.status(500).json({
