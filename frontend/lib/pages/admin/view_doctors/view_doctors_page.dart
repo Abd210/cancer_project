@@ -339,7 +339,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
     String birthDate = '';
     String licensesRaw = '';
     String description = '';
-    bool suspended = false;
     String? selectedHospitalId;
     List<String> selectedPatients = [];
     
@@ -548,21 +547,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
                             },
                           ),
                           
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: suspended,
-                                onChanged: (val) {
-                                  setDialogState(() {
-                                    suspended = val ?? false;
-                                  });
-                                },
-                                activeColor: const Color(0xFFEC407A),
-                              ),
-                              const Text('Account Suspended'),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -706,7 +690,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                       licenses: licensesList,
                       description: description,
                       hospitalId: selectedHospitalId!,
-                      suspended: suspended,
+                      suspended: false,
                       patients: selectedPatients,
                     );
 
@@ -748,7 +732,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
     final String originalBirthDateStr = doc.birthDate.toIso8601String().split('T')[0];
     final List<String> originalLicenses = List.from(doc.licenses);
     final String originalDescription = doc.description;
-    final bool originalSuspended = doc.suspended;
     final List<String> originalPatients = List.from(doc.patients);
 
     // Editable values
@@ -760,7 +743,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
     String birthDateStr = originalBirthDateStr;
     List<String> licenses = List.from(originalLicenses);
     String description = originalDescription;
-    bool suspended = originalSuspended;
     String hospitalId = doc.hospitalId;
     List<String> selectedPatients = List.from(originalPatients);
     
@@ -990,20 +972,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
                               ),
                             ),
                           ),
-                          
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: suspended,
-                                onChanged: (val) {
-                                  setDialogState(() => suspended = val ?? false);
-                                },
-                                activeColor: const Color(0xFFEC407A),
-                              ),
-                              const Text('Account Suspended'),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -1135,7 +1103,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
                     if (licensesChanged) updatedFields["licenses"] = licenses;
                     
                     if (description != originalDescription) updatedFields["description"] = description;
-                    if (suspended != originalSuspended) updatedFields["suspended"] = suspended;
                     
                     // Check if patients have changed
                     bool patientsChanged = selectedPatients.length != originalPatients.length;
