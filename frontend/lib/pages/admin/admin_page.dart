@@ -15,7 +15,12 @@ import 'tickets/tickets_page.dart';
 
 class AdminDashboard extends StatefulWidget {
   final String token;
-  const AdminDashboard({Key? key, required this.token}) : super(key: key);
+  final String hospitalId;
+  const AdminDashboard({
+    Key? key, 
+    required this.token,
+    required this.hospitalId,
+  }) : super(key: key);
 
   @override
   _AdminDashboardState createState() => _AdminDashboardState();
@@ -56,7 +61,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final pages = [
       AdminHospitalPage(token: widget.token), // 0
       DoctorsPage(token: widget.token),                // 1
-      PatientsPage(token: widget.token),               // 2
+      PatientsPage(
+        token: widget.token,
+        hospitalId: widget.hospitalId,
+      ),               // 2
       DevicesPage(token: widget.token),                // 3
       AppointmentsPage(token: widget.token),           // 4
       TicketsPage(token: widget.token),                // 5

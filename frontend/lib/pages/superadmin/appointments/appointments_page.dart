@@ -1829,9 +1829,9 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                  mainAxisAlignment: MainAxisAlignment.center,
                                  crossAxisAlignment: CrossAxisAlignment.start,
                                  children: [
-                                   Text(appointment.patientName, style: const TextStyle(fontSize: 12)),
+                                   Text(_getPatientName(appointment.patientId), style: const TextStyle(fontSize: 12)),
                                    Text(
-                                     appointment.patientEmail,
+                                     _getPatientEmail(appointment.patientId),
                                      style: TextStyle(
                                        fontSize: 11,
                                        color: Colors.grey.shade600,
@@ -1845,9 +1845,9 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                  mainAxisAlignment: MainAxisAlignment.center,
                                  crossAxisAlignment: CrossAxisAlignment.start,
                                  children: [
-                                   Text(appointment.doctorName, style: const TextStyle(fontSize: 12)),
+                                   Text(_getDoctorName(appointment.doctorId), style: const TextStyle(fontSize: 12)),
                                    Text(
-                                     appointment.doctorEmail,
+                                     _getDoctorEmail(appointment.doctorId),
                                      style: TextStyle(
                                        fontSize: 11,
                                        color: Colors.grey.shade600,
@@ -1950,5 +1950,90 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       default:
         return Colors.grey;
     }
+  }
+
+  // Helper methods to get patient and doctor info from IDs
+  String _getPatientName(String patientId) {
+    final patient = _patientList.firstWhere(
+      (p) => p.id == patientId,
+      orElse: () => PatientData(
+        id: '',
+        persId: '',
+        name: 'Unknown Patient',
+        email: '',
+        mobileNumber: '',
+        birthDate: DateTime.now(),
+        hospitalId: '',
+        doctorId: '',
+        status: '',
+        diagnosis: '',
+        medicalHistory: [],
+        suspended: false,
+      ),
+    );
+    return patient.name.isNotEmpty ? patient.name : 'Unknown Patient';
+  }
+
+  String _getPatientEmail(String patientId) {
+    final patient = _patientList.firstWhere(
+      (p) => p.id == patientId,
+      orElse: () => PatientData(
+        id: '',
+        persId: '',
+        name: '',
+        email: 'unknown@email.com',
+        mobileNumber: '',
+        birthDate: DateTime.now(),
+        hospitalId: '',
+        doctorId: '',
+        status: '',
+        diagnosis: '',
+        medicalHistory: [],
+        suspended: false,
+      ),
+    );
+    return patient.email.isNotEmpty ? patient.email : 'unknown@email.com';
+  }
+
+  String _getDoctorName(String doctorId) {
+    final doctor = _doctorList.firstWhere(
+      (d) => d.id == doctorId,
+      orElse: () => DoctorData(
+        id: '',
+        persId: '',
+        name: 'Unknown Doctor',
+        email: '',
+        mobileNumber: '',
+        birthDate: DateTime.now(),
+        licenses: [],
+        description: '',
+        hospitalId: '',
+        patients: [],
+        schedule: [],
+        suspended: false,
+      ),
+    );
+    return doctor.name.isNotEmpty ? doctor.name : 'Unknown Doctor';
+  }
+
+  String _getDoctorEmail(String doctorId) {
+    final doctor = _doctorList.firstWhere(
+      (d) => d.id == doctorId,
+      orElse: () => DoctorData(
+        id: '',
+        persId: '',
+        name: '',
+        email: 'unknown@email.com',
+        mobileNumber: '',
+        birthDate: DateTime.now(),
+        licenses: [],
+        description: '',
+        hospitalId: '',
+        patients: [],
+        schedule: [],
+        suspended: false,
+      ),
+    );
+    return doctor.email.isNotEmpty ? doctor.email : 'unknown@email.com';
   }
 }

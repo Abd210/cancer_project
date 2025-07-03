@@ -16,7 +16,12 @@ import '../../../shared/components/responsive_data_table.dart'
 
 class PatientsPage extends StatefulWidget {
   final String token;
-  const PatientsPage({Key? key, required this.token}) : super(key: key);
+  final String hospitalId;
+  const PatientsPage({
+    Key? key, 
+    required this.token,
+    required this.hospitalId,
+  }) : super(key: key);
 
   @override
   _PatientsPageState createState() => _PatientsPageState();
@@ -78,6 +83,7 @@ class _PatientsPageState extends State<PatientsPage> {
         token: widget.token,
         patientId: '',
         filter: _filter,
+        hospitalId: widget.hospitalId, // Filter patients by admin's hospital
       );
       setState(() => _patientList = patients);
     } catch (e) {
@@ -116,7 +122,6 @@ class _PatientsPageState extends State<PatientsPage> {
     String medicalHistoryRaw = '';
     String? selectedHospitalId;
     String? selectedDoctorId;
-    bool suspended = false;
 
     // Hospital search
     TextEditingController hospitalSearchController = TextEditingController();
@@ -458,22 +463,6 @@ class _PatientsPageState extends State<PatientsPage> {
                               });
                             },
                           ),
-
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: suspended,
-                                onChanged: (val) {
-                                  setDialogState(() {
-                                    suspended = val ?? false;
-                                  });
-                                },
-                                activeColor: const Color(0xFFEC407A),
-                              ),
-                              const Text('Account Suspended'),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -671,7 +660,7 @@ class _PatientsPageState extends State<PatientsPage> {
                       medicalHistory: medicalHistory,
                       hospitalId: selectedHospitalId!,
                       doctorId: selectedDoctorId!,
-                      suspended: suspended,
+                      suspended: false,
                     );
                     await _fetchPatients();
 
@@ -704,7 +693,6 @@ class _PatientsPageState extends State<PatientsPage> {
     final DateTime originalBirthDate = patient.birthDate;
     final List<String> originalMedHistory = List.from(patient.medicalHistory);
     final String originalHospitalId = patient.hospitalId;
-    final bool originalSuspended = patient.suspended;
 
     // Editable values
     String persId = originalPersId;
@@ -717,7 +705,6 @@ class _PatientsPageState extends State<PatientsPage> {
     DateTime birthDate = originalBirthDate;
     List<String> medHistory = List.from(originalMedHistory);
     String hospitalId = originalHospitalId;
-    bool suspended = originalSuspended;
 
     // Get the hospital name for display
     String hospitalName = 'Unknown Hospital';
@@ -1027,22 +1014,6 @@ class _PatientsPageState extends State<PatientsPage> {
                               ),
                             ),
                           ),
-
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: suspended,
-                                onChanged: (val) {
-                                  setDialogState(() {
-                                    suspended = val ?? false;
-                                  });
-                                },
-                                activeColor: const Color(0xFFEC407A),
-                              ),
-                              const Text('Account Suspended'),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -1108,9 +1079,6 @@ class _PatientsPageState extends State<PatientsPage> {
                     }
                     if (medHistoryChanged)
                       updatedFields["medicalHistory"] = medHistory;
-
-                    if (suspended != originalSuspended)
-                      updatedFields["suspended"] = suspended;
 
                     // Only make the API call if there are changes
                     if (updatedFields.isNotEmpty) {

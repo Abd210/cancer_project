@@ -16,7 +16,7 @@ class LogIn extends StatefulWidget {
 }
 
 class _LogInState extends State<LogIn> {
-  final _emailCtrl = TextEditingController(text: 'nina@');
+  final _emailCtrl = TextEditingController(text: 'hank.shrader@example.com');
   final _passwordCtrl = TextEditingController(text: '123');
   bool _isLoading = false;
 
@@ -63,7 +63,10 @@ class _LogInState extends State<LogIn> {
           destination = SuperAdminDashboard(token: resp.token);
           break;
         case 'admin':
-          destination = AdminDashboard(token: resp.token);
+          destination = AdminDashboard(
+            token: resp.token,
+            hospitalId: resp.hospitalId ?? '',
+          );
           break;
         case 'doctor':
           destination = DoctorPage(doctorId: resp.userId, token: resp.token);

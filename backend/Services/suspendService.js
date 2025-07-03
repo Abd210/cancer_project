@@ -10,7 +10,7 @@ class SuspendService {
    * @throws {Error} If the filter is invalid for superadmins or if there are no unsuspended records for non-superadmins.
    */
   static filterData(data, role, filter) {
-    if (role === "superadmin") {
+    if (role === "superadmin" || role === "admin") {
       // Validate filter value for superadmins
       if (!["suspended", "unsuspended", "all"].includes(filter)) {
         throw new Error(

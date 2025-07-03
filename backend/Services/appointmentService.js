@@ -25,7 +25,7 @@ class AppointmentService {
    * Get all upcoming appointments.
    * Upcoming appointments are those with:
    * - appointmentDate greater than or equal to now, and
-   * - status equal to "scheduled".
+   * (- status equal to "scheduled".)
    * Results are ordered by appointmentDate in ascending order.
    *
    * @returns {Promise<Array>} List of upcoming appointment objects.
@@ -35,7 +35,7 @@ class AppointmentService {
       const snapshot = await db
         .collection("appointments")
         .where("start", ">=", new Date())
-        .where("status", "==", "scheduled")
+//        .where("status", "==", "scheduled")
         .orderBy("start")
         .get();
 
@@ -51,7 +51,7 @@ class AppointmentService {
 
   /**
    * Fetches upcoming appointments for a specific user based on their role (doctor or patient).
-   * Filters appointments that are scheduled and in the future.
+   * Filters appointments (that are scheduled and) in the future.
    */
   static async getUpcomingAppointmentsForSpecificPatientOrDoctor({
     entity_role,
@@ -65,18 +65,11 @@ class AppointmentService {
 
     const field = entity_role === "doctor" ? "doctor" : "patient";
 
-    // let queryRef = db.collection("appointments");
-    // queryRef = queryRef.where(field, "==", entity_id);
-    // queryRef = queryRef.where("appointmentDate", ">=", new Date());
-    // queryRef = queryRef.where("status", "==", "scheduled");
-    // queryRef = queryRef.orderBy("appointmentDate");
-    // const snapshot = await queryRef.get();
-
     const snapshot = await db
       .collection("appointments")
       .where(field, "==", entity_id)
       .where("start", ">=", new Date())
-      .where("status", "==", "scheduled")
+//      .where("status", "==", "scheduled")
       .orderBy("start")
       .get();
 
