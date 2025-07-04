@@ -80,6 +80,8 @@ class ClassUtil {
       '/appointment/hospital/upcoming';
   static const String appointmentHospitalHistoryRoute =
       '/appointment/hospital/history';
+  static const String appointmentHospitalFilteredRoute =
+      '/appointment/hospital/filtered';
 
   /// ------------------------------------------------------------------
   ///  TEST

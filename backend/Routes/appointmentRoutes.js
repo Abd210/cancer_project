@@ -79,6 +79,13 @@ router.get(
   appointmentController.getHospitalHistoryOfAppointments
 );
 
+router.get(
+  "/appointment/hospital/filtered", // e.g., GET /appointment/hospital/filtered to fetch filtered appointments for a given hospital.
+  authenticate,
+  authorize(["admin", "superadmin", "doctor"]), // Adjust roles as needed.
+  appointmentController.getFilteredHospitalAppointments
+);
+
 /**
  * Route: POST /appointment/cancel
  * Description: Cancels an appointment for the authenticated user.

@@ -385,8 +385,8 @@ class AppointmentProvider {
     final url = Uri.parse(
         '${ClassUtil.baseUrl}${ClassUtil.appointmentHospitalUpcomingRoute}');
     final headers = ClassUtil.baseHeaders(token: token)
-      ..['hospitalid'] = hospitalId
-      ..['suspendfilter'] = suspendfilter;
+      ..['hospital_id'] = hospitalId
+      ..['filter'] = suspendfilter;
 
     try {
       final res = await httpClient.get(url, headers: headers);
@@ -415,8 +415,8 @@ class AppointmentProvider {
     final url = Uri.parse(
         '${ClassUtil.baseUrl}${ClassUtil.appointmentHospitalHistoryRoute}');
     final headers = ClassUtil.baseHeaders(token: token)
-      ..['hospitalid'] = hospitalId
-      ..['suspendfilter'] = suspendfilter;
+      ..['hospital_id'] = hospitalId
+      ..['filter'] = suspendfilter;
 
     try {
       final res = await httpClient.get(url, headers: headers);
@@ -430,6 +430,48 @@ class AppointmentProvider {
           .toList();
     } catch (e) {
       Logger.log('Error in getHospitalHistory: $e');
+      rethrow;
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // FILTERED (hospital)  /appointment/hospital/filtered
+  // ------------------------------------------------------------------
+  Future<List<AppointmentData>> getFilteredHospitalAppointments({
+    required String token,
+    required String hospitalId,
+    String? patientId,
+    String? doctorId,
+    String timeDirection = 'upcoming', // 'upcoming' or 'past'
+    String suspendfilter = 'all',
+  }) async {
+    final url = Uri.parse(
+        '${ClassUtil.baseUrl}${ClassUtil.appointmentHospitalFilteredRoute}');
+    final headers = ClassUtil.baseHeaders(token: token)
+      ..['hospital_id'] = hospitalId
+      ..['time_direction'] = timeDirection
+      ..['filter'] = suspendfilter;
+
+    // Add optional filters
+    if (patientId != null && patientId.isNotEmpty) {
+      headers['patient_id'] = patientId;
+    }
+    if (doctorId != null && doctorId.isNotEmpty) {
+      headers['doctor_id'] = doctorId;
+    }
+
+    try {
+      final res = await httpClient.get(url, headers: headers);
+      if (res.statusCode != 200) {
+        throw Exception(
+          'Filtered hospital appointments failed [${res.statusCode}]: ${res.body}',
+        );
+      }
+      return (json.decode(res.body) as List)
+          .map<AppointmentData>((e) => AppointmentData.fromJson(e))
+          .toList();
+    } catch (e) {
+      Logger.log('Error in getFilteredHospitalAppointments: $e');
       rethrow;
     }
   }

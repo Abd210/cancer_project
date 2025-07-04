@@ -291,6 +291,56 @@ class AppointmentService {
   }
 
   /**
+   * Returns all appointments for a given hospital with optional patient and doctor filters.
+   * Can filter by patient ID, doctor ID, or both.
+   * Can filter for upcoming or past appointments based on timeDirection.
+   * 
+   * @param {string} hospitalId - The hospital ID
+   * @param {string|null} patientId - Optional patient ID filter  
+   * @param {string|null} doctorId - Optional doctor ID filter
+   * @param {string} timeDirection - "upcoming" for future appointments, "past" for historical appointments
+   * @returns {Promise<Array>} Array of filtered appointment objects
+   */
+  static async getFilteredHospitalAppointments(hospitalId, patientId = null, doctorId = null, timeDirection = "upcoming") {
+    if (!hospitalId) {
+      throw new Error("appointmentService-getFilteredHospitalAppointments: Missing hospitalId");
+    }
+
+    // 1) Get doctors in the hospital
+    const doctorsSnap = await db.collection("doctors")
+      .where("hospital", "==", hospitalId)
+      .get();
+    if (doctorsSnap.empty) return [];
+
+    let doctorIds = doctorsSnap.docs.map(d => d.id);
+
+    // 2) If doctorId filter is provided, filter the doctor list
+    if (doctorId) {
+      if (!doctorIds.includes(doctorId)) {
+        // The specified doctor is not in this hospital
+        return [];
+      }
+      doctorIds = [doctorId]; // Only search for this specific doctor
+    }
+
+    // 3) Determine time filter
+    const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+    const timeFilter = timeDirection === "upcoming" 
+      ? { op: ">=", ts: nowTs }
+      : { op: "<", ts: nowTs };
+
+    // 4) Get appointments for these doctors
+    let appointments = await this._fetchByDoctorIds(doctorIds, timeFilter);
+
+    // 5) If patientId filter is provided, filter by patient
+    if (patientId) {
+      appointments = appointments.filter(appointment => appointment.patient === patientId);
+    }
+
+    return appointments;
+  }
+
+  /**
    * Cancels an appointment by updating its status to 'cancelled'.
    */
   static async cancelAppointment(appointment_id) {

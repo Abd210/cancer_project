@@ -252,6 +252,57 @@ class AppointmentController {
   }
 
   /**
+   * Retrieves filtered appointments for a hospital with optional patient and doctor filters.
+   * Can filter by patient ID, doctor ID, or both simultaneously.
+   * 
+   * @param {Object} req - The Express request object.
+   * @param {Object} res - The Express response object.
+   * @returns {Object} JSON response with an array of filtered appointments or an error message.
+   */
+  static async getFilteredHospitalAppointments(req, res) {
+    try {
+      const { hospital_id, patient_id, doctor_id, time_direction, user, filter } = req.headers;
+      
+      if (!hospital_id) {
+        return res.status(400).json({
+          error:
+            "AppointmentController-getFilteredHospitalAppointments: Missing hospital_id in headers",
+        });
+      }
+
+      // Default to upcoming if time_direction not specified
+      const timeDirection = time_direction || "upcoming";
+      
+      // Validate time_direction
+      if (!["upcoming", "past"].includes(timeDirection)) {
+        return res.status(400).json({
+          error:
+            "AppointmentController-getFilteredHospitalAppointments: Invalid time_direction. Must be 'upcoming' or 'past'",
+        });
+      }
+
+      // Call the service to get filtered appointments for this hospital
+      const appointments = await AppointmentService.getFilteredHospitalAppointments(
+        hospital_id,
+        patient_id || null,
+        doctor_id || null, 
+        timeDirection
+      );
+
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        filter
+      );
+
+      return res.status(200).json(filteredResult);
+    } catch (error) {
+      console.error("Error in getFilteredHospitalAppointments:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
    * Cancels an appointment if the authenticated user is authorized to do so.
    * Checks for user role and authorization before proceeding with cancellation.
    *

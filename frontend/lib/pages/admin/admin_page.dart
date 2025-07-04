@@ -66,7 +66,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
         hospitalId: widget.hospitalId,
       ),               // 2
       DevicesPage(token: widget.token),                // 3
-      AppointmentsPage(token: widget.token),           // 4
+      AppointmentsPage(
+        token: widget.token,
+        hospitalId: widget.hospitalId,
+      ),           // 4
       TicketsPage(token: widget.token),                // 5
     ];
 
