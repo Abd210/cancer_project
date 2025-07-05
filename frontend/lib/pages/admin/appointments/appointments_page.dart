@@ -1234,7 +1234,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                   );
                         }).toList(),
                       ],
-                      onChanged: (value) {
+                      onChanged: widget.hospitalId.isEmpty ? null : (value) {
                         setState(() {
                           _selectedDoctorId = value;
                         });
@@ -1268,7 +1268,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           );
                         }).toList(),
                       ],
-                      onChanged: (value) {
+                      onChanged: widget.hospitalId.isEmpty ? null : (value) {
                         setState(() {
                           _selectedPatientId = value;
                         });
@@ -1312,7 +1312,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           child: Text('Cancelled'),
                         ),
                       ],
-                      onChanged: (value) {
+                      onChanged: widget.hospitalId.isEmpty ? null : (value) {
                         setState(() {
                           _selectedStatus = value!;
                         });
@@ -1355,7 +1355,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           child: Text('Custom'),
                         ),
                       ],
-                      onChanged: (value) {
+                      onChanged: widget.hospitalId.isEmpty ? null : (value) {
                         setState(() {
                           _selectedDateRange = value!;
                           if (value != 'custom') {
@@ -1394,7 +1394,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           child: Text('Unsuspended'),
                         ),
                       ],
-                      onChanged: (value) {
+                      onChanged: widget.hospitalId.isEmpty ? null : (value) {
                         setState(() {
                           _suspendFilter = value!;
                         });
@@ -1413,7 +1413,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     children: [
                       Expanded(
                         child: InkWell(
-                          onTap: () async {
+                          onTap: widget.hospitalId.isEmpty ? null : () async {
                             final pickedDate = await showDatePicker(
                               context: context,
                               initialDate: _fromDate ?? DateTime.now(),
@@ -1447,7 +1447,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: InkWell(
-                          onTap: () async {
+                          onTap: widget.hospitalId.isEmpty ? null : () async {
                             final pickedDate = await showDatePicker(
                               context: context,
                               initialDate: _toDate ?? (_fromDate != null ? _fromDate!.add(const Duration(days: 7)) : DateTime.now()),
@@ -1494,7 +1494,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
-                    onPressed: () {
+                    onPressed: widget.hospitalId.isEmpty ? null : () {
                       setState(() {
                         _selectedDoctorId = null;
                         _selectedPatientId = null;
@@ -1516,7 +1516,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
-                    onPressed: _fetchAppointments,
+                    onPressed: widget.hospitalId.isEmpty ? null : _fetchAppointments,
                   ),
                 ],
               ),
@@ -1565,7 +1565,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 const SizedBox(width: 8),
                 // Toggle filter button
                 TextButton.icon(
-                  onPressed: () {
+                  onPressed: widget.hospitalId.isEmpty ? null : () {
                     setState(() {
                       _showFilters = !_showFilters;
                     });
@@ -1587,6 +1587,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 Expanded(
                   flex: 2,
                   child: TextField(
+                    enabled: widget.hospitalId.isNotEmpty,
                     decoration: InputDecoration(
                       hintText: 'Search appointments...',
                       prefixIcon: const Icon(Icons.search, size: 18),
@@ -1605,7 +1606,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
-                  onPressed: _showAddAppointmentDialog,
+                  onPressed: widget.hospitalId.isEmpty ? null : _showAddAppointmentDialog,
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Add', style: TextStyle(fontSize: 13)),
                   style: ElevatedButton.styleFrom(
@@ -1635,27 +1636,67 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
             
             // Expanded table to take up maximum space
             Expanded(
-              child: filtered.isEmpty
+              child: widget.hospitalId.isEmpty
                   ? Center(
                       child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.calendar_today,
-                            size: 48,
-                            color: Colors.grey.shade400,
+                            Icons.local_hospital_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No Hospital Assigned',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[600],
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'No appointments found',
+                            'You cannot view appointments because you are not assigned to any hospital.',
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey.shade600,
+                              color: Colors.grey[600],
                             ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Please contact your system administrator to assign you to a hospital.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
                     )
+                  : filtered.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'No appointments found',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
                   : BetterPaginatedDataTable(
                        themeColor: const Color(0xFFEC407A),
                        rowsPerPage: 10, // Use a valid value from availableRowsPerPage
@@ -1819,6 +1860,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         address: '',
         mobileNumbers: [],
         emails: [],
+        adminId: '',
         suspended: false,
       ),
     );

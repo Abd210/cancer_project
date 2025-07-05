@@ -28,7 +28,7 @@ class _AdminsPageState extends State<AdminsPage> {
 
   List<AdminData> _adminList = [];
   List<HospitalData> _hospitalList = [];
-
+  
   @override
   void initState() {
     super.initState();
@@ -93,12 +93,194 @@ class _AdminsPageState extends State<AdminsPage> {
         address: '',
         mobileNumbers: [],
         emails: [],
+        adminId: '',
         suspended: false,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),
     );
     return hospital.name;
+  }
+
+  // Helper method to check if a hospital already has an admin assigned
+  AdminData? _getHospitalCurrentAdmin(String hospitalId) {
+    if (hospitalId.isEmpty) return null;
+    
+    try {
+      return _adminList.firstWhere(
+        (admin) => admin.hospitalId == hospitalId,
+      );
+    } catch (e) {
+      return null; // No admin found for this hospital
+    }
+  }
+
+  // Helper method to get hospital data by ID
+  HospitalData? _getHospitalById(String hospitalId) {
+    if (hospitalId.isEmpty) return null;
+    
+    try {
+      return _hospitalList.firstWhere(
+        (hospital) => hospital.id == hospitalId,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Show conflict resolution dialog for hospital assignment
+  Future<dynamic> _showHospitalAssignmentConflictDialog({
+    required String targetHospitalId,
+    required String targetHospitalName,
+    required AdminData currentAdminOfTargetHospital,
+    AdminData? adminBeingEdited, // null if creating new admin
+  }) async {
+    final isCreating = adminBeingEdited == null;
+    final isEditingAdminWithHospital = adminBeingEdited?.hospitalId.isNotEmpty ?? false;
+
+    return await showDialog<dynamic>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange),
+            const SizedBox(width: 10),
+            const Text('Hospital Assignment Conflict'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'The hospital "$targetHospitalName" already has an admin assigned:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Current Admin: ${currentAdminOfTargetHospital.name}'),
+                  Text('Email: ${currentAdminOfTargetHospital.email}'),
+                  Text('ID: ${currentAdminOfTargetHospital.persId}'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            if (isCreating || !isEditingAdminWithHospital) ...[
+              const Text(
+                'Would you like to proceed? This will:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text('• Assign the ${isCreating ? 'new' : 'selected'} admin to "$targetHospitalName"'),
+              Text('• Remove "${currentAdminOfTargetHospital.name}" from "$targetHospitalName"'),
+            ] else ...[
+              Text(
+                'You are editing "${adminBeingEdited!.name}" who is currently assigned to "${_getHospitalName(adminBeingEdited.hospitalId)}".',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text('What would you like to do?'),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          
+          if (isCreating || !isEditingAdminWithHospital) ...[
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Yes, Proceed'),
+            ),
+          ] else ...[
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true), // Regular assignment
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Assign Only'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop('swap'), // Swap hospitals
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Swap Hospitals'),
+            ),
+          ],
+        ],
+      ),
+    ) ?? false;
+  }
+
+  // Perform hospital assignment with conflict resolution
+  Future<void> _performHospitalAssignment({
+    required String adminId,
+    required String targetHospitalId,
+    AdminData? currentAdminOfTargetHospital,
+    AdminData? adminBeingEdited,
+    bool isSwap = false,
+  }) async {
+    if (currentAdminOfTargetHospital == null) {
+      // No conflict, just assign normally
+      await _adminProvider.updateAdmin(
+        token: widget.token,
+        adminId: adminId,
+        updatedFields: {'hospital': targetHospitalId},
+      );
+      return;
+    }
+
+    if (isSwap && adminBeingEdited != null) {
+      // Swap hospitals between two admins
+      final adminBeingEditedOldHospital = adminBeingEdited.hospitalId;
+      
+      // Update the admin being edited to the new hospital
+      await _adminProvider.updateAdmin(
+        token: widget.token,
+        adminId: adminId,
+        updatedFields: {'hospital': targetHospitalId},
+      );
+      
+      // Update the current admin of target hospital to the old hospital
+      await _adminProvider.updateAdmin(
+        token: widget.token,
+        adminId: currentAdminOfTargetHospital.id,
+        updatedFields: {'hospital': adminBeingEditedOldHospital},
+      );
+    } else {
+      // Regular assignment: assign new admin, unassign current admin
+      await _adminProvider.updateAdmin(
+        token: widget.token,
+        adminId: adminId,
+        updatedFields: {'hospital': targetHospitalId},
+      );
+      
+      // Unassign the current admin
+      await _adminProvider.updateAdmin(
+        token: widget.token,
+        adminId: currentAdminOfTargetHospital.id,
+        updatedFields: {'hospital': ''},
+      );
+    }
   }
 
   void _showAddAdminDialog() {
@@ -375,10 +557,31 @@ class _AdminsPageState extends State<AdminsPage> {
                   formKey.currentState!.save();
                   Navigator.of(context).pop();
 
+                  // Check for hospital assignment conflicts
+                  if (selectedHospitalId != null && selectedHospitalId!.isNotEmpty) {
+                    final currentAdminOfTargetHospital = _getHospitalCurrentAdmin(selectedHospitalId!);
+                    final targetHospital = _getHospitalById(selectedHospitalId!);
+                    
+                    if (currentAdminOfTargetHospital != null && targetHospital != null) {
+                      // Show conflict dialog
+                      final shouldProceed = await _showHospitalAssignmentConflictDialog(
+                        targetHospitalId: selectedHospitalId!,
+                        targetHospitalName: targetHospital.name,
+                        currentAdminOfTargetHospital: currentAdminOfTargetHospital,
+                        adminBeingEdited: null, // Creating new admin
+                      );
+                      
+                      if (!shouldProceed) {
+                        return; // User cancelled
+                      }
+                    }
+                  }
+
                   // Show loading
                   setState(() => _isLoading = true);
                   
                   try {
+                    // Create the admin first
                     await _adminProvider.createAdmin(
                       token: widget.token,
                       persId: persId,
@@ -386,12 +589,33 @@ class _AdminsPageState extends State<AdminsPage> {
                       password: password,
                       email: email,
                       mobileNumber: mobileNumber,
-                      hospitalId: selectedHospitalId ?? '',
+                      hospitalId: '', // Initially unassigned
                       suspended: suspended,
                     );
                     
-                    // Refresh the list immediately after successful creation
+                    // Refresh admin list to get the new admin
                     await _fetchAdmins();
+                    
+                    // Find the newly created admin
+                    final newAdmin = _adminList.firstWhere(
+                      (admin) => admin.persId == persId && admin.email == email,
+                    );
+                    
+                    // If hospital was selected, handle assignment with conflict resolution
+                    if (selectedHospitalId != null && selectedHospitalId!.isNotEmpty) {
+                      final currentAdminOfTargetHospital = _getHospitalCurrentAdmin(selectedHospitalId!);
+                      
+                      await _performHospitalAssignment(
+                        adminId: newAdmin.id,
+                        targetHospitalId: selectedHospitalId!,
+                        currentAdminOfTargetHospital: currentAdminOfTargetHospital,
+                        adminBeingEdited: null,
+                        isSwap: false,
+                      );
+                      
+                      // Refresh again after hospital assignment
+                      await _fetchAdmins();
+                    }
                     
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -427,6 +651,7 @@ class _AdminsPageState extends State<AdminsPage> {
     String mobileNumber = admin.mobileNumber;
     String? selectedHospitalId = admin.hospitalId.isNotEmpty ? admin.hospitalId : null;
     bool suspended = admin.suspended;
+    String password = ''; // New password field
     
     // Controllers for search fields
     TextEditingController hospitalSearchController = TextEditingController();
@@ -541,6 +766,20 @@ class _AdminsPageState extends State<AdminsPage> {
                               validator: (val) =>
                                   val == null || val.isEmpty ? 'Enter Mobile Number' : null,
                               onSaved: (val) => mobileNumber = val!.trim(),
+                            ),
+                            
+                            const SizedBox(height: 16),
+                            
+                            // Password
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'New Password (optional)',
+                                prefixIcon: Icon(Icons.lock),
+                                border: OutlineInputBorder(),
+                                helperText: 'Leave blank to keep current password',
+                              ),
+                              obscureText: true,
+                              onSaved: (val) => password = val?.trim() ?? '',
                             ),
                           ],
                         ),
@@ -679,22 +918,81 @@ class _AdminsPageState extends State<AdminsPage> {
                   formKey.currentState!.save();
                   Navigator.of(context).pop();
 
+                  // Check for hospital assignment conflicts
+                  bool isSwap = false;
+                  if (selectedHospitalId != null && selectedHospitalId!.isNotEmpty) {
+                    final currentAdminOfTargetHospital = _getHospitalCurrentAdmin(selectedHospitalId!);
+                    final targetHospital = _getHospitalById(selectedHospitalId!);
+                    
+                    // Only check for conflicts if the target hospital has a different admin
+                    if (currentAdminOfTargetHospital != null && 
+                        currentAdminOfTargetHospital.id != admin.id && 
+                        targetHospital != null) {
+                      
+                      // Show conflict dialog
+                      final result = await _showHospitalAssignmentConflictDialog(
+                        targetHospitalId: selectedHospitalId!,
+                        targetHospitalName: targetHospital.name,
+                        currentAdminOfTargetHospital: currentAdminOfTargetHospital,
+                        adminBeingEdited: admin,
+                      );
+                      
+                      if (result == false) {
+                        return; // User cancelled
+                      } else if (result == 'swap') {
+                        isSwap = true;
+                      }
+                    }
+                  }
+
                   // Show loading
                   setState(() => _isLoading = true);
                   
                   try {
+                    // Prepare updated fields
+                    Map<String, dynamic> updatedFields = {
+                      'persId': persId,
+                      'name': name,
+                      'email': email,
+                      'mobileNumber': mobileNumber,
+                      'suspended': suspended,
+                    };
+                    
+                    // Only include password if it's provided
+                    if (password.isNotEmpty) {
+                      updatedFields['password'] = password;
+                    }
+                    
+                    // Update non-hospital fields first
                     await _adminProvider.updateAdmin(
                       token: widget.token,
                       adminId: admin.id,
-                      updatedFields: {
-                        'persId': persId,
-                        'name': name,
-                        'email': email,
-                        'mobileNumber': mobileNumber,
-                        'hospital': selectedHospitalId ?? '',
-                        'suspended': suspended,
-                      },
+                      updatedFields: updatedFields,
                     );
+                    
+                    // Handle hospital assignment with conflict resolution
+                    final targetHospitalId = selectedHospitalId ?? '';
+                    if (targetHospitalId != admin.hospitalId) {
+                      // Hospital assignment is changing
+                      if (targetHospitalId.isNotEmpty) {
+                        final currentAdminOfTargetHospital = _getHospitalCurrentAdmin(targetHospitalId);
+                        
+                        await _performHospitalAssignment(
+                          adminId: admin.id,
+                          targetHospitalId: targetHospitalId,
+                          currentAdminOfTargetHospital: currentAdminOfTargetHospital,
+                          adminBeingEdited: admin,
+                          isSwap: isSwap,
+                        );
+                      } else {
+                        // Unassigning from hospital
+                        await _adminProvider.updateAdmin(
+                          token: widget.token,
+                          adminId: admin.id,
+                          updatedFields: {'hospital': ''},
+                        );
+                      }
+                    }
                     
                     // Refresh the list immediately after successful update
                     await _fetchAdmins();
@@ -892,70 +1190,69 @@ class _AdminsPageState extends State<AdminsPage> {
                             style: TextStyle(fontSize: 18, color: Colors.grey),
                           ),
                         )
-                      : SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columns: const [
-                              DataColumn(label: Text('Personal ID')),
-                              DataColumn(label: Text('Name')),
-                              DataColumn(label: Text('Email')),
-                              DataColumn(label: Text('Mobile')),
-                              DataColumn(label: Text('Hospital')),
-                              DataColumn(label: Text('Status')),
-                              DataColumn(label: Text('Actions')),
-                            ],
-                            rows: filteredAdmins
-                                .map(
-                                  (admin) => DataRow(
-                                    cells: [
-                                      DataCell(Text(admin.persId)),
-                                      DataCell(Text(admin.name)),
-                                      DataCell(Text(admin.email)),
-                                      DataCell(Text(admin.mobileNumber)),
-                                      DataCell(Text(_getHospitalName(admin.hospitalId))),
-                                      DataCell(
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
+                      : BetterPaginatedDataTable(
+                          themeColor: const Color(0xFFEC407A),
+                          rowsPerPage: 10,
+                          columns: const [
+                            DataColumn(label: Text('Personal ID')),
+                            DataColumn(label: Text('Name')),
+                            DataColumn(label: Text('Email')),
+                            DataColumn(label: Text('Mobile')),
+                            DataColumn(label: Text('Hospital')),
+                            DataColumn(label: Text('Status')),
+                            DataColumn(label: Text('Actions')),
+                          ],
+                          rows: filteredAdmins
+                              .map(
+                                (admin) => DataRow(
+                                  cells: [
+                                    DataCell(Text(admin.persId)),
+                                    DataCell(Text(admin.name)),
+                                    DataCell(Text(admin.email)),
+                                    DataCell(Text(admin.mobileNumber)),
+                                    DataCell(Text(_getHospitalName(admin.hospitalId))),
+                                    DataCell(
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: admin.suspended
+                                              ? Colors.red.shade100
+                                              : Colors.green.shade100,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          admin.suspended ? 'Suspended' : 'Active',
+                                          style: TextStyle(
                                             color: admin.suspended
-                                                ? Colors.red.shade100
-                                                : Colors.green.shade100,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Text(
-                                            admin.suspended ? 'Suspended' : 'Active',
-                                            style: TextStyle(
-                                              color: admin.suspended
-                                                  ? Colors.red.shade700
-                                                  : Colors.green.shade700,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                                ? Colors.red.shade700
+                                                : Colors.green.shade700,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
-                                      DataCell(
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.edit, color: Colors.blue),
-                                              onPressed: () => _showEditAdminDialog(admin),
-                                              tooltip: 'Edit Admin',
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.delete, color: Colors.red),
-                                              onPressed: () => _showDeleteConfirmation(admin),
-                                              tooltip: 'Delete Admin',
-                                            ),
-                                          ],
-                                        ),
+                                    ),
+                                    DataCell(
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.edit, color: Colors.blue),
+                                            onPressed: () => _showEditAdminDialog(admin),
+                                            tooltip: 'Edit Admin',
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete, color: Colors.red),
+                                            onPressed: () => _showDeleteConfirmation(admin),
+                                            tooltip: 'Delete Admin',
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                )
-                                .toList(),
-                          ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .toList(),
                         ),
             ),
           ],

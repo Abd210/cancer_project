@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:math';
 
 import 'package:frontend/models/patient_data.dart';
 import 'package:frontend/providers/patient_provider.dart';
@@ -9,6 +10,8 @@ import 'package:frontend/models/hospital_data.dart';
 import 'package:frontend/models/doctor_data.dart';
 import 'package:frontend/providers/hospital_provider.dart';
 import 'package:frontend/providers/doctor_provider.dart';
+import 'package:frontend/providers/appointment_provider.dart';
+import 'package:frontend/models/appointment_data.dart';
 
 import '../../../shared/components/loading_indicator.dart';
 import '../../../shared/components/responsive_data_table.dart'
@@ -26,6 +29,7 @@ class _PatientsPageState extends State<PatientsPage> {
   final PatientProvider _patientProvider = PatientProvider();
   final HospitalProvider _hospitalProvider = HospitalProvider();
   final DoctorProvider _doctorProvider = DoctorProvider();
+  final AppointmentProvider _appointmentProvider = AppointmentProvider();
 
   bool _isLoading = false;
   String _searchQuery = '';
@@ -87,6 +91,44 @@ class _PatientsPageState extends State<PatientsPage> {
     }
   }
 
+  // Function to cancel patient appointments when hospital changes
+  Future<void> _cancelPatientAppointments(String patientId) async {
+    try {
+      // Fetch all appointments for the patient
+      final appointments = await _appointmentProvider.getAppointmentsForPatient(
+        token: widget.token,
+        patientId: patientId,
+        suspendfilter: 'all',
+      );
+
+      // Filter appointments that are not already cancelled or completed
+      final appointmentsToCancel = appointments.where((appointment) => 
+        appointment.status != 'cancelled' && appointment.status != 'completed'
+      ).toList();
+
+      // Cancel each appointment
+      for (final appointment in appointmentsToCancel) {
+        await _appointmentProvider.updateAppointment(
+          token: widget.token,
+          appointmentId: appointment.id,
+          updatedFields: {'status': 'cancelled'},
+        );
+      }
+
+      if (appointmentsToCancel.isNotEmpty && mounted) {
+        Fluttertoast.showToast(
+          msg: 'Cancelled ${appointmentsToCancel.length} appointment(s) due to hospital change',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Fluttertoast.showToast(
+          msg: 'Warning: Could not cancel appointments: $e',
+        );
+      }
+    }
+  }
+
   void _showAddPatientDialog() {
     final formKey = GlobalKey<FormState>();
 
@@ -115,7 +157,7 @@ class _PatientsPageState extends State<PatientsPage> {
     DateTime birthDate = DateTime.now();
     String medicalHistoryRaw = '';
     String? selectedHospitalId;
-    String? selectedDoctorId;
+    List<String> selectedDoctorIds = [];
     bool suspended = false;
 
     // Hospital search
@@ -449,11 +491,11 @@ class _PatientsPageState extends State<PatientsPage> {
                                       .where(
                                           (doctor) => doctor.hospitalId == val)
                                       .toList();
-                                  selectedDoctorId =
-                                      null; // Reset doctor selection
+                                  selectedDoctorIds.clear();
                                   doctorSearchController.clear();
                                 } else {
                                   filteredDoctors = [];
+                                  selectedDoctorIds.clear();
                                 }
                               });
                             },
@@ -555,31 +597,71 @@ class _PatientsPageState extends State<PatientsPage> {
 
                             const SizedBox(height: 16),
 
-                            // Doctor dropdown
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                labelText: 'Select Doctor',
-                                prefixIcon: Icon(Icons.person),
-                                border: OutlineInputBorder(),
+                            // Multiple doctors selection
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              value: selectedDoctorId,
-                              hint: const Text('Choose a doctor'),
-                              isExpanded: true,
-                              items: filteredDoctors.map((doctor) {
-                                return DropdownMenuItem<String>(
-                                  value: doctor.id,
-                                  child:
-                                      Text('${doctor.name} (${doctor.persId})'),
-                                );
-                              }).toList(),
-                              validator: (val) => val == null || val.isEmpty
-                                  ? 'Select a doctor'
-                                  : null,
-                              onChanged: (val) {
-                                setDialogState(() {
-                                  selectedDoctorId = val;
-                                });
-                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.people, color: Colors.grey.shade600),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Select Doctors (${selectedDoctorIds.length} selected)',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        if (selectedDoctorIds.isNotEmpty)
+                                          TextButton(
+                                            onPressed: () {
+                                              setDialogState(() {
+                                                selectedDoctorIds.clear();
+                                              });
+                                            },
+                                            child: const Text('Clear All'),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Divider(height: 1),
+                                  Container(
+                                    height: 200,
+                                    child: ListView.builder(
+                                      itemCount: filteredDoctors.length,
+                                      itemBuilder: (context, index) {
+                                        final doctor = filteredDoctors[index];
+                                        final isSelected = selectedDoctorIds.contains(doctor.id);
+                                        
+                                        return CheckboxListTile(
+                                          title: Text(doctor.name),
+                                          subtitle: Text('${doctor.persId} - ${doctor.email}'),
+                                          value: isSelected,
+                                          activeColor: const Color(0xFFEC407A),
+                                          onChanged: (bool? value) {
+                                            setDialogState(() {
+                                              if (value == true) {
+                                                selectedDoctorIds.add(doctor.id);
+                                              } else {
+                                                selectedDoctorIds.remove(doctor.id);
+                                              }
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -642,9 +724,9 @@ class _PatientsPageState extends State<PatientsPage> {
                     return;
                   }
 
-                  // Ensure doctor is selected
-                  if (selectedDoctorId == null || selectedDoctorId!.isEmpty) {
-                    Fluttertoast.showToast(msg: 'Please select a doctor');
+                  // Ensure at least one doctor is selected
+                  if (selectedDoctorIds.isEmpty) {
+                    Fluttertoast.showToast(msg: 'Please select at least one doctor');
                     return;
                   }
 
@@ -670,7 +752,7 @@ class _PatientsPageState extends State<PatientsPage> {
                       birthDate: birthDate.toIso8601String().split('T')[0],
                       medicalHistory: medicalHistory,
                       hospitalId: selectedHospitalId!,
-                      doctorIds: [selectedDoctorId!],
+                      doctorIds: selectedDoctorIds,
                       suspended: suspended,
                     );
                     await _fetchPatients();
@@ -719,12 +801,17 @@ class _PatientsPageState extends State<PatientsPage> {
     String hospitalId = originalHospitalId;
     bool suspended = originalSuspended;
 
-    // Get the hospital name for display
-    String hospitalName = 'Unknown Hospital';
-    for (var hospital in _hospitalList) {
-      if (hospital.id == hospitalId) {
-        hospitalName = '${hospital.name} (${hospital.address})';
-        break;
+    // Hospital and doctor search controllers
+    TextEditingController hospitalSearchController = TextEditingController();
+    TextEditingController doctorSearchController = TextEditingController();
+    List<HospitalData> filteredHospitals = List.from(_hospitalList);
+    List<DoctorData> filteredDoctors = _doctorList.where((doctor) => doctor.hospitalId == hospitalId).toList();
+    
+    // Get current doctor assignments
+    List<String> selectedDoctorIds = [];
+    for (var doctor in _doctorList) {
+      if (doctor.patients.contains(patient.id)) {
+        selectedDoctorIds.add(doctor.id);
       }
     }
 
@@ -793,21 +880,17 @@ class _PatientsPageState extends State<PatientsPage> {
                                     const SizedBox(height: 16),
                                     TextFormField(
                                       initialValue: email,
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         labelText: 'Email Address',
-                                        prefixIcon: const Icon(Icons.email),
-                                        border: const OutlineInputBorder(),
-                                        helperText:
-                                            'This is your login identifier',
-                                        helperStyle: TextStyle(
-                                            color: Colors.grey.shade600),
+                                        prefixIcon: Icon(Icons.email),
+                                        border: OutlineInputBorder(),
+                                        helperText: 'This is your login identifier',
                                       ),
-                                      enabled:
-                                          false, // Disable email editing to prevent uniqueness errors
-                                      validator: (val) =>
-                                          val == null || val.isEmpty
-                                              ? 'Enter email'
-                                              : null,
+                                      validator: (val) {
+                                        if (val == null || val.isEmpty) return 'Enter email';
+                                        if (!val.contains('@')) return 'Enter valid email';
+                                        return null;
+                                      },
                                       onSaved: (val) => email = val!.trim(),
                                     ),
                                     const SizedBox(height: 16),
@@ -1000,32 +1083,75 @@ class _PatientsPageState extends State<PatientsPage> {
                               )),
                           const SizedBox(height: 16),
 
-                          // Hospital display (not editable in this form)
-                          InputDecorator(
+                          // Hospital search field
+                          TextField(
+                            controller: hospitalSearchController,
+                            decoration: InputDecoration(
+                              labelText: 'Search Hospitals',
+                              prefixIcon: const Icon(Icons.search),
+                              border: const OutlineInputBorder(),
+                              suffixIcon: hospitalSearchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        hospitalSearchController.clear();
+                                        setDialogState(() {
+                                          filteredHospitals = List.from(_hospitalList);
+                                        });
+                                      },
+                                    )
+                                  : null,
+                            ),
+                            onChanged: (query) {
+                              setDialogState(() {
+                                if (query.isEmpty) {
+                                  filteredHospitals = List.from(_hospitalList);
+                                } else {
+                                  filteredHospitals = _hospitalList
+                                      .where((hospital) =>
+                                          hospital.name.toLowerCase().contains(query.toLowerCase()) ||
+                                          hospital.address.toLowerCase().contains(query.toLowerCase()) ||
+                                          hospital.id.toLowerCase().contains(query.toLowerCase()))
+                                      .toList();
+                                }
+                              });
+                            },
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Hospital dropdown
+                          DropdownButtonFormField<String>(
                             decoration: const InputDecoration(
-                              labelText: 'Assigned Hospital',
+                              labelText: 'Select Hospital',
                               prefixIcon: Icon(Icons.local_hospital),
                               border: OutlineInputBorder(),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      hospitalName,
-                                      style: const TextStyle(fontSize: 16),
-                                    ),
-                                  ),
-                                  Tooltip(
-                                    message:
-                                        'To change hospital, please create a new patient account',
-                                    child: Icon(Icons.info_outline,
-                                        color: Colors.grey.shade600),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            value: hospitalId,
+                            hint: const Text('Choose a hospital'),
+                            isExpanded: true,
+                            items: filteredHospitals.map((hospital) {
+                              return DropdownMenuItem<String>(
+                                value: hospital.id,
+                                child: Text('${hospital.name} (${hospital.address})'),
+                              );
+                            }).toList(),
+                            validator: (val) => val == null || val.isEmpty ? 'Select a hospital' : null,
+                            onChanged: (val) {
+                              setDialogState(() {
+                                hospitalId = val ?? '';
+                                // Filter doctors by selected hospital
+                                if (val != null) {
+                                  filteredDoctors = _doctorList.where((doctor) => doctor.hospitalId == val).toList();
+                                  // Reset doctor selection if current doctors are not in new hospital
+                                  selectedDoctorIds.removeWhere((doctorId) => !filteredDoctors.any((d) => d.id == doctorId));
+                                  doctorSearchController.clear();
+                                } else {
+                                  filteredDoctors = [];
+                                  selectedDoctorIds.clear();
+                                }
+                              });
+                            },
                           ),
 
                           const SizedBox(height: 16),
@@ -1046,6 +1172,168 @@ class _PatientsPageState extends State<PatientsPage> {
                         ],
                       ),
                     ),
+                    
+                    // Add Doctor Assignment section
+                    if (filteredDoctors.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Doctor Assignment',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEC407A),
+                                )),
+                            const SizedBox(height: 16),
+
+                            // Doctor search field
+                            TextField(
+                              controller: doctorSearchController,
+                              decoration: InputDecoration(
+                                labelText: 'Search Doctors',
+                                prefixIcon: const Icon(Icons.search),
+                                border: const OutlineInputBorder(),
+                                suffixIcon: doctorSearchController.text.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear),
+                                        onPressed: () {
+                                          doctorSearchController.clear();
+                                          setDialogState(() {
+                                            filteredDoctors = _doctorList
+                                                .where((doctor) => doctor.hospitalId == hospitalId)
+                                                .toList();
+                                          });
+                                        },
+                                      )
+                                    : null,
+                              ),
+                              onChanged: (query) {
+                                setDialogState(() {
+                                  if (query.isEmpty) {
+                                    filteredDoctors = _doctorList
+                                        .where((doctor) => doctor.hospitalId == hospitalId)
+                                        .toList();
+                                  } else {
+                                    filteredDoctors = _doctorList
+                                        .where((doctor) =>
+                                            doctor.hospitalId == hospitalId &&
+                                            (doctor.name.toLowerCase().contains(query.toLowerCase()) ||
+                                                doctor.email.toLowerCase().contains(query.toLowerCase()) ||
+                                                doctor.persId.toLowerCase().contains(query.toLowerCase())))
+                                        .toList();
+                                  }
+                                });
+                              },
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Multiple doctors selection
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.people, color: Colors.grey.shade600),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Select Doctors (${selectedDoctorIds.length} selected)',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        if (selectedDoctorIds.isNotEmpty)
+                                          TextButton(
+                                            onPressed: () {
+                                              setDialogState(() {
+                                                selectedDoctorIds.clear();
+                                              });
+                                            },
+                                            child: const Text('Clear All'),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Divider(height: 1),
+                                  Container(
+                                    height: 200,
+                                    child: ListView.builder(
+                                      itemCount: filteredDoctors.length,
+                                      itemBuilder: (context, index) {
+                                        final doctor = filteredDoctors[index];
+                                        final isSelected = selectedDoctorIds.contains(doctor.id);
+                                        
+                                        return CheckboxListTile(
+                                          title: Text(doctor.name),
+                                          subtitle: Text('${doctor.persId} - ${doctor.email}'),
+                                          value: isSelected,
+                                          activeColor: const Color(0xFFEC407A),
+                                          onChanged: (bool? value) {
+                                            setDialogState(() {
+                                              if (value == true) {
+                                                selectedDoctorIds.add(doctor.id);
+                                              } else {
+                                                selectedDoctorIds.remove(doctor.id);
+                                              }
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (hospitalId.isNotEmpty && filteredDoctors.isEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Doctor Assignment',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEC407A),
+                                )),
+                            const SizedBox(height: 16),
+                            const Center(
+                              child: Text(
+                                'No doctors available for the selected hospital. Please add doctors to this hospital first.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -1066,8 +1354,50 @@ class _PatientsPageState extends State<PatientsPage> {
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
+                  
+                  // Check if hospital is changing and warn about appointment cancellations
+                  final bool hospitalChanged = hospitalId != originalHospitalId;
+                  if (hospitalChanged) {
+                    final shouldProceed = await showDialog<bool>(
+                      context: ctx,
+                      builder: (dialogCtx) => AlertDialog(
+                        title: Row(
+                          children: [
+                            Icon(Icons.warning, color: Colors.orange),
+                            const SizedBox(width: 10),
+                            const Text('Hospital Change Warning'),
+                          ],
+                        ),
+                        content: const Text(
+                          'Changing the patient\'s hospital will automatically:\n\n'
+                          '• Cancel all their non-completed appointments\n'
+                          '• Remove them from all their previous doctors\' patient lists\n'
+                          '• Assign them only to the doctors you\'ve selected from the new hospital\n\n'
+                          'These actions cannot be undone. Do you want to proceed?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(dialogCtx).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.of(dialogCtx).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Proceed'),
+                          ),
+                        ],
+                      ),
+                    ) ?? false;
+                    
+                    if (!shouldProceed) {
+                      return; // User cancelled the operation
+                    }
+                  }
+                  
                   Navigator.pop(ctx);
-
                   setState(() => _isLoading = true);
                   try {
                     // Only include fields that have actually changed
@@ -1076,6 +1406,8 @@ class _PatientsPageState extends State<PatientsPage> {
                     if (name != originalName) updatedFields["name"] = name;
                     if (persId != originalPersId)
                       updatedFields["persId"] = persId;
+                    if (email != originalEmail)
+                      updatedFields["email"] = email;
                     if (password.isNotEmpty && password != originalPassword)
                       updatedFields["password"] = password;
                     if (mobileNumber != originalMobileNumber)
@@ -1109,8 +1441,36 @@ class _PatientsPageState extends State<PatientsPage> {
                     if (medHistoryChanged)
                       updatedFields["medicalHistory"] = medHistory;
 
+                    if (hospitalId != originalHospitalId)
+                      updatedFields["hospital"] = hospitalId;
                     if (suspended != originalSuspended)
                       updatedFields["suspended"] = suspended;
+                    
+                    // Handle doctor assignment changes
+                    List<String> originalDoctorIds = [];
+                    for (var doctor in _doctorList) {
+                      if (doctor.patients.contains(patient.id)) {
+                        originalDoctorIds.add(doctor.id);
+                      }
+                    }
+                    
+                    // Compare sorted lists to detect changes
+                    List<String> sortedOriginal = List.from(originalDoctorIds)..sort();
+                    List<String> sortedSelected = List.from(selectedDoctorIds)..sort();
+                    
+                    if (sortedOriginal.toString() != sortedSelected.toString()) {
+                      updatedFields["doctors"] = selectedDoctorIds;
+                    }
+
+                    // Always handle doctor reassignment when hospital changes
+                    final bool hospitalChanged = hospitalId != originalHospitalId;
+                    if (hospitalChanged) {
+                      // When hospital changes, always update doctors field to handle doctor-patient relationships
+                      // The backend will automatically:
+                      // 1. Remove this patient from all their previous doctors' patients arrays
+                      // 2. Add this patient to all newly selected doctors' patients arrays
+                      updatedFields["doctors"] = selectedDoctorIds;
+                    }
 
                     // Only make the API call if there are changes
                     if (updatedFields.isNotEmpty) {
@@ -1119,9 +1479,25 @@ class _PatientsPageState extends State<PatientsPage> {
                         patientId: patient.id,
                         updatedFields: updatedFields,
                       );
+                      
+                      // Cancel appointments if hospital changed
+                      if (hospitalChanged) {
+                        await _cancelPatientAppointments(patient.id);
+                        
+                        if (mounted) {
+                          Fluttertoast.showToast(
+                            msg: 'Patient transferred to new hospital. Previous doctor assignments updated.',
+                          );
+                        }
+                      }
+                      
                       await _fetchPatients();
-                      Fluttertoast.showToast(
-                          msg: 'Patient updated successfully');
+                      await _fetchDoctors(); // Refresh doctor list to get updated patient assignments
+                      
+                      if (mounted && !hospitalChanged) {
+                        Fluttertoast.showToast(
+                            msg: 'Patient updated successfully');
+                      }
                     } else {
                       Fluttertoast.showToast(msg: 'No changes detected');
                     }

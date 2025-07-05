@@ -1220,7 +1220,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   child: DropdownButton<String>(
                     value: _filter,
                     underline: const SizedBox(),
-                    onChanged: (val) async {
+                    onChanged: (_adminHospitalId == null || _adminHospitalId!.isEmpty) ? null : (val) async {
                       if (val != null) {
                         setState(() => _filter = val);
                         await _fetchDoctors();
@@ -1244,6 +1244,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                 ),
                 Expanded(
                   child: TextField(
+                    enabled: _adminHospitalId != null && _adminHospitalId!.isNotEmpty,
                     decoration: InputDecoration(
                       labelText: 'Search Doctors',
                       prefixIcon: const Icon(Icons.search),
@@ -1258,13 +1259,13 @@ class _DoctorsPageState extends State<DoctorsPage> {
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton.icon(
-                  onPressed: _showAddDoctorDialog,
+                  onPressed: (_adminHospitalId == null || _adminHospitalId!.isEmpty) ? null : _showAddDoctorDialog,
                   icon: const Icon(Icons.add),
                   label: const Text('Add Doctor'),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton.icon(
-                  onPressed: _fetchDoctors,
+                  onPressed: (_adminHospitalId == null || _adminHospitalId!.isEmpty) ? null : _fetchDoctors,
                   icon: const Icon(Icons.refresh),
                   label: const Text('Refresh'),
                 ),
@@ -1272,9 +1273,49 @@ class _DoctorsPageState extends State<DoctorsPage> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: _doctorList.isEmpty
-                  ? const Center(child: Text('No doctors found.'))
-                  : Column(
+              child: (_adminHospitalId == null || _adminHospitalId!.isEmpty)
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.local_hospital_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No Hospital Assigned',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'You cannot view doctors because you are not assigned to any hospital.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Please contact your system administrator to assign you to a hospital.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  : _doctorList.isEmpty
+                      ? const Center(child: Text('No doctors found.'))
+                      : Column(
                       children: [
                         Expanded(
                           child: BetterPaginatedDataTable(

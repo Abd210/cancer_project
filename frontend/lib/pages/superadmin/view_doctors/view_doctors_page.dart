@@ -102,6 +102,47 @@ class _DoctorsPageState extends State<DoctorsPage> {
     }
   }
 
+  Future<void> _reassignDoctorPatients(String doctorId, List<String> oldPatients, List<String> newPatients) async {
+    try {
+      setState(() => _isLoading = true);
+      
+      // Remove doctor from all old patients' doctors arrays
+      for (String patientId in oldPatients) {
+        final patient = _patientList.firstWhere((p) => p.id == patientId);
+        final updatedDoctors = patient.doctorIds.where((id) => id != doctorId).toList();
+        
+        await _patientProvider.updatePatient(
+          token: widget.token,
+          patientId: patientId,
+          updatedFields: {'doctors': updatedDoctors},
+        );
+      }
+      
+      // Add doctor to all new patients' doctors arrays
+      for (String patientId in newPatients) {
+        final patient = _patientList.firstWhere((p) => p.id == patientId);
+        final updatedDoctors = List<String>.from(patient.doctorIds);
+        if (!updatedDoctors.contains(doctorId)) {
+          updatedDoctors.add(doctorId);
+        }
+        
+        await _patientProvider.updatePatient(
+          token: widget.token,
+          patientId: patientId,
+          updatedFields: {'doctors': updatedDoctors},
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to reassign patients: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   // Function to show patient selection in a separate dialog
   void _showPatientSelectionDialog(BuildContext context, List<String> selectedPatients, Function(List<String>) onSave, String hospitalId) {
     TextEditingController patientSearchController = TextEditingController();
@@ -684,6 +725,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
     final String originalDescription = doc.description;
     final bool originalSuspended = doc.suspended;
     final List<String> originalPatients = List.from(doc.patients);
+    final String originalHospitalId = doc.hospitalId;
 
     // Editable values
     String name = originalName;
@@ -698,14 +740,22 @@ class _DoctorsPageState extends State<DoctorsPage> {
     String hospitalId = doc.hospitalId;
     List<String> selectedPatients = List.from(originalPatients);
     
-    // Get the hospital name for display
-    String hospitalName = 'Unknown Hospital';
+    // Hospital and patient search controllers
+    TextEditingController hospitalSearchController = TextEditingController();
+    TextEditingController patientSearchController = TextEditingController();
+    List<HospitalData> filteredHospitals = List.from(_hospitalList);
+    List<PatientData> filteredPatients = _patientList.where((patient) => patient.hospitalId == hospitalId).toList();
+    
+    // Initialize hospital search field with current hospital name
+    String currentHospitalName = 'Unknown Hospital';
     for (var hospital in _hospitalList) {
       if (hospital.id == hospitalId) {
-        hospitalName = hospital.name;
+        currentHospitalName = hospital.name;
         break;
       }
     }
+    hospitalSearchController.text = currentHospitalName;
+    filteredHospitals = _hospitalList.where((hospital) => hospital.id == hospitalId).toList();
     
     showDialog(
       context: context,
@@ -770,16 +820,17 @@ class _DoctorsPageState extends State<DoctorsPage> {
                                     const SizedBox(height: 16),
                                     TextFormField(
                                       initialValue: email,
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         labelText: 'Email Address',
-                                        prefixIcon: const Icon(Icons.email),
-                                        border: const OutlineInputBorder(),
+                                        prefixIcon: Icon(Icons.email),
+                                        border: OutlineInputBorder(),
                                         helperText: 'This is your login identifier',
-                                        helperStyle: TextStyle(color: Colors.grey.shade600),
                                       ),
-                                      enabled: false, // Disable email editing to prevent uniqueness errors
-                                      validator: (val) =>
-                                          val == null || val.isEmpty ? 'Enter email' : null,
+                                      validator: (val) {
+                                        if (val == null || val.isEmpty) return 'Enter email';
+                                        if (!val.contains('@')) return 'Enter valid email';
+                                        return null;
+                                      },
                                       onSaved: (val) => email = val!.trim(),
                                     ),
                                     const SizedBox(height: 16),
@@ -899,30 +950,104 @@ class _DoctorsPageState extends State<DoctorsPage> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Hospital display (not editable in this form)
-                          InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'Assigned Hospital',
-                              prefixIcon: Icon(Icons.local_hospital),
-                              border: OutlineInputBorder(),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
+                          // Hospital search and selection
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
                                   Expanded(
-                                    child: Text(
-                                      hospitalName,
-                                      style: const TextStyle(fontSize: 16),
+                                    child: TextField(
+                                      controller: hospitalSearchController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Search and Select Hospital',
+                                        prefixIcon: Icon(Icons.local_hospital),
+                                        border: OutlineInputBorder(),
+                                        hintText: 'Type to search hospitals',
+                                      ),
+                                      onChanged: (value) {
+                                        setDialogState(() {
+                                          if (value.isEmpty) {
+                                            filteredHospitals = List.from(_hospitalList);
+                                          } else {
+                                            filteredHospitals = _hospitalList.where((hospital) {
+                                              return hospital.name.toLowerCase().contains(value.toLowerCase()) ||
+                                                  hospital.id.toLowerCase().contains(value.toLowerCase());
+                                            }).toList();
+                                          }
+                                        });
+                                      },
                                     ),
                                   ),
-                                  Tooltip(
-                                    message: 'To change hospital, please create a new doctor account',
-                                    child: Icon(Icons.info_outline, color: Colors.grey.shade600),
-                                  ),
+                                  if (hospitalSearchController.text.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: IconButton(
+                                        icon: const Icon(Icons.clear),
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            hospitalSearchController.clear();
+                                            filteredHospitals = List.from(_hospitalList);
+                                          });
+                                        },
+                                      ),
+                                    ),
                                 ],
                               ),
-                            ),
+                              const SizedBox(height: 8),
+                              if (filteredHospitals.isNotEmpty)
+                                Container(
+                                  height: 200,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ListView.builder(
+                                    itemCount: filteredHospitals.length,
+                                    itemBuilder: (context, index) {
+                                      final hospital = filteredHospitals[index];
+                                      final isSelected = hospital.id == hospitalId;
+                                      
+                                      return Card(
+                                        elevation: 0,
+                                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        color: isSelected ? const Color(0xFFFCE4EC) : Colors.white,
+                                        child: ListTile(
+                                          leading: CircleAvatar(
+                                            backgroundColor: isSelected ? const Color(0xFFEC407A) : Colors.grey[300],
+                                            child: Text(
+                                              hospital.name.substring(0, 1).toUpperCase(),
+                                              style: TextStyle(
+                                                color: isSelected ? Colors.white : Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                          title: Text(
+                                            hospital.name,
+                                            style: TextStyle(
+                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            ),
+                                          ),
+                                          subtitle: Text('ID: ${hospital.id}'),
+                                          trailing: isSelected ? 
+                                            const Icon(Icons.check_circle, color: Color(0xFFEC407A)) : 
+                                            const Icon(Icons.radio_button_unchecked, color: Colors.grey),
+                                          onTap: () {
+                                            setDialogState(() {
+                                              hospitalId = hospital.id;
+                                              hospitalSearchController.text = hospital.name;
+                                              filteredHospitals = [hospital];
+                                              // Clear patients when hospital changes
+                                              selectedPatients.clear();
+                                              filteredPatients = _patientList.where((patient) => patient.hospitalId == hospitalId).toList();
+                                            });
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                            ],
                           ),
                           
                           const SizedBox(height: 16),
@@ -1051,6 +1176,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                     final Map<String, dynamic> updatedFields = {};
                     
                     if (name != originalName) updatedFields["name"] = name;
+                    if (email != originalEmail) updatedFields["email"] = email;
                     if (persId != originalPersId) updatedFields["persId"] = persId;
                     if (password.isNotEmpty && password != originalPassword) updatedFields["password"] = password;
                     if (mobileNumber != originalMobileNumber) updatedFields["mobileNumber"] = mobileNumber;
@@ -1070,6 +1196,78 @@ class _DoctorsPageState extends State<DoctorsPage> {
                     
                     if (description != originalDescription) updatedFields["description"] = description;
                     if (suspended != originalSuspended) updatedFields["suspended"] = suspended;
+                    
+                    // Check if hospital has changed
+                    bool hospitalChanged = hospitalId != originalHospitalId;
+                    if (hospitalChanged) {
+                      updatedFields["hospital"] = hospitalId;
+                      
+                      // Show warning dialog for hospital changes
+                      final shouldProceed = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Row(
+                              children: [
+                                Icon(Icons.warning, color: Colors.orange),
+                                SizedBox(width: 10),
+                                Text('Confirm Hospital Change'),
+                              ],
+                            ),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Changing this doctor\'s hospital will:'),
+                                const SizedBox(height: 10),
+                                const Text('• Remove all current patients from this doctor'),
+                                const Text('• Remove this doctor from all current patients\' doctor lists'),
+                                const Text('• Assign new patients from the new hospital (if selected)'),
+                                const SizedBox(height: 10),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.orange.shade200),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Current patients: ${originalPatients.length}'),
+                                      Text('New patients: ${selectedPatients.length}'),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'This action cannot be undone. Are you sure you want to proceed?',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: const Text('Proceed'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (shouldProceed != true) {
+                        return; // Cancel the update if user doesn't confirm
+                      }
+                    }
                     
                     // Check if patients have changed
                     bool patientsChanged = selectedPatients.length != originalPatients.length;
@@ -1091,13 +1289,22 @@ class _DoctorsPageState extends State<DoctorsPage> {
                         updatedFields: updatedFields,
                       );
                       
+                      // Handle patient reassignment if hospital changed
+                      if (hospitalChanged && success) {
+                        await _reassignDoctorPatients(doc.id, originalPatients, selectedPatients);
+                        await _fetchPatients(); // Refresh patient list
+                      }
+                      
                       // Always refresh the list regardless of the response
                       await _fetchDoctors();
                       
                       if (mounted && success) {
+                        String message = 'Doctor updated successfully';
+                        if (hospitalChanged) {
+                          message = 'Doctor transferred to new hospital successfully';
+                        }
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Doctor updated successfully')),
+                          SnackBar(content: Text(message)),
                         );
                       }
                     } else {

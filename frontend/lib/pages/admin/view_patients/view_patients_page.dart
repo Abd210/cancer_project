@@ -79,6 +79,12 @@ class _PatientsPageState extends State<PatientsPage> {
   Future<void> _fetchPatients() async {
     setState(() => _isLoading = true);
     try {
+      // If admin has no hospital assigned, don't fetch any patients
+      if (widget.hospitalId.isEmpty) {
+        setState(() => _patientList = []);
+        return;
+      }
+      
       final patients = await _patientProvider.getPatients(
         token: widget.token,
         patientId: '',
@@ -1290,7 +1296,7 @@ class _PatientsPageState extends State<PatientsPage> {
                   child: DropdownButton<String>(
                     value: _filter,
                     underline: const SizedBox(),
-                    onChanged: (val) async {
+                    onChanged: widget.hospitalId.isEmpty ? null : (val) async {
                       if (val != null) {
                         setState(() => _filter = val);
                         await _fetchPatients();
@@ -1314,6 +1320,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 ),
                 Expanded(
                   child: TextField(
+                    enabled: widget.hospitalId.isNotEmpty,
                     decoration: InputDecoration(
                       labelText: 'Search Patients',
                       prefixIcon: const Icon(Icons.search),
@@ -1326,13 +1333,13 @@ class _PatientsPageState extends State<PatientsPage> {
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton.icon(
-                  onPressed: _showAddPatientDialog,
+                  onPressed: widget.hospitalId.isEmpty ? null : _showAddPatientDialog,
                   icon: const Icon(Icons.add),
                   label: const Text('Add Patient'),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton.icon(
-                  onPressed: _fetchPatients,
+                  onPressed: widget.hospitalId.isEmpty ? null : _fetchPatients,
                   icon: const Icon(Icons.refresh),
                   label: const Text('Refresh'),
                 ),
@@ -1340,9 +1347,49 @@ class _PatientsPageState extends State<PatientsPage> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: filteredPatients.isEmpty
-                  ? const Center(child: Text('No patients found.'))
-                  : BetterPaginatedDataTable(
+              child: widget.hospitalId.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.local_hospital_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No Hospital Assigned',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'You cannot view patients because you are not assigned to any hospital.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Please contact your system administrator to assign you to a hospital.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  : filteredPatients.isEmpty
+                      ? const Center(child: Text('No patients found.'))
+                      : BetterPaginatedDataTable(
                       themeColor: const Color(0xFFEC407A), // Pinkish color
                       rowsPerPage: 10, // Show 10 rows per page
                       columns: const [

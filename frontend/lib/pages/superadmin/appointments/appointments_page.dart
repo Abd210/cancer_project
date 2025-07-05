@@ -288,12 +288,35 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Doctor Assignment', 
-                              style: TextStyle(
-                                fontSize: 18, 
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFFEC407A),
-                              )
+                            Row(
+                              children: [
+                                Text('Doctor Assignment', 
+                                  style: TextStyle(
+                                    fontSize: 18, 
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFFEC407A),
+                                  )
+                                ),
+                                if (selectedHospitalId != null) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.green.shade300),
+                                    ),
+                                    child: Text(
+                                      'Hospital Selected',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: 16),
                             
@@ -319,6 +342,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 setDialogState(() {
                                   selectedHospitalId = val;
                                   selectedDoctorId = null;
+                                  selectedPatientId = null; // Clear patient selection when hospital changes
+                                  patientSearchController.clear(); // Clear patient search when hospital changes
                                   // Filter doctors by selected hospital
                                   if (val != null) {
                                     filteredDoctors = _doctorList
@@ -334,7 +359,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                             const SizedBox(height: 16),
                             
                             // Doctor search field
-                            if (selectedHospitalId != null)
+                            if (selectedHospitalId != null) ...[
                               TextField(
                                 controller: doctorSearchController,
                                 decoration: InputDecoration(
@@ -373,6 +398,32 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                   });
                                 },
                               ),
+                            ] else ...[
+                              // Show message when no hospital is selected
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.orange.shade200),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.info_outline, color: Colors.orange.shade700),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Please select a hospital first to see available doctors',
+                                        style: TextStyle(
+                                          color: Colors.orange.shade700,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                             
                             if (selectedHospitalId != null) const SizedBox(height: 16),
                             
@@ -418,66 +469,119 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Patient Information', 
-                              style: TextStyle(
-                                fontSize: 18, 
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFFEC407A),
-                              )
-                            ),
-                            const SizedBox(height: 16),
-                            
-                            // Patient search field
-                            TextField(
-                              controller: patientSearchController,
-                              decoration: InputDecoration(
-                                labelText: 'Search Patients',
-                                prefixIcon: const Icon(Icons.search),
-                                border: const OutlineInputBorder(),
-                                suffixIcon: patientSearchController.text.isNotEmpty 
-                                  ? IconButton(
-                                      icon: const Icon(Icons.clear),
-                                      onPressed: () {
-                                        patientSearchController.clear();
-                                      },
-                                    )
-                                  : null,
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // Patient dropdown
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                labelText: 'Select Patient',
-                                prefixIcon: Icon(Icons.personal_injury),
-                                border: OutlineInputBorder(),
-                              ),
-                              value: selectedPatientId,
-                              hint: const Text('Choose a patient'),
-                              isExpanded: true,
-                              items: _patientList
-                                  .where((patient) => 
-                                    patientSearchController.text.isEmpty || 
-                                    patient.name.toLowerCase().contains(patientSearchController.text.toLowerCase()) ||
-                                    patient.email.toLowerCase().contains(patientSearchController.text.toLowerCase()) ||
-                                    patient.persId.toLowerCase().contains(patientSearchController.text.toLowerCase())
+                            Row(
+                              children: [
+                                Text('Patient Information', 
+                                  style: TextStyle(
+                                    fontSize: 18, 
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFFEC407A),
                                   )
-                                  .map((patient) {
-                                return DropdownMenuItem<String>(
-                                  value: patient.id,
-                                  child: Text('${patient.name} (${patient.persId})'),
-                                );
-                              }).toList(),
-                              validator: (val) =>
-                                  val == null || val.isEmpty ? 'Select a patient' : null,
-                              onChanged: (val) {
-                                setDialogState(() {
-                                  selectedPatientId = val;
-                                });
-                              },
+                                ),
+                                if (selectedHospitalId != null) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.green.shade300),
+                                    ),
+                                    child: Text(
+                                      'Hospital Selected',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
+                            const SizedBox(height: 16),
+                            
+                            // Patient search field - only show if hospital is selected
+                            if (selectedHospitalId != null) ...[
+                              TextField(
+                                controller: patientSearchController,
+                                decoration: InputDecoration(
+                                  labelText: 'Search Patients',
+                                  prefixIcon: const Icon(Icons.search),
+                                  border: const OutlineInputBorder(),
+                                  suffixIcon: patientSearchController.text.isNotEmpty 
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear),
+                                        onPressed: () {
+                                          patientSearchController.clear();
+                                        },
+                                      )
+                                    : null,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ] else ...[
+                              // Show message when no hospital is selected
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.orange.shade200),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.info_outline, color: Colors.orange.shade700),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Please select a hospital first to see available patients',
+                                        style: TextStyle(
+                                          color: Colors.orange.shade700,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            
+                            // Patient dropdown - only show if hospital is selected
+                            if (selectedHospitalId != null)
+                              DropdownButtonFormField<String>(
+                                decoration: const InputDecoration(
+                                  labelText: 'Select Patient',
+                                  prefixIcon: Icon(Icons.personal_injury),
+                                  border: OutlineInputBorder(),
+                                ),
+                                value: selectedPatientId,
+                                hint: const Text('Choose a patient'),
+                                isExpanded: true,
+                                items: _patientList
+                                    .where((patient) => 
+                                      // Filter by selected hospital first
+                                      patient.hospitalId == selectedHospitalId &&
+                                      (patientSearchController.text.isEmpty || 
+                                       patient.name.toLowerCase().contains(patientSearchController.text.toLowerCase()) ||
+                                       patient.email.toLowerCase().contains(patientSearchController.text.toLowerCase()) ||
+                                       patient.persId.toLowerCase().contains(patientSearchController.text.toLowerCase()))
+                                    )
+                                    .map((patient) {
+                                  return DropdownMenuItem<String>(
+                                    value: patient.id,
+                                    child: Text('${patient.name} (${patient.persId})'),
+                                  );
+                                }).toList(),
+                                validator: (val) =>
+                                    val == null || val.isEmpty ? 'Select a patient' : null,
+                                onChanged: (val) {
+                                  setDialogState(() {
+                                    selectedPatientId = val;
+                                  });
+                                },
+                              ),
                           ],
                         ),
                       ),
@@ -635,53 +739,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         ),
                       ],
                     ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // Status dropdown
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                labelText: 'Status',
-                                prefixIcon: Icon(Icons.flag),
-                                border: OutlineInputBorder(),
-                              ),
-                              value: status,
-                              isExpanded: true,
-                              items: const [
-                                DropdownMenuItem(value: 'scheduled', child: Text('Scheduled')),
-                                DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                                DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
-                              ],
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setDialogState(() {
-                                    status = val;
-                                  });
-                                }
-                              },
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // Suspended checkbox
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: suspended,
-                                  activeColor: const Color(0xFFEC407A),
-                          onChanged: (val) {
-                                    setDialogState(() {
-                              suspended = val ?? false;
-                            });
-                          },
-                        ),
-                                const Text('Suspended'),
-                                const Tooltip(
-                                  message: 'Suspended appointments will not be shown to patients or doctors',
-                                  child: Icon(Icons.info_outline, size: 16),
-                                ),
-                      ],
-                    ),
                   ],
                 ),
                       ),
@@ -705,6 +762,11 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 formKey.currentState!.save();
+                    
+                    if (selectedHospitalId == null || selectedHospitalId!.isEmpty) {
+                      _showToast('Please select a hospital first');
+                      return;
+                    }
                     
                     if (selectedDoctorId == null || selectedPatientId == null) {
                       _showToast('Please select both doctor and patient');
@@ -739,8 +801,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         start: startDateTime,
                         end: endDateTime,
                     purpose: purpose,
-                    status: status,
-                    suspended: suspended,
+                    status: 'scheduled', // Default status for new appointments
+                    suspended: false, // Default to not suspended
                   );
                       
                   await _fetchAppointments();
@@ -814,7 +876,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Patient: ${appointment.patientName}',
+                                    'Patient: ${_getPatientName(appointment.patientId)}',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -831,7 +893,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Doctor: ${appointment.doctorName}',
+                                    'Doctor: ${_getDoctorName(appointment.doctorId)}',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -920,7 +982,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           onPressed: () async {
                             final pickedDate = await showDatePicker(
                                       context: context,
-                              initialDate: selectedStartDate,
+                              initialDate: selectedStartDate.isAfter(DateTime.now()) ? selectedStartDate : DateTime.now(),
                                       firstDate: DateTime.now(),
                               lastDate: DateTime(2100),
                             );
@@ -964,8 +1026,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           onPressed: () async {
                             final pickedDate = await showDatePicker(
                                       context: context,
-                              initialDate: selectedEndDate,
-                                      firstDate: selectedStartDate,
+                              initialDate: selectedEndDate.isAfter(DateTime.now()) ? selectedEndDate : DateTime.now(),
+                                      firstDate: DateTime.now(),
                               lastDate: DateTime(2100),
                             );
                             if (pickedDate != null) {
