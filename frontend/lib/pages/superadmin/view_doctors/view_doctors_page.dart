@@ -303,6 +303,74 @@ class _DoctorsPageState extends State<DoctorsPage> {
     );
   }
 
+  // Helper function to validate schedule for overlaps
+  String? _validateSchedule(List<Map<String, String>> schedule) {
+    if (schedule.isEmpty) return null;
+    
+    // Group by day
+    Map<String, List<Map<String, String>>> dayGroups = {};
+    for (var entry in schedule) {
+      String day = entry['day'] ?? '';
+      String start = entry['start'] ?? '';
+      String end = entry['end'] ?? '';
+      
+      if (day.isEmpty || start.isEmpty || end.isEmpty) {
+        return 'All schedule entries must have day, start time, and end time filled.';
+      }
+      
+      if (!dayGroups.containsKey(day)) {
+        dayGroups[day] = [];
+      }
+      dayGroups[day]!.add(entry);
+    }
+    
+    // Check for overlaps within each day
+    for (String day in dayGroups.keys) {
+      List<Map<String, String>> dayEntries = dayGroups[day]!;
+      
+      for (int i = 0; i < dayEntries.length; i++) {
+        for (int j = i + 1; j < dayEntries.length; j++) {
+          String start1 = dayEntries[i]['start']!;
+          String end1 = dayEntries[i]['end']!;
+          String start2 = dayEntries[j]['start']!;
+          String end2 = dayEntries[j]['end']!;
+          
+          // Convert time strings to minutes for comparison
+          int start1Minutes = _timeToMinutes(start1);
+          int end1Minutes = _timeToMinutes(end1);
+          int start2Minutes = _timeToMinutes(start2);
+          int end2Minutes = _timeToMinutes(end2);
+          
+          if (start1Minutes >= end1Minutes) {
+            return 'Invalid time range on $day: start time must be before end time.';
+          }
+          if (start2Minutes >= end2Minutes) {
+            return 'Invalid time range on $day: start time must be before end time.';
+          }
+          
+          // Check for overlap
+          if (start1Minutes < end2Minutes && start2Minutes < end1Minutes) {
+            return 'Time overlap detected on $day: ${start1}-${end1} overlaps with ${start2}-${end2}.';
+          }
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  // Helper function to convert time string (HH:MM) to minutes
+  int _timeToMinutes(String time) {
+    try {
+      List<String> parts = time.split(':');
+      int hours = int.parse(parts[0]);
+      int minutes = int.parse(parts[1]);
+      return hours * 60 + minutes;
+    } catch (e) {
+      return 0; // Default to 0 if parsing fails
+    }
+  }
+
   void _showAddDoctorDialog() {
     final formKey = GlobalKey<FormState>();
 
@@ -317,6 +385,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
     bool suspended = false;
     String? selectedHospitalId;
     List<String> selectedPatients = [];
+    List<Map<String, String>> schedule = [];
     
     showDialog(
       context: context,
@@ -640,6 +709,163 @@ class _DoctorsPageState extends State<DoctorsPage> {
                         ],
                       ),
                     ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Schedule Management section
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Weekly Schedule', 
+                                style: TextStyle(
+                                  fontSize: 18, 
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEC407A),
+                                )
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  setDialogState(() {
+                                    schedule.add({
+                                      'day': 'Monday',
+                                      'start': '09:00',
+                                      'end': '17:00',
+                                    });
+                                  });
+                                },
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text('Add Day'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFEC407A),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          if (schedule.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.schedule, color: Colors.grey.shade600),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'No schedule set. Click "Add Day" to create working hours.',
+                                    style: TextStyle(color: Colors.grey.shade600),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            ...schedule.asMap().entries.map((entry) {
+                              int index = entry.key;
+                              Map<String, String> daySchedule = entry.value;
+                              
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Row(
+                                    children: [
+                                      // Day dropdown
+                                      Expanded(
+                                        flex: 2,
+                                        child: DropdownButtonFormField<String>(
+                                          value: daySchedule['day'],
+                                          decoration: const InputDecoration(
+                                            labelText: 'Day',
+                                            border: OutlineInputBorder(),
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            isDense: true,
+                                          ),
+                                          items: [
+                                            'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
+                                            'Friday', 'Saturday', 'Sunday'
+                                          ].map((day) => DropdownMenuItem(
+                                            value: day,
+                                            child: Text(day),
+                                          )).toList(),
+                                          onChanged: (value) {
+                                            if (value != null) {
+                                              setDialogState(() {
+                                                schedule[index]['day'] = value;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      
+                                      // Start time
+                                      Expanded(
+                                        child: TextFormField(
+                                          initialValue: daySchedule['start'],
+                                          decoration: const InputDecoration(
+                                            labelText: 'Start',
+                                            border: OutlineInputBorder(),
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            isDense: true,
+                                          ),
+                                          onChanged: (value) {
+                                            schedule[index]['start'] = value;
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      
+                                      // End time
+                                      Expanded(
+                                        child: TextFormField(
+                                          initialValue: daySchedule['end'],
+                                          decoration: const InputDecoration(
+                                            labelText: 'End',
+                                            border: OutlineInputBorder(),
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            isDense: true,
+                                          ),
+                                          onChanged: (value) {
+                                            schedule[index]['end'] = value;
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      
+                                      // Remove button
+                                      IconButton(
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            schedule.removeAt(index);
+                                          });
+                                        },
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        tooltip: 'Remove',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -660,6 +886,19 @@ class _DoctorsPageState extends State<DoctorsPage> {
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
+                  
+                  // Validate schedule for overlaps
+                  String? scheduleError = _validateSchedule(schedule);
+                  if (scheduleError != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(scheduleError),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  
                   Navigator.pop(ctx);
 
                   final licensesList = licensesRaw
@@ -683,6 +922,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                       hospitalId: selectedHospitalId!,
                       suspended: suspended,
                       patients: selectedPatients,
+                      schedule: schedule,
                     );
 
                     await _fetchDoctors();
@@ -726,6 +966,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
     final bool originalSuspended = doc.suspended;
     final List<String> originalPatients = List.from(doc.patients);
     final String originalHospitalId = doc.hospitalId;
+    final List<Map<String, String>> originalSchedule = List.from(doc.schedule);
 
     // Editable values
     String name = originalName;
@@ -739,6 +980,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
     bool suspended = originalSuspended;
     String hospitalId = doc.hospitalId;
     List<String> selectedPatients = List.from(originalPatients);
+    List<Map<String, String>> schedule = doc.schedule.map((s) => Map<String, String>.from(s)).toList();
     
     // Hospital and patient search controllers
     TextEditingController hospitalSearchController = TextEditingController();
@@ -1147,6 +1389,163 @@ class _DoctorsPageState extends State<DoctorsPage> {
                         ],
                       ),
                     ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Schedule Management section
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Weekly Schedule', 
+                                style: TextStyle(
+                                  fontSize: 18, 
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEC407A),
+                                )
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  setDialogState(() {
+                                    schedule.add({
+                                      'day': 'Monday',
+                                      'start': '09:00',
+                                      'end': '17:00',
+                                    });
+                                  });
+                                },
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text('Add Day'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFEC407A),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          if (schedule.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.schedule, color: Colors.grey.shade600),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'No schedule set. Click "Add Day" to create working hours.',
+                                    style: TextStyle(color: Colors.grey.shade600),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            ...schedule.asMap().entries.map((entry) {
+                              int index = entry.key;
+                              Map<String, String> daySchedule = entry.value;
+                              
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Row(
+                                    children: [
+                                      // Day dropdown
+                                      Expanded(
+                                        flex: 2,
+                                        child: DropdownButtonFormField<String>(
+                                          value: daySchedule['day'],
+                                          decoration: const InputDecoration(
+                                            labelText: 'Day',
+                                            border: OutlineInputBorder(),
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            isDense: true,
+                                          ),
+                                          items: [
+                                            'Monday', 'Tuesday', 'Wednesday', 'Thursday', 
+                                            'Friday', 'Saturday', 'Sunday'
+                                          ].map((day) => DropdownMenuItem(
+                                            value: day,
+                                            child: Text(day),
+                                          )).toList(),
+                                          onChanged: (value) {
+                                            if (value != null) {
+                                              setDialogState(() {
+                                                schedule[index]['day'] = value;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      
+                                      // Start time
+                                      Expanded(
+                                        child: TextFormField(
+                                          initialValue: daySchedule['start'],
+                                          decoration: const InputDecoration(
+                                            labelText: 'Start',
+                                            border: OutlineInputBorder(),
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            isDense: true,
+                                          ),
+                                          onChanged: (value) {
+                                            schedule[index]['start'] = value;
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      
+                                      // End time
+                                      Expanded(
+                                        child: TextFormField(
+                                          initialValue: daySchedule['end'],
+                                          decoration: const InputDecoration(
+                                            labelText: 'End',
+                                            border: OutlineInputBorder(),
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            isDense: true,
+                                          ),
+                                          onChanged: (value) {
+                                            schedule[index]['end'] = value;
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      
+                                      // Remove button
+                                      IconButton(
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            schedule.removeAt(index);
+                                          });
+                                        },
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        tooltip: 'Remove',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1167,6 +1566,19 @@ class _DoctorsPageState extends State<DoctorsPage> {
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
+                  
+                  // Validate schedule for overlaps
+                  String? scheduleError = _validateSchedule(schedule);
+                  if (scheduleError != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(scheduleError),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  
                   Navigator.pop(ctx);
 
                   setState(() => _isLoading = true);
@@ -1280,6 +1692,21 @@ class _DoctorsPageState extends State<DoctorsPage> {
                       }
                     }
                     if (patientsChanged) updatedFields["patients"] = selectedPatients;
+                    
+                    // Check if schedule has changed
+                    bool scheduleChanged = schedule.length != originalSchedule.length;
+                    if (!scheduleChanged) {
+                      for (int i = 0; i < schedule.length; i++) {
+                        if (i >= originalSchedule.length || 
+                            schedule[i]['day'] != originalSchedule[i]['day'] ||
+                            schedule[i]['start'] != originalSchedule[i]['start'] ||
+                            schedule[i]['end'] != originalSchedule[i]['end']) {
+                          scheduleChanged = true;
+                          break;
+                        }
+                      }
+                    }
+                    if (scheduleChanged) updatedFields["schedule"] = schedule;
 
                     // Only make the API call if there are changes
                     if (updatedFields.isNotEmpty) {
