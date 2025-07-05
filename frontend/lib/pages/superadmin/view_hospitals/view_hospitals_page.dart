@@ -125,6 +125,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
     String addr = h.address;
     String mobiles = h.mobileNumbers.join(', ');
     String emails = h.emails.join(', ');
+    String adminId = h.adminId;
     bool suspended = h.suspended;
 
     showDialog(
@@ -147,6 +148,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
                 _txt('Address', (v) => addr = v, initial: addr),
                 _txt('Mobiles', (v) => mobiles = v, initial: mobiles, required: false),
                 _txt('Emails', (v) => emails = v, initial: emails, required: false),
+                _txt('Admin ID (optional)', (v) => adminId = v, initial: adminId, required: false),
                 Row(children: [
                   const Text('Suspended?'),
                   Checkbox(
@@ -188,6 +190,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
                         .map((e) => e.trim())
                         .where((e) => e.isNotEmpty)
                         .toList(),
+                    'admin': adminId.isNotEmpty ? adminId : null,
                     'suspended': suspended,
                   },
                 );

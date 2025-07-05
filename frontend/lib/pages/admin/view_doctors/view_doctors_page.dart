@@ -339,7 +339,6 @@ class _DoctorsPageState extends State<DoctorsPage> {
     String birthDate = '';
     String licensesRaw = '';
     String description = '';
-    String? selectedHospitalId;
     List<String> selectedPatients = [];
     
     showDialog(
@@ -516,35 +515,29 @@ class _DoctorsPageState extends State<DoctorsPage> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Hospital dropdown selector
-                          DropdownButtonFormField<String>(
-                            decoration: const InputDecoration(
-                              labelText: 'Assigned Hospital',
-                              prefixIcon: Icon(Icons.local_hospital),
-                              border: OutlineInputBorder(),
+                          // Hospital assignment info (read-only)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue.shade200),
                             ),
-                            hint: const Text('Select a hospital'),
-                            value: selectedHospitalId,
-                            isExpanded: true,
-                            items: _hospitalList.map((hospital) {
-                              return DropdownMenuItem<String>(
-                                value: hospital.id,
-                                child: Text(hospital.name),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setDialogState(() {
-                                selectedHospitalId = value;
-                                // Clear selected patients when hospital changes
-                                selectedPatients = [];
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please select a hospital';
-                              }
-                              return null;
-                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.local_hospital, color: Colors.blue.shade700),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Doctor will be assigned to your hospital automatically',
+                                    style: TextStyle(
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           
                         ],
@@ -564,24 +557,12 @@ class _DoctorsPageState extends State<DoctorsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Text('Patient Assignment', 
-                                style: TextStyle(
-                                  fontSize: 18, 
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFFEC407A),
-                                )
-                              ),
-                              if (selectedHospitalId == null)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Tooltip(
-                                    message: 'Select a hospital first to assign patients',
-                                    child: Icon(Icons.info_outline, color: Colors.grey.shade600),
-                                  ),
-                                ),
-                            ],
+                          Text('Patient Assignment', 
+                            style: TextStyle(
+                              fontSize: 18, 
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFFEC407A),
+                            )
                           ),
                           const SizedBox(height: 16),
                           
@@ -604,11 +585,9 @@ class _DoctorsPageState extends State<DoctorsPage> {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        selectedHospitalId == null
-                                            ? 'Select a hospital first'
-                                            : selectedPatients.isEmpty 
-                                                ? 'No patients assigned yet'
-                                                : 'Click "Manage Patients" to view or edit assignments',
+                                        selectedPatients.isEmpty 
+                                            ? 'No patients assigned yet'
+                                            : 'Click "Manage Patients" to view or edit assignments',
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade700,
@@ -620,20 +599,18 @@ class _DoctorsPageState extends State<DoctorsPage> {
                               ),
                               const SizedBox(width: 16),
                               ElevatedButton.icon(
-                                onPressed: selectedHospitalId == null
-                                    ? null // Disable if no hospital selected
-                                    : () {
-                                        _showPatientSelectionDialog(
-                                          dialogContext,
-                                          selectedPatients,
-                                          (updatedPatients) {
-                                            setDialogState(() {
-                                              selectedPatients = updatedPatients;
-                                            });
-                                          },
-                                          selectedHospitalId!,
-                                        );
-                                      },
+                                onPressed: () {
+                                  _showPatientSelectionDialog(
+                                    dialogContext,
+                                    selectedPatients,
+                                    (updatedPatients) {
+                                      setDialogState(() {
+                                        selectedPatients = updatedPatients;
+                                      });
+                                    },
+                                    _adminHospitalId!,
+                                  );
+                                },
                                 icon: const Icon(Icons.people),
                                 label: const Text('Manage Patients'),
                                 style: ElevatedButton.styleFrom(
@@ -689,7 +666,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                       birthDate: birthDate,
                       licenses: licensesList,
                       description: description,
-                      hospitalId: selectedHospitalId!,
+                      hospitalId: _adminHospitalId!,
                       suspended: false,
                       patients: selectedPatients,
                     );

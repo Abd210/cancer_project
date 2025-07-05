@@ -5,6 +5,7 @@ class HospitalData {
   final String address;
   final List<String> mobileNumbers;
   final List<String> emails;
+  final String adminId; // Firestore ID of the hospital's admin
   final bool suspended; // changed from isSuspended to match backend
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -15,6 +16,7 @@ class HospitalData {
     required this.address,
     required this.mobileNumbers,
     required this.emails,
+    required this.adminId,
     required this.suspended,
     this.createdAt,
     this.updatedAt,
@@ -37,6 +39,7 @@ class HospitalData {
       id: json['id'] ?? json['_id'] ?? '',
       name: json['name'] ?? '',
       address: json['address'] ?? '',
+      adminId: json['admin'] ?? '', // Maps 'admin' field from backend to 'adminId'
       suspended: json['suspended'] ?? false,
       mobileNumbers: json['mobileNumbers'] != null
           ? List<String>.from(json['mobileNumbers'])

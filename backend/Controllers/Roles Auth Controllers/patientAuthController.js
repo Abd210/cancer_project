@@ -35,7 +35,7 @@ class PatientAuthController {
         medicalHistory,
         hospital,
         suspended,
-        doctor, //
+        doctors, // Changed from doctor to doctors array
       } = req.body;
 
       // Check for required fields for Patient
@@ -50,7 +50,7 @@ class PatientAuthController {
         !birthDate ||
         !medicalHistory ||
         !hospital ||
-        !doctor
+        !doctors
       ) {
         return res.status(400).json({
           error: `Missing required fields: ${!persId ? "pers. id, " : ""}${
@@ -59,9 +59,16 @@ class PatientAuthController {
             !mobileNumber ? "mobile number, " : ""
           }${!email ? "email, " : ""}${!status ? "status, " : ""}${
             !diagnosis ? "diagnosis, " : ""
-          }${!doctor ? "doctor id" : ""}${!birthDate ? "date of birth, " : ""}${
+          }${!doctors ? "doctors array" : ""}${!birthDate ? "date of birth, " : ""}${
             !medicalHistory ? "medical history, " : ""
           }${!hospital ? "hospital id" : ""}`.slice(0, -2),
+        });
+      }
+
+      // Validate doctors array
+      if (!Array.isArray(doctors) || doctors.length === 0) {
+        return res.status(400).json({
+          error: "doctors must be a non-empty array of doctor IDs",
         });
       }
 
@@ -79,7 +86,7 @@ class PatientAuthController {
         medicalHistory,
         hospital: hospital,
         suspended,
-        doctor: doctor,
+        doctors: doctors, // Pass the doctors array
       });
 
       // Extract the new patient's ID
@@ -88,21 +95,18 @@ class PatientAuthController {
         return res.status(500).json({ error: "Failed to retrieve patient ID after registration" });
       }
 
-      // Update the assigned doctor's `patients` array
-      const doctorRef = db.collection("doctors").doc(doctor);
-
-      await db.runTransaction(async (transaction) => {
-        const doctorDoc = await transaction.get(doctorRef);
-
-        if (!doctorDoc.exists) {
-          throw new Error("Assigned doctor not found");
-        }
-
-        // Add the new patient to the doctor's patients array using `arrayUnion`
-        transaction.update(doctorRef, {
+      // Update all assigned doctors' `patients` arrays
+      const batch = db.batch();
+      
+      for (const doctorId of doctors) {
+        const doctorRef = db.collection("doctors").doc(doctorId);
+        batch.update(doctorRef, {
           patients: admin.firestore.FieldValue.arrayUnion(patientId),
         });
-      });
+      }
+
+      // Commit the batch update
+      await batch.commit();
 
       // Return the result of the registration
       res.status(201).json(result);

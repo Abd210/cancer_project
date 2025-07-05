@@ -90,7 +90,7 @@ class PatientService {
   static async findAllPatientsByDoctor(doctorId) {
     const snapshot = await db
       .collection("patients")
-      .where("doctor", "==", doctorId)
+      .where("doctors", "array-contains", doctorId)
       .get();
 
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -190,7 +190,7 @@ class PatientService {
       "status",
       "diagnosis",
       "medicalHistory",
-      "doctor",
+      "doctors",
       "suspended",
     ];
 
@@ -362,39 +362,57 @@ class PatientService {
     //   await patientRef.update(updateFields);
     // }
 
-    if (
-      updateFields.doctor &&
-      updateFields.doctor !== currentPatientData.doctor
-    ) {
-      // Validate that the new doctor exists.
-      const newDoctorDoc = await db
-        .collection("doctors")
-        .doc(updateFields.doctor)
-        .get();
-      if (!newDoctorDoc.exists) {
-        throw new Error("Invalid doctor: new doctor not found");
+    if (updateFields.doctors !== undefined) {
+      // Validate that the doctors field is an array of strings
+      if (!Array.isArray(updateFields.doctors) || !updateFields.doctors.every(doc => typeof doc === "string")) {
+        throw new Error("Invalid doctors: must be an array of doctor ID strings");
       }
 
-      await db.runTransaction(async (transaction) => {
-        let prevDoctorRef, newDoctorRef;
-        if (currentPatientData.doctor) {
-          prevDoctorRef = db
-            .collection("doctors")
-            .doc(currentPatientData.doctor);
+      // Validate that all doctors exist
+      for (const doctorId of updateFields.doctors) {
+        const doctorDoc = await db.collection("doctors").doc(doctorId).get();
+        if (!doctorDoc.exists) {
+          throw new Error(`Invalid doctor: doctor ${doctorId} not found`);
         }
-        newDoctorRef = db.collection("doctors").doc(updateFields.doctor);
+      }
 
-        if (currentPatientData.doctor) {
-          transaction.update(prevDoctorRef, {
-            patients: admin.firestore.FieldValue.arrayRemove(patientId),
-          });
-        }
-        transaction.update(newDoctorRef, {
-          patients: admin.firestore.FieldValue.arrayUnion(patientId),
+      // Only update if doctors array has actually changed
+      const currentDoctors = currentPatientData.doctors || [];
+      const newDoctors = updateFields.doctors || [];
+      
+      // Sort arrays to compare properly
+      const sortedCurrent = [...currentDoctors].sort();
+      const sortedNew = [...newDoctors].sort();
+      
+      if (JSON.stringify(sortedCurrent) !== JSON.stringify(sortedNew)) {
+        await db.runTransaction(async (transaction) => {
+          // Remove patient from doctors who are no longer assigned
+          const doctorsToRemove = currentDoctors.filter(doctorId => !newDoctors.includes(doctorId));
+          for (const doctorId of doctorsToRemove) {
+            const doctorRef = db.collection("doctors").doc(doctorId);
+            transaction.update(doctorRef, {
+              patients: admin.firestore.FieldValue.arrayRemove(patientId),
+            });
+          }
+
+          // Add patient to new doctors
+          const doctorsToAdd = newDoctors.filter(doctorId => !currentDoctors.includes(doctorId));
+          for (const doctorId of doctorsToAdd) {
+            const doctorRef = db.collection("doctors").doc(doctorId);
+            transaction.update(doctorRef, {
+              patients: admin.firestore.FieldValue.arrayUnion(patientId),
+            });
+          }
+
+          // Update the patient's document
+          updateFields.updatedAt = new Date();
+          transaction.update(patientRef, updateFields);
         });
+      } else {
+        // No change in doctors, update normally
         updateFields.updatedAt = new Date();
-        transaction.update(patientRef, updateFields);
-      });
+        await patientRef.update(updateFields);
+      }
     } else {
       updateFields.updatedAt = new Date();
       await patientRef.update(updateFields);
@@ -418,14 +436,16 @@ class PatientService {
     const batch = db.batch();
 
     const patientData = patientDoc.data();
-    const doctorId = patientData?.doctor; // Safely get doctor ID
+    const doctorIds = patientData?.doctors || []; // Safely get doctor IDs array
 
-    // 🔹 Remove patient from doctor's patients array before deletion
-    if (doctorId && typeof doctorId === "string" && doctorId.trim() !== "") {
-      const doctorRef = db.collection("doctors").doc(doctorId);
-      batch.update(doctorRef, {
-        patients: admin.firestore.FieldValue.arrayRemove(patientId),
-      });
+    // 🔹 Remove patient from all doctors' patients arrays before deletion
+    for (const doctorId of doctorIds) {
+      if (doctorId && typeof doctorId === "string" && doctorId.trim() !== "") {
+        const doctorRef = db.collection("doctors").doc(doctorId);
+        batch.update(doctorRef, {
+          patients: admin.firestore.FieldValue.arrayRemove(patientId),
+        });
+      }
     }
 
     // 🔹 Delete all appointments and tests where "patient" field matches patientId

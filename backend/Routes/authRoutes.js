@@ -50,7 +50,7 @@ const { authorize, identifyUserRole } = require("../middlewares/roleAuth");
 router.post(
   "/register",
   authenticate,
-  authorize("superadmin"),
+  authorize(["superadmin", "admin"]),
   AuthController.register
 );
 

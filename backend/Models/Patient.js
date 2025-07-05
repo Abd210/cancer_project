@@ -16,7 +16,7 @@ class Patient {
     mobileNumber,
     birthDate,
     hospital,
-    doctor, //
+    doctors = [], // Changed from doctor to doctors array
     status = "active",
     diagnosis = "Not Diagnosed",
     medicalHistory = [],
@@ -39,9 +39,9 @@ class Patient {
       throw new Error(
         "Invalid hospital: must be a Firestore document reference"
       );
-    if (typeof doctor !== "string")
+    if (!Array.isArray(doctors) || !doctors.every(doc => typeof doc === "string"))
       throw new Error(
-        "Invalid doctor: must be a Firestore document reference"
+        "Invalid doctors: must be an array of Firestore document reference strings"
       );
     if (!STATUSES.includes(status))
       throw new Error(
@@ -67,7 +67,7 @@ class Patient {
     this.diagnosis = diagnosis;
     this.medicalHistory = medicalHistory;
     this.role = role;
-    this.doctor = doctor;
+    this.doctors = doctors;
     this.suspended = suspended;
     this.createdAt = new Date();
     this.updatedAt = new Date();

@@ -9,6 +9,7 @@ import 'package:frontend/shared/components/custom_drawer.dart';
 
 // Import these pages
 import 'view_hospitals/view_hospitals_page.dart';
+import 'view_admins/view_admins_page.dart';
 import 'view_doctors/view_doctors_page.dart';
 import 'view_patients/view_patients_page.dart';
 import 'devices/devices_page.dart';
@@ -29,6 +30,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
   // The sidebar items
   final List<SidebarItem> _adminItems = [
     SidebarItem(icon: Icons.local_hospital, label: 'Hospitals'),
+    SidebarItem(icon: Icons.admin_panel_settings, label: 'Admins'),
     SidebarItem(icon: Icons.person, label: 'Doctors'),
     SidebarItem(icon: Icons.group, label: 'Patients'),
     SidebarItem(icon: Icons.device_hub, label: 'Devices'),
@@ -39,7 +41,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
 
   void _onMenuItemClicked(int index) {
     // If logout
-    if (index == 6) {
+    if (index == 7) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LogIn()),
@@ -57,11 +59,12 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
     // Rebuild your pages every time build() is called
     final pages = [
       HospitalsPage(token: widget.token), // 0
-      DoctorsPage(token: widget.token),                // 1
-      PatientsPage(token: widget.token),               // 2
-      DevicesPage(token: widget.token),                // 3 // Added token
-      AppointmentsPage(token: widget.token),           // 4
-      TicketsPage(token: widget.token),                // 5
+      AdminsPage(token: widget.token),                 // 1
+      DoctorsPage(token: widget.token),                // 2
+      PatientsPage(token: widget.token),               // 3
+      DevicesPage(token: widget.token),                // 4
+      AppointmentsPage(token: widget.token),           // 5
+      TicketsPage(token: widget.token),                // 6
     ];
 
     return Scaffold(

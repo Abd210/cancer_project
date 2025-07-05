@@ -34,9 +34,9 @@ class HospitalService {
     await this._checkUniqueFields("mobileNumbers", mobileNumbers);
 
     // Validate admin if provided
-    if (adminId !== undefined) {
-      if (typeof adminId !== "string" || adminId.trim() === "") {
-        throw new Error("Invalid admin: must be a non-empty string");
+    if (adminId !== undefined && adminId !== null && adminId !== "") {
+      if (typeof adminId !== "string") {
+        throw new Error("Invalid admin: must be a string");
       }
       
       // Check if the admin exists in the admins collection
@@ -52,7 +52,7 @@ class HospitalService {
       address,
       mobileNumbers,
       emails,
-      admin: adminId,
+      admin: adminId || "", // Default to empty string
       createdAt: admin.firestore.Timestamp.now(),
       suspended: suspended || false,
     };
@@ -60,8 +60,8 @@ class HospitalService {
     const docRef = await hospitalRef.add(newHospital);
     const hospitalId = docRef.id;
 
-    // Handle bidirectional relationship if admin is provided
-    if (adminId) {
+    // Handle bidirectional relationship if admin is provided and not empty
+    if (adminId && adminId !== "") {
       await this._manageBidirectionalHospitalAdminRelation(hospitalId, adminId, null);
     }
 
@@ -206,8 +206,8 @@ class HospitalService {
 
     if (updateFields.admin !== undefined) {
       if (updateFields.admin === null || updateFields.admin === "") {
-        // Allow clearing the admin field
-        updateFields.admin = null;
+        // Allow clearing the admin field - convert to empty string for consistency
+        updateFields.admin = "";
       } else {
         if (typeof updateFields.admin !== "string") {
           throw new Error("Invalid admin: must be a string or null");
@@ -224,12 +224,15 @@ class HospitalService {
     // Handle bidirectional admin-hospital relationship if admin field is being updated
     if (updateFields.admin !== undefined) {
       const currentHospitalData = hospitalDoc.data();
-      const oldAdminId = currentHospitalData.admin;
-      const newAdminId = updateFields.admin;
+      const oldAdminId = currentHospitalData.admin || "";
+      const newAdminId = updateFields.admin || "";
       
       // Only manage bidirectional relationship if the admin is actually changing
       if (oldAdminId !== newAdminId) {
-        await this._manageBidirectionalHospitalAdminRelation(hospitalId, newAdminId, oldAdminId);
+        // Pass null for empty strings to the relationship manager
+        const oldAdminForRelation = oldAdminId === "" ? null : oldAdminId;
+        const newAdminForRelation = newAdminId === "" ? null : newAdminId;
+        await this._manageBidirectionalHospitalAdminRelation(hospitalId, newAdminForRelation, oldAdminForRelation);
       }
     }
 

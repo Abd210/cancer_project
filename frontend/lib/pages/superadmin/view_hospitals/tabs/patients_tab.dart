@@ -105,7 +105,7 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
                     birthDate: DateTime.now().toIso8601String(),
                     medicalHistory: [],
                     hospitalId: widget.hospitalId,
-                    doctorId: _fetchDefaultDoctor(widget.hospitalId),
+                    doctorIds: [_fetchDefaultDoctor(widget.hospitalId)],
                     suspended: suspended,
                   );
                   Fluttertoast.showToast(msg: 'Patient added.');

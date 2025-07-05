@@ -27,7 +27,7 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
 
   late Future<PatientData> _patientData;
   Future<HospitalData>? _hospitalData;
-  Future<DoctorData>? _doctorData;
+  Future<List<DoctorData>>? _doctorsData;
 
   @override
   void initState() {
@@ -51,8 +51,19 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
               throw Exception('Hospital data not found');
             }
           });
-          _doctorData = _doctorProvider.getDoctorPublicData(
-              token: widget.token, doctorId: patient.doctorId);
+          // Fetch all doctors assigned to the patient
+          if (patient.doctorIds.isNotEmpty) {
+            _doctorsData = Future.wait(
+              patient.doctorIds.map((doctorId) => 
+                _doctorProvider.getDoctorPublicData(
+                  token: widget.token, 
+                  doctorId: doctorId
+                )
+              ).toList()
+            );
+          } else {
+            _doctorsData = Future.value(<DoctorData>[]);
+          }
         });
         return patient;
       } else {
@@ -172,7 +183,7 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
             ),
             const SizedBox(height: 16),
 
-            // Assigned Doctor Section
+            // Assigned Doctors Section
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -180,18 +191,18 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Assigned Doctor',
+                      'Assigned Doctors',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    FutureBuilder<DoctorData>(
-                      future: _doctorData,
+                    FutureBuilder<List<DoctorData>>(
+                      future: _doctorsData,
                       builder: (context, snapshot) {
-                        if (_doctorData == null) {
-                          return const Text('No doctor assigned');
+                        if (_doctorsData == null) {
+                          return const Text('No doctors assigned');
                         }
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -200,21 +211,47 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
                         if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
                         }
-                        if (!snapshot.hasData) {
-                          return const Text('No doctor assigned');
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Text('No doctors assigned');
                         }
-                        final doctor = snapshot.data!;
+                        final doctors = snapshot.data!;
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildInfoRow('Name', doctor.name),
-                            _buildInfoRow('Specialization', doctor.description),
-                            _buildInfoRow('Email', doctor.email),
-                            _buildInfoRow('Phone', doctor.mobileNumber),
-                            if (doctor.licenses.isNotEmpty)
-                              _buildInfoRow(
-                                  'Licenses', doctor.licenses.join(', ')),
-                          ],
+                          children: doctors.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final doctor = entry.value;
+                            return Container(
+                              margin: EdgeInsets.only(
+                                bottom: index < doctors.length - 1 ? 16 : 0
+                              ),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Doctor ${index + 1}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('Name', doctor.name),
+                                  _buildInfoRow('Specialization', doctor.description),
+                                  _buildInfoRow('Email', doctor.email),
+                                  _buildInfoRow('Phone', doctor.mobileNumber),
+                                  if (doctor.licenses.isNotEmpty)
+                                    _buildInfoRow(
+                                        'Licenses', doctor.licenses.join(', ')),
+                                ],
+                              ),
+                            );
+                          }).toList(),
                         );
                       },
                     ),

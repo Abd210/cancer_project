@@ -35,6 +35,39 @@ class AdminProvider {
   }
 
   //--------------------------------------------------------------------
+  // CREATE
+  //--------------------------------------------------------------------
+  Future<void> createAdmin({
+    required String token,
+    required String persId,
+    required String name,
+    required String password,
+    required String email,
+    required String mobileNumber,
+    required String hospitalId,
+    required bool suspended,
+  }) async {
+    final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.registerRoute}');
+    final headers = ClassUtil.baseHeaders(token: token);
+
+    final body = jsonEncode({
+      'persId': persId,
+      'name': name,
+      'role': 'admin',
+      'password': password,
+      'email': email,
+      'mobileNumber': mobileNumber,
+      'hospital': hospitalId,
+      'suspended': suspended,
+    });
+
+    final res = await http.post(url, headers: headers, body: body);
+    if (res.statusCode != 200 && res.statusCode != 201) {
+      throw Exception('Admin create failed [${res.statusCode}]: ${res.body}');
+    }
+  }
+
+  //--------------------------------------------------------------------
   // UPDATE
   //--------------------------------------------------------------------
   Future<void> updateAdmin({

@@ -246,6 +246,22 @@ class AdminService {
         case "mobileNumber":
           field_updated = "mobileNumbers";
           break;
+        case "persId":
+          // persId is only checked in user collections, not hospitals
+          for (const collection of ["patients", "doctors", "admins", "superadmins"]) {
+            const snapshot = await db
+              .collection(collection)
+              .where(field, "==", value)
+              .get();
+            
+            for (const doc of snapshot.docs) {
+              // If we're excluding our own record, skip it
+              if (doc.id !== excludeId) {
+                throw new Error(`The ${field} '${value}' is already in use`);
+              }
+            }
+          }
+          return; // Exit early for persId since it doesn't need the rest of the logic
         default:
           throw new Error("Invalid field provided.");
       }

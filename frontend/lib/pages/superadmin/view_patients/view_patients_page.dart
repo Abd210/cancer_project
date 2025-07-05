@@ -670,7 +670,7 @@ class _PatientsPageState extends State<PatientsPage> {
                       birthDate: birthDate.toIso8601String().split('T')[0],
                       medicalHistory: medicalHistory,
                       hospitalId: selectedHospitalId!,
-                      doctorId: selectedDoctorId!,
+                      doctorIds: [selectedDoctorId!],
                       suspended: suspended,
                     );
                     await _fetchPatients();

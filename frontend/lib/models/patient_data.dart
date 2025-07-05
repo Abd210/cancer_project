@@ -10,7 +10,7 @@ class PatientData {
   final String mobileNumber;
   final DateTime birthDate;
   final String hospitalId; // from "hospital"
-  final String doctorId; // from "doctor"
+  final List<String> doctorIds; // from "doctors" - array of doctor IDs
   final String status; // "recovering", "recovered", "active", "inactive"
   final String diagnosis;
   final List<String> medicalHistory;
@@ -28,7 +28,7 @@ class PatientData {
     required this.mobileNumber,
     required this.birthDate,
     required this.hospitalId,
-    required this.doctorId,
+    required this.doctorIds,
     required this.status,
     required this.diagnosis,
     required this.medicalHistory,
@@ -81,7 +81,9 @@ class PatientData {
         mobileNumber: json['mobileNumber'] ?? '',
         birthDate: parseTimestamp(json['birthDate']),
         hospitalId: json['hospital'] ?? '',
-        doctorId: json['doctor'] ?? '',
+        doctorIds: json['doctors'] != null
+            ? List<String>.from(json['doctors'])
+            : <String>[],
         status: json['status'] ?? 'active',
         diagnosis: json['diagnosis'] ?? '',
         medicalHistory: json['medicalHistory'] != null

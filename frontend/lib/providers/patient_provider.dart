@@ -118,7 +118,7 @@ class PatientProvider {
     required String birthDate,
     required List<String> medicalHistory,
     required String hospitalId,
-    required String doctorId,
+    required List<String> doctorIds,
     required bool suspended,
   }) async {
     final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.registerRoute}');
@@ -136,7 +136,7 @@ class PatientProvider {
       'birthDate': birthDate,
       'medicalHistory': medicalHistory,
       'hospital': hospitalId,
-      'doctor': doctorId,
+      'doctors': doctorIds,
       'suspended': suspended,
     });
 

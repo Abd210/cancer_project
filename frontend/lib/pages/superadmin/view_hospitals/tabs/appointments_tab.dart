@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/models/appointment_data.dart';
 import 'package:frontend/providers/appointment_provider.dart';
+import 'package:frontend/providers/patient_provider.dart';
+import 'package:frontend/providers/doctor_provider.dart';
+import 'package:frontend/models/patient_data.dart';
+import 'package:frontend/models/doctor_data.dart';
 import 'package:intl/intl.dart';
 
 class HospitalAppointmentsTab extends StatefulWidget {
@@ -21,28 +25,116 @@ class HospitalAppointmentsTab extends StatefulWidget {
 
 class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
   final _provider = AppointmentProvider();
+  final _patientProvider = PatientProvider();
+  final _doctorProvider = DoctorProvider();
   bool _loading = false;
   List<AppointmentData> _list = [];
+  List<PatientData> _patients = [];
+  List<DoctorData> _doctors = [];
 
   @override
   void initState() {
     super.initState();
     _fetch();
+    _fetchPatients();
+    _fetchDoctors();
   }
 
   Future<void> _fetch() async {
     setState(() => _loading = true);
     try {
-      _list = await _provider.getHospitalUpcoming(
+      // Fetch both past and upcoming appointments to show all appointments
+      final pastList = await _provider.getFilteredHospitalAppointments(
         token: widget.token,
         hospitalId: widget.hospitalId,
+        timeDirection: 'past',
         suspendfilter: 'all',
       );
+      
+      final upcomingList = await _provider.getFilteredHospitalAppointments(
+        token: widget.token,
+        hospitalId: widget.hospitalId,
+        timeDirection: 'upcoming',
+        suspendfilter: 'all',
+      );
+      
+      // Combine both lists to show all appointments
+      _list = [...pastList, ...upcomingList];
     } catch (e) {
       Fluttertoast.showToast(msg: 'Load appointments failed: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _fetchPatients() async {
+    try {
+      _patients = await _patientProvider.getPatients(
+        token: widget.token,
+        hospitalId: widget.hospitalId,
+        filter: 'all',
+      );
+    } catch (e) {
+      print('Error fetching patients: $e');
+    }
+  }
+
+  Future<void> _fetchDoctors() async {
+    try {
+      _doctors = await _doctorProvider.getDoctors(
+        token: widget.token,
+        hospitalId: widget.hospitalId,
+        filter: 'all',
+      );
+    } catch (e) {
+      print('Error fetching doctors: $e');
+    }
+  }
+
+  String _getPatientName(String patientId) {
+    final patient = _patients.firstWhere(
+      (p) => p.id == patientId,
+      orElse: () => PatientData(
+        id: patientId,
+        name: 'Unknown Patient',
+        email: '',
+        mobileNumber: '',
+        persId: '',
+        status: '',
+        diagnosis: '',
+        birthDate: DateTime.now(),
+        medicalHistory: [],
+        hospitalId: '',
+        doctorIds: [],
+        suspended: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    return patient.name;
+  }
+
+  String _getDoctorName(String doctorId) {
+    final doctor = _doctors.firstWhere(
+      (d) => d.id == doctorId,
+      orElse: () => DoctorData(
+        id: doctorId,
+        name: 'Unknown Doctor',
+        email: '',
+        mobileNumber: '',
+        persId: '',
+        birthDate: DateTime.now(),
+        licenses: [],
+        description: '',
+        hospitalId: '',
+        patients: [],
+        schedule: [],
+        suspended: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    return doctor.name;
   }
 
   void _showUpsert([AppointmentData? existing]) {
@@ -118,6 +210,8 @@ class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
                   Fluttertoast.showToast(msg: 'Appointment updated.');
                 }
                 await _fetch();
+                await _fetchPatients();
+                await _fetchDoctors();
               } catch (e) {
                 Fluttertoast.showToast(msg: 'Save failed: $e');
               } finally {
@@ -151,6 +245,8 @@ class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
         );
         Fluttertoast.showToast(msg: 'Appointment deleted.');
         await _fetch();
+        await _fetchPatients();
+        await _fetchDoctors();
       } catch (e) {
         Fluttertoast.showToast(msg: 'Delete failed: $e');
       } finally {
@@ -175,7 +271,11 @@ class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
             ),
             const SizedBox(width: 8),
             ElevatedButton.icon(
-              onPressed: _fetch,
+              onPressed: () {
+                _fetch();
+                _fetchPatients();
+                _fetchDoctors();
+              },
               icon: const Icon(Icons.refresh),
               label: const Text('Refresh'),
             ),
@@ -196,8 +296,8 @@ class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
                       DataColumn(label: Text('Actions')),
                     ],
                     rows: _list.map((a) => DataRow(cells: [
-                      DataCell(Text(a.patientName)),
-                      DataCell(Text(a.doctorName)),
+                      DataCell(Text(_getPatientName(a.patientId))),
+                      DataCell(Text(_getDoctorName(a.doctorId))),
                       DataCell(Text(df.format(a.start))),
                       DataCell(Text(df.format(a.end))),
                       DataCell(Text(a.purpose)),

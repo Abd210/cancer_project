@@ -52,6 +52,7 @@ class HospitalProvider {
             address: 'Unknown Location',
             mobileNumbers: [],
             emails: [],
+            adminId: '',
             suspended: false,
           )
         ];
@@ -70,6 +71,7 @@ class HospitalProvider {
             address: 'Unknown Location',
             mobileNumbers: [],
             emails: [],
+            adminId: '',
             suspended: false,
           )
         ];
@@ -170,6 +172,7 @@ class HospitalProvider {
         address: 'Contact an administrator for details',
         mobileNumbers: [],
         emails: [],
+        adminId: '',
         suspended: false,
       );
     }

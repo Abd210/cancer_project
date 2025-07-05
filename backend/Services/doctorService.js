@@ -87,7 +87,7 @@ class DoctorService {
 
     const snapshot = await db
       .collection("patients")
-      .where("doctor", "==", doctorId)
+      .where("doctors", "array-contains", doctorId)
       .get();
 
     if (snapshot.empty) {
@@ -386,21 +386,37 @@ class DoctorService {
       // Remove doctor from removed patients
       await Promise.all(
         removedPatients.map(async (patientId) => {
-          await PatientService.updatePatient(
-            patientId,
-            { doctor: null },
-            { role: "superadmin" }
-          );
+          // Get current patient data to remove this doctor from their doctors array
+          const patientDoc = await db.collection("patients").doc(patientId).get();
+          if (patientDoc.exists) {
+            const patientData = patientDoc.data();
+            const currentDoctors = patientData.doctors || [];
+            const updatedDoctors = currentDoctors.filter(id => id !== doctorId);
+            await PatientService.updatePatient(
+              patientId,
+              { doctors: updatedDoctors },
+              { role: "superadmin" }
+            );
+          }
         })
       );
       // Add doctor to newly added patients
       await Promise.all(
         addedPatients.map(async (patientId) => {
-          await PatientService.updatePatient(
-            patientId,
-            { doctor: doctorId },
-            { role: "superadmin" }
-          );
+          // Get current patient data to add this doctor to their doctors array
+          const patientDoc = await db.collection("patients").doc(patientId).get();
+          if (patientDoc.exists) {
+            const patientData = patientDoc.data();
+            const currentDoctors = patientData.doctors || [];
+            if (!currentDoctors.includes(doctorId)) {
+              const updatedDoctors = [...currentDoctors, doctorId];
+              await PatientService.updatePatient(
+                patientId,
+                { doctors: updatedDoctors },
+                { role: "superadmin" }
+              );
+            }
+          }
         })
       );
     }
@@ -448,15 +464,19 @@ class DoctorService {
     const doctorData = doctorDoc.data();
     const patients = doctorData?.patients || []; // Ensure the patients array exists
 
-    // 🔹 Set `doctor` field to null for all patients in the doctor's list
+    // 🔹 Remove doctor from all patients' doctors arrays
     const updatePatientDoctorField = async () => {
       if (patients.length > 0) {
-        const patientRefs = patients.map((patientId) =>
-          db.collection("patients").doc(patientId)
-        );
-        patientRefs.forEach((patientRef) => {
-          batch.update(patientRef, { doctor: null });
-        });
+        // For each patient, we need to remove this doctor from their doctors array
+        for (const patientId of patients) {
+          const patientDoc = await db.collection("patients").doc(patientId).get();
+          if (patientDoc.exists) {
+            const patientData = patientDoc.data();
+            const currentDoctors = patientData.doctors || [];
+            const updatedDoctors = currentDoctors.filter(id => id !== doctorId);
+            batch.update(db.collection("patients").doc(patientId), { doctors: updatedDoctors });
+          }
+        }
       }
     };
 

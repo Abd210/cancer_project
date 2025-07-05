@@ -96,15 +96,28 @@ class DoctorAuthController {
       const doctorId = result.user.id;
       console.log(doctorId);
 
-      // If the patients array is not empty, update each patient's doctor field
+      // If the patients array is not empty, update each patient's doctors field
       if (patients && Array.isArray(patients) && patients.length > 0) {
         await Promise.all(
           patients.map(async (patientId) => {
-            await PatientService.updatePatient(
-              patientId,
-              { doctor: doctorId },
-              { role: user.role } // Ensuring proper role for permission
-            );
+            // Get current patient data to add this doctor to their doctors array
+            const patientDoc = await require("firebase-admin").firestore()
+              .collection("patients").doc(patientId).get();
+            
+            if (patientDoc.exists) {
+              const patientData = patientDoc.data();
+              const currentDoctors = patientData.doctors || [];
+              
+              // Add the new doctor if not already in the array
+              if (!currentDoctors.includes(doctorId)) {
+                const updatedDoctors = [...currentDoctors, doctorId];
+                await PatientService.updatePatient(
+                  patientId,
+                  { doctors: updatedDoctors },
+                  { role: user.role } // Ensuring proper role for permission
+                );
+              }
+            }
           })
         );
       }

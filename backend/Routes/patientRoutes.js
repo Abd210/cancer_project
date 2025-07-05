@@ -62,7 +62,7 @@ router.put(
 router.delete(
   "/patient/delete",
   authenticate, // Middleware to authenticate the user
-  authorize("superadmin"), // Middleware to allow only superadmins
+  authorize(["superadmin", "admin"]), // Middleware to allow only superadmins
   patientController.deletePatientData // Controller function
 );
 

@@ -3,7 +3,7 @@ const { db } = require("../firebase"); // Import shared Firebase instance
 const hospitalsCollection = db.collection("hospitals");
 
 class Hospital {
-  constructor({ name, address, mobileNumbers, emails, admin, suspended = false }) {
+  constructor({ name, address, mobileNumbers, emails, admin = "", suspended = false }) {
     if (typeof name !== "string")
       throw new Error("Invalid name: must be a string");
     if (typeof address !== "string")
@@ -20,8 +20,8 @@ class Hospital {
     ) {
       throw new Error("Invalid emails: must be an array of strings");
     }
-    if (admin !== undefined && typeof admin !== "string")
-      throw new Error("Invalid admin: must be a string or undefined");
+    if (admin !== undefined && admin !== null && typeof admin !== "string")
+      throw new Error("Invalid admin: must be a string, null, or undefined");
     if (typeof suspended !== "boolean")
       throw new Error("Invalid suspended: must be a boolean");
 
@@ -29,7 +29,7 @@ class Hospital {
     this.address = address;
     this.mobileNumbers = mobileNumbers;
     this.emails = emails;
-    this.admin = admin;
+    this.admin = admin || ""; // Default to empty string
     this.suspended = suspended;
     this.createdAt = new Date();
     this.updatedAt = new Date();

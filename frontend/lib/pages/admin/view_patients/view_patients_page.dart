@@ -96,13 +96,6 @@ class _PatientsPageState extends State<PatientsPage> {
   void _showAddPatientDialog() {
     final formKey = GlobalKey<FormState>();
 
-    // Check if hospitals are loaded
-    if (_hospitalList.isEmpty) {
-      Fluttertoast.showToast(msg: 'Please wait for hospitals to load...');
-      _fetchHospitals(); // Attempt to fetch hospitals again
-      return;
-    }
-
     // Check if doctors are loaded
     if (_doctorList.isEmpty) {
       Fluttertoast.showToast(msg: 'Please wait for doctors to load...');
@@ -120,16 +113,11 @@ class _PatientsPageState extends State<PatientsPage> {
     String diagnosis = '';
     DateTime birthDate = DateTime.now();
     String medicalHistoryRaw = '';
-    String? selectedHospitalId;
-    String? selectedDoctorId;
+    List<String> selectedDoctorIds = [];
 
-    // Hospital search
-    TextEditingController hospitalSearchController = TextEditingController();
-    List<HospitalData> filteredHospitals = List.from(_hospitalList);
-
-    // Doctor search
+    // Doctor search - filter by admin's hospital
     TextEditingController doctorSearchController = TextEditingController();
-    List<DoctorData> filteredDoctors = [];
+    List<DoctorData> filteredDoctors = _doctorList.where((doctor) => doctor.hospitalId == widget.hospitalId).toList();
 
     showDialog(
       context: context,
@@ -361,115 +349,8 @@ class _PatientsPageState extends State<PatientsPage> {
 
                     const SizedBox(height: 16),
 
-                    // Hospital Assignment section
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Hospital Assignment',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFFEC407A),
-                              )),
-                          const SizedBox(height: 16),
-
-                          // Hospital search field
-                          TextField(
-                            controller: hospitalSearchController,
-                            decoration: InputDecoration(
-                              labelText: 'Search Hospitals',
-                              prefixIcon: const Icon(Icons.search),
-                              border: const OutlineInputBorder(),
-                              suffixIcon:
-                                  hospitalSearchController.text.isNotEmpty
-                                      ? IconButton(
-                                          icon: const Icon(Icons.clear),
-                                          onPressed: () {
-                                            hospitalSearchController.clear();
-                                            setDialogState(() {
-                                              filteredHospitals =
-                                                  List.from(_hospitalList);
-                                            });
-                                          },
-                                        )
-                                      : null,
-                            ),
-                            onChanged: (query) {
-                              setDialogState(() {
-                                if (query.isEmpty) {
-                                  filteredHospitals = List.from(_hospitalList);
-                                } else {
-                                  filteredHospitals = _hospitalList
-                                      .where((hospital) =>
-                                          hospital.name
-                                              .toLowerCase()
-                                              .contains(query.toLowerCase()) ||
-                                          hospital.address
-                                              .toLowerCase()
-                                              .contains(query.toLowerCase()) ||
-                                          hospital.id
-                                              .toLowerCase()
-                                              .contains(query.toLowerCase()))
-                                      .toList();
-                                }
-                              });
-                            },
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Hospital dropdown
-                          DropdownButtonFormField<String>(
-                            decoration: const InputDecoration(
-                              labelText: 'Select Hospital',
-                              prefixIcon: Icon(Icons.local_hospital),
-                              border: OutlineInputBorder(),
-                            ),
-                            value: selectedHospitalId,
-                            hint: const Text('Choose a hospital'),
-                            isExpanded: true,
-                            items: filteredHospitals.map((hospital) {
-                              return DropdownMenuItem<String>(
-                                value: hospital.id,
-                                child: Text(
-                                    '${hospital.name} (${hospital.address})'),
-                              );
-                            }).toList(),
-                            validator: (val) => val == null || val.isEmpty
-                                ? 'Select a hospital'
-                                : null,
-                            onChanged: (val) {
-                              setDialogState(() {
-                                selectedHospitalId = val;
-                                // Filter doctors by selected hospital
-                                if (val != null) {
-                                  filteredDoctors = _doctorList
-                                      .where(
-                                          (doctor) => doctor.hospitalId == val)
-                                      .toList();
-                                  selectedDoctorId =
-                                      null; // Reset doctor selection
-                                  doctorSearchController.clear();
-                                } else {
-                                  filteredDoctors = [];
-                                }
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Add Doctor Selection section if hospital is selected
-                    if (selectedHospitalId != null &&
-                        filteredDoctors.isNotEmpty)
+                    // Doctor Assignment section - automatically assigned to admin's hospital
+                    if (filteredDoctors.isNotEmpty)
                       Container(
                         margin: const EdgeInsets.only(top: 16),
                         padding: const EdgeInsets.all(16),
@@ -506,7 +387,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                                 filteredDoctors = _doctorList
                                                     .where((doctor) =>
                                                         doctor.hospitalId ==
-                                                        selectedHospitalId)
+                                                        widget.hospitalId)
                                                     .toList();
                                               });
                                             },
@@ -519,13 +400,13 @@ class _PatientsPageState extends State<PatientsPage> {
                                     filteredDoctors = _doctorList
                                         .where((doctor) =>
                                             doctor.hospitalId ==
-                                            selectedHospitalId)
+                                            widget.hospitalId)
                                         .toList();
                                   } else {
                                     filteredDoctors = _doctorList
                                         .where((doctor) =>
                                             doctor.hospitalId ==
-                                                selectedHospitalId &&
+                                                widget.hospitalId &&
                                             (doctor.name.toLowerCase().contains(
                                                     query.toLowerCase()) ||
                                                 doctor.email
@@ -544,37 +425,94 @@ class _PatientsPageState extends State<PatientsPage> {
 
                             const SizedBox(height: 16),
 
-                            // Doctor dropdown
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                labelText: 'Select Doctor',
-                                prefixIcon: Icon(Icons.person),
-                                border: OutlineInputBorder(),
+                            // Multiple Doctor Selection
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(4),
                               ),
-                              value: selectedDoctorId,
-                              hint: const Text('Choose a doctor'),
-                              isExpanded: true,
-                              items: filteredDoctors.map((doctor) {
-                                return DropdownMenuItem<String>(
-                                  value: doctor.id,
-                                  child:
-                                      Text('${doctor.name} (${doctor.persId})'),
-                                );
-                              }).toList(),
-                              validator: (val) => val == null || val.isEmpty
-                                  ? 'Select a doctor'
-                                  : null,
-                              onChanged: (val) {
-                                setDialogState(() {
-                                  selectedDoctorId = val;
-                                });
-                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.person, color: Colors.grey.shade600),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Select Doctors',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (selectedDoctorIds.isNotEmpty)
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      children: selectedDoctorIds.map((doctorId) {
+                                        final doctor = filteredDoctors.firstWhere(
+                                          (d) => d.id == doctorId,
+                                                                                     orElse: () => DoctorData(
+                                             id: doctorId,
+                                             persId: 'Unknown',
+                                             name: 'Unknown Doctor',
+                                             email: '',
+                                             mobileNumber: '',
+                                             birthDate: DateTime.now(),
+                                             hospitalId: '',
+                                             licenses: [],
+                                             description: '',
+                                             suspended: false,
+                                             patients: [],
+                                             schedule: [],
+                                           ),
+                                        );
+                                        return Chip(
+                                          label: Text(
+                                            doctor.name,
+                                            style: const TextStyle(fontSize: 12),
+                                          ),
+                                          deleteIcon: const Icon(Icons.close, size: 16),
+                                          onDeleted: () {
+                                            setDialogState(() {
+                                              selectedDoctorIds.remove(doctorId);
+                                            });
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                                                             _showDoctorSelectionDialog(
+                                         context,
+                                         filteredDoctors,
+                                         selectedDoctorIds,
+                                         (updatedDoctorIds) {
+                                           setDialogState(() {
+                                             selectedDoctorIds = updatedDoctorIds;
+                                           });
+                                         },
+                                       );
+                                    },
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Select Doctors'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFEC407A),
+                                      foregroundColor: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       )
-                    else if (selectedHospitalId != null &&
-                        filteredDoctors.isEmpty)
+                    else if (filteredDoctors.isEmpty)
                       Container(
                         margin: const EdgeInsets.only(top: 16),
                         padding: const EdgeInsets.all(16),
@@ -595,7 +533,7 @@ class _PatientsPageState extends State<PatientsPage> {
                             const SizedBox(height: 16),
                             const Center(
                               child: Text(
-                                'No doctors available for the selected hospital. Please add doctors to this hospital first.',
+                                'No doctors available for your hospital. Please add doctors to this hospital first.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(color: Colors.red),
                               ),
@@ -624,16 +562,9 @@ class _PatientsPageState extends State<PatientsPage> {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
 
-                  // Ensure hospital is selected
-                  if (selectedHospitalId == null ||
-                      selectedHospitalId!.isEmpty) {
-                    Fluttertoast.showToast(msg: 'Please select a hospital');
-                    return;
-                  }
-
-                  // Ensure doctor is selected
-                  if (selectedDoctorId == null || selectedDoctorId!.isEmpty) {
-                    Fluttertoast.showToast(msg: 'Please select a doctor');
+                  // Ensure at least one doctor is selected
+                  if (selectedDoctorIds.isEmpty) {
+                    Fluttertoast.showToast(msg: 'Please select at least one doctor');
                     return;
                   }
 
@@ -658,8 +589,8 @@ class _PatientsPageState extends State<PatientsPage> {
                       diagnosis: diagnosis,
                       birthDate: birthDate.toIso8601String().split('T')[0],
                       medicalHistory: medicalHistory,
-                      hospitalId: selectedHospitalId!,
-                      doctorId: selectedDoctorId!,
+                      hospitalId: widget.hospitalId,
+                      doctorIds: selectedDoctorIds,
                       suspended: false,
                     );
                     await _fetchPatients();
@@ -693,6 +624,7 @@ class _PatientsPageState extends State<PatientsPage> {
     final DateTime originalBirthDate = patient.birthDate;
     final List<String> originalMedHistory = List.from(patient.medicalHistory);
     final String originalHospitalId = patient.hospitalId;
+    final List<String> originalDoctorIds = List.from(patient.doctorIds);
 
     // Editable values
     String persId = originalPersId;
@@ -705,6 +637,7 @@ class _PatientsPageState extends State<PatientsPage> {
     DateTime birthDate = originalBirthDate;
     List<String> medHistory = List.from(originalMedHistory);
     String hospitalId = originalHospitalId;
+    List<String> doctorIds = List.from(originalDoctorIds);
 
     // Get the hospital name for display
     String hospitalName = 'Unknown Hospital';
@@ -1017,6 +950,96 @@ class _PatientsPageState extends State<PatientsPage> {
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 16),
+
+                    // Doctor Assignment section for editing
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Doctor Assignment',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFEC407A),
+                              )),
+                          const SizedBox(height: 16),
+
+                          // Display current doctors
+                          if (doctorIds.isNotEmpty)
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: doctorIds.map((doctorId) {
+                                final doctor = _doctorList.firstWhere(
+                                  (d) => d.id == doctorId,
+                                  orElse: () => DoctorData(
+                                    id: doctorId,
+                                    persId: 'Unknown',
+                                    name: 'Unknown Doctor',
+                                    email: '',
+                                    mobileNumber: '',
+                                    birthDate: DateTime.now(),
+                                    hospitalId: '',
+                                    licenses: [],
+                                    description: '',
+                                    suspended: false,
+                                    patients: [],
+                                    schedule: [],
+                                  ),
+                                );
+                                return Chip(
+                                  label: Text(
+                                    doctor.name,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  deleteIcon: const Icon(Icons.close, size: 16),
+                                  onDeleted: () {
+                                    setDialogState(() {
+                                      doctorIds.remove(doctorId);
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            )
+                          else
+                            const Text(
+                              'No doctors assigned',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          const SizedBox(height: 8),
+
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              final availableDoctors = _doctorList.where((doctor) => doctor.hospitalId == widget.hospitalId).toList();
+                              _showDoctorSelectionDialog(
+                                dialogContext,
+                                availableDoctors,
+                                doctorIds,
+                                (updatedDoctorIds) {
+                                  setDialogState(() {
+                                    doctorIds = updatedDoctorIds;
+                                  });
+                                },
+                              );
+                            },
+                            icon: const Icon(Icons.edit),
+                            label: const Text('Edit Doctors'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEC407A),
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1079,6 +1102,20 @@ class _PatientsPageState extends State<PatientsPage> {
                     }
                     if (medHistoryChanged)
                       updatedFields["medicalHistory"] = medHistory;
+
+                    // Check if doctors have changed
+                    bool doctorsChanged = doctorIds.length != originalDoctorIds.length;
+                    if (!doctorsChanged) {
+                      for (int i = 0; i < doctorIds.length; i++) {
+                        if (i >= originalDoctorIds.length ||
+                            doctorIds[i] != originalDoctorIds[i]) {
+                          doctorsChanged = true;
+                          break;
+                        }
+                      }
+                    }
+                    if (doctorsChanged)
+                      updatedFields["doctors"] = doctorIds;
 
                     // Only make the API call if there are changes
                     if (updatedFields.isNotEmpty) {
@@ -1144,6 +1181,79 @@ class _PatientsPageState extends State<PatientsPage> {
             child: const Text('No'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDoctorSelectionDialog(
+    BuildContext context,
+    List<DoctorData> availableDoctors,
+    List<String> currentlySelectedIds,
+    Function(List<String>) onSelectionChanged,
+  ) {
+    List<String> tempSelectedIds = List.from(currentlySelectedIds);
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.people, color: const Color(0xFFEC407A)),
+              const SizedBox(width: 10),
+              const Text('Select Doctors'),
+            ],
+          ),
+          content: Container(
+            width: double.maxFinite,
+            height: 400,
+            child: availableDoctors.isEmpty
+                ? const Center(
+                    child: Text('No doctors available in this hospital'),
+                  )
+                : ListView.builder(
+                    itemCount: availableDoctors.length,
+                    itemBuilder: (context, index) {
+                      final doctor = availableDoctors[index];
+                      final isSelected = tempSelectedIds.contains(doctor.id);
+                      
+                      return CheckboxListTile(
+                        title: Text(doctor.name),
+                        subtitle: Text('${doctor.persId} - ${doctor.email}'),
+                        value: isSelected,
+                        onChanged: (bool? value) {
+                          setDialogState(() {
+                            if (value == true) {
+                              if (!tempSelectedIds.contains(doctor.id)) {
+                                tempSelectedIds.add(doctor.id);
+                              }
+                            } else {
+                              tempSelectedIds.remove(doctor.id);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                onSelectionChanged(tempSelectedIds);
+                Navigator.pop(ctx);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1242,7 +1352,7 @@ class _PatientsPageState extends State<PatientsPage> {
                         DataColumn(label: Text('Diagnosis')),
                         DataColumn(label: Text('Status')),
                         DataColumn(label: Text('Suspended')),
-                        DataColumn(label: Text('Hospital')),
+                        DataColumn(label: Text('Doctors')),
                         DataColumn(label: Text('Actions')),
                       ],
                       rows: filteredPatients.map((patient) {
@@ -1254,7 +1364,38 @@ class _PatientsPageState extends State<PatientsPage> {
                             DataCell(Text(patient.diagnosis)),
                             DataCell(Text(patient.status)),
                             DataCell(Text(patient.suspended.toString())),
-                            DataCell(Text(patient.hospitalId)),
+                            DataCell(
+                              patient.doctorIds.isEmpty
+                                  ? const Text('No doctors assigned')
+                                  : Tooltip(
+                                      message: patient.doctorIds.map((id) {
+                                        final doctor = _doctorList.firstWhere(
+                                          (d) => d.id == id,
+                                          orElse: () => DoctorData(
+                                            id: id,
+                                            persId: 'Unknown',
+                                            name: 'Unknown Doctor',
+                                            email: '',
+                                            mobileNumber: '',
+                                            birthDate: DateTime.now(),
+                                            hospitalId: '',
+                                            licenses: [],
+                                            description: '',
+                                            suspended: false,
+                                            patients: [],
+                                            schedule: [],
+                                          ),
+                                        );
+                                        return doctor.name;
+                                      }).join(', '),
+                                      child: Text(
+                                        '${patient.doctorIds.length} doctor${patient.doctorIds.length == 1 ? '' : 's'}',
+                                        style: const TextStyle(
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
+                            ),
                             DataCell(
                               Row(
                                 mainAxisSize: MainAxisSize.min,

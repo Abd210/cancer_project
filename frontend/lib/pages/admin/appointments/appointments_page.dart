@@ -81,13 +81,13 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
       );
       
       final upcomingList = await _appointmentProvider.getFilteredHospitalAppointments(
-        token: widget.token,
+          token: widget.token,
         hospitalId: widget.hospitalId,
         patientId: _selectedPatientId,
         doctorId: _selectedDoctorId,
         timeDirection: 'upcoming',
-        suspendfilter: _suspendFilter,
-      );
+          suspendfilter: _suspendFilter,
+        );
       
       // Combine both lists
       final list = [...pastList, ...upcomingList];
@@ -207,7 +207,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     final formKey = GlobalKey<FormState>();
     
     // Form state variables
-    String? selectedHospitalId;
     String? selectedDoctorId;
     String? selectedPatientId;
     DateTime selectedStartDate = DateTime.now();
@@ -216,10 +215,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     TimeOfDay selectedEndTime = TimeOfDay.fromDateTime(selectedEndDate);
     String purpose = '';
     String status = 'scheduled';
-    bool suspended = false;
+    // Remove suspended variable - appointments will be unsuspended by default
     
-    // Filter lists
-    List<DoctorData> filteredDoctors = [];
+    // Filter lists - initialize with admin's hospital doctors
+    List<DoctorData> filteredDoctors = _doctorList.where((doctor) => doctor.hospitalId == widget.hospitalId).toList();
     
     // Controllers for search fields
     TextEditingController doctorSearchController = TextEditingController();
@@ -248,7 +247,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                      // Hospital and Doctor Selection section
+                      // Doctor Selection section
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -268,35 +267,56 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                             ),
                             const SizedBox(height: 16),
                             
-                            // Hospital dropdown
-                            DropdownButtonFormField<String>(
+                            // Hospital info (read-only display)
+                            InputDecorator(
                               decoration: const InputDecoration(
-                                labelText: 'Select Hospital',
+                                labelText: 'Hospital',
                                 prefixIcon: Icon(Icons.local_hospital),
                                 border: OutlineInputBorder(),
                               ),
-                              value: selectedHospitalId,
-                              hint: const Text('Choose a hospital'),
-                              isExpanded: true,
-                              items: _hospitalList.map((hospital) {
-                                return DropdownMenuItem<String>(
-                                  value: hospital.id,
-                                  child: Text(hospital.name),
-                                );
-                              }).toList(),
-                              validator: (val) =>
-                                  val == null || val.isEmpty ? 'Select a hospital' : null,
-                              onChanged: (val) {
+                              child: Text(
+                                _getAdminHospitalName(),
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 16),
+                            
+                            // Doctor search field
+                            TextField(
+                              controller: doctorSearchController,
+                              decoration: InputDecoration(
+                                labelText: 'Search Doctors',
+                                prefixIcon: const Icon(Icons.search),
+                                border: const OutlineInputBorder(),
+                                suffixIcon: doctorSearchController.text.isNotEmpty 
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        doctorSearchController.clear();
+                                        setDialogState(() {
+                                          filteredDoctors = _doctorList
+                                            .where((doctor) => doctor.hospitalId == widget.hospitalId)
+                                            .toList();
+                                        });
+                                      },
+                                    )
+                                  : null,
+                              ),
+                              onChanged: (query) {
                                 setDialogState(() {
-                                  selectedHospitalId = val;
-                                  selectedDoctorId = null;
-                                  // Filter doctors by selected hospital
-                                  if (val != null) {
+                                  if (query.isEmpty) {
                                     filteredDoctors = _doctorList
-                                        .where((doctor) => doctor.hospitalId == val)
-                                        .toList();
+                                      .where((doctor) => doctor.hospitalId == widget.hospitalId)
+                                      .toList();
                                   } else {
-                                    filteredDoctors = [];
+                                    filteredDoctors = _doctorList
+                                      .where((doctor) => 
+                                        doctor.hospitalId == widget.hospitalId &&
+                                        (doctor.name.toLowerCase().contains(query.toLowerCase()) ||
+                                         doctor.email.toLowerCase().contains(query.toLowerCase()) ||
+                                         doctor.persId.toLowerCase().contains(query.toLowerCase())))
+                                      .toList();
                                   }
                                 });
                               },
@@ -304,74 +324,30 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                             
                             const SizedBox(height: 16),
                             
-                            // Doctor search field
-                            if (selectedHospitalId != null)
-                              TextField(
-                                controller: doctorSearchController,
-                                decoration: InputDecoration(
-                                  labelText: 'Search Doctors',
-                                  prefixIcon: const Icon(Icons.search),
-                                  border: const OutlineInputBorder(),
-                                  suffixIcon: doctorSearchController.text.isNotEmpty 
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear),
-                                        onPressed: () {
-                                          doctorSearchController.clear();
-                                          setDialogState(() {
-                                            filteredDoctors = _doctorList
-                                              .where((doctor) => doctor.hospitalId == selectedHospitalId)
-                                              .toList();
-                                          });
-                                        },
-                                      )
-                          : null,
-                                ),
-                                onChanged: (query) {
-                                  setDialogState(() {
-                                    if (query.isEmpty) {
-                                      filteredDoctors = _doctorList
-                                        .where((doctor) => doctor.hospitalId == selectedHospitalId)
-                                        .toList();
-                                    } else {
-                                      filteredDoctors = _doctorList
-                                        .where((doctor) => 
-                                          doctor.hospitalId == selectedHospitalId &&
-                                          (doctor.name.toLowerCase().contains(query.toLowerCase()) ||
-                                           doctor.email.toLowerCase().contains(query.toLowerCase()) ||
-                                           doctor.persId.toLowerCase().contains(query.toLowerCase())))
-                                        .toList();
-                                    }
-                                  });
-                                },
-                              ),
-                            
-                            if (selectedHospitalId != null) const SizedBox(height: 16),
-                            
                             // Doctor dropdown
-                            if (selectedHospitalId != null)
-                              DropdownButtonFormField<String>(
-                                decoration: const InputDecoration(
-                                  labelText: 'Select Doctor',
-                                  prefixIcon: Icon(Icons.person),
-                                  border: OutlineInputBorder(),
-                                ),
-                                value: selectedDoctorId,
-                                hint: const Text('Choose a doctor'),
-                                isExpanded: true,
-                                items: filteredDoctors.map((doctor) {
-                                  return DropdownMenuItem<String>(
-                                    value: doctor.id,
-                                    child: Text('${doctor.name} (${doctor.persId})'),
-                                  );
-                                }).toList(),
-                                validator: (val) =>
-                                    val == null || val.isEmpty ? 'Select a doctor' : null,
-                                onChanged: (val) {
-                                  setDialogState(() {
-                                    selectedDoctorId = val;
-                                  });
-                                },
+                            DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Select Doctor',
+                                prefixIcon: Icon(Icons.person),
+                                border: OutlineInputBorder(),
                               ),
+                              value: selectedDoctorId,
+                              hint: const Text('Choose a doctor'),
+                              isExpanded: true,
+                              items: filteredDoctors.map((doctor) {
+                                return DropdownMenuItem<String>(
+                                  value: doctor.id,
+                                  child: Text('${doctor.name} (${doctor.persId})'),
+                                );
+                              }).toList(),
+                              validator: (val) =>
+                                  val == null || val.isEmpty ? 'Select a doctor' : null,
+                              onChanged: (val) {
+                                setDialogState(() {
+                                  selectedDoctorId = val;
+                                });
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -607,52 +583,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       ],
                     ),
                             
-                            const SizedBox(height: 16),
-                            
-                            // Status dropdown
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                labelText: 'Status',
-                                prefixIcon: Icon(Icons.flag),
-                                border: OutlineInputBorder(),
-                              ),
-                              value: status,
-                              isExpanded: true,
-                              items: const [
-                                DropdownMenuItem(value: 'scheduled', child: Text('Scheduled')),
-                                DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                                DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
-                              ],
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setDialogState(() {
-                                    status = val;
-                                  });
-                                }
-                              },
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // Suspended checkbox
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: suspended,
-                                  activeColor: const Color(0xFFEC407A),
-                          onChanged: (val) {
-                                    setDialogState(() {
-                              suspended = val ?? false;
-                            });
-                          },
-                        ),
-                                const Text('Suspended'),
-                                const Tooltip(
-                                  message: 'Suspended appointments will not be shown to patients or doctors',
-                                  child: Icon(Icons.info_outline, size: 16),
-                                ),
-                      ],
-                    ),
                   ],
                 ),
                       ),
@@ -711,7 +641,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         end: endDateTime,
                     purpose: purpose,
                     status: status,
-                    suspended: suspended,
+                    suspended: false, // New appointments are unsuspended by default
                   );
                       
                   await _fetchAppointments();
@@ -737,7 +667,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     // Initialize with current appointment values
     String purpose = appointment.purpose;
     String status = appointment.status;
-    bool suspended = appointment.suspended;
     
     // Date and time
     DateTime selectedStartDate = appointment.start;
@@ -785,7 +714,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Patient: ${appointment.patientName}',
+                                    'Patient: ${_getPatientName(appointment.patientId)}',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -802,7 +731,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Doctor: ${appointment.doctorName}',
+                                    'Doctor: ${_getDoctorName(appointment.doctorId)}',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -904,6 +833,18 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                         setDialogState(() {
                                   selectedStartDate = pickedDate;
                                   selectedStartTime = pickedTime;
+                                          
+                                          // Update end time to be 1 hour after start time
+                                  final startDateTime = DateTime(
+                                    selectedStartDate.year,
+                                    selectedStartDate.month,
+                                    selectedStartDate.day,
+                                    selectedStartTime.hour,
+                                    selectedStartTime.minute,
+                                  );
+                                          final newEndDateTime = startDateTime.add(const Duration(hours: 1));
+                                          selectedEndDate = newEndDateTime;
+                                          selectedEndTime = TimeOfDay.fromDateTime(newEndDateTime);
                                 });
                               }
                             }
@@ -999,28 +940,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 }
                               },
                             ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // Suspended checkbox
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: suspended,
-                                  activeColor: const Color(0xFFEC407A),
-                          onChanged: (val) {
-                                    setDialogState(() {
-                              suspended = val ?? false;
-                            });
-                          },
-                        ),
-                                const Text('Suspended'),
-                                const Tooltip(
-                                  message: 'Suspended appointments will not be shown to patients or doctors',
-                                  child: Icon(Icons.info_outline, size: 16),
-                                ),
-                      ],
-                    ),
                   ],
                 ),
                       ),
@@ -1057,11 +976,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     // Check status
                     if (status != appointment.status) {
                       updatedFields['status'] = status;
-                    }
-                    
-                    // Check suspended
-                    if (suspended != appointment.suspended) {
-                      updatedFields['suspended'] = suspended;
                     }
                     
                     // Check dates
@@ -1314,10 +1228,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                           child: Text('All'),
                         ),
                         ..._doctorList.map((doctor) {
-                          return DropdownMenuItem<String>(
-                            value: doctor.id,
-                            child: Text(doctor.name, overflow: TextOverflow.ellipsis),
-                          );
+                                  return DropdownMenuItem<String>(
+                                    value: doctor.id,
+                                    child: Text(doctor.name, overflow: TextOverflow.ellipsis),
+                                  );
                         }).toList(),
                       ],
                       onChanged: (value) {
@@ -1477,7 +1391,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         ),
                         DropdownMenuItem<String>(
                           value: 'unsuspended',
-                          child: Text('Active'),
+                          child: Text('Unsuspended'),
                         ),
                       ],
                       onChanged: (value) {
@@ -1820,13 +1734,20 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                ),
                              ),
                              DataCell(
-                               Switch(
-                                 value: appointment.suspended,
-                                 activeColor: const Color(0xFFEC407A),
-                                 onChanged: (newValue) {
-                                   _toggleSuspension(appointment.id, newValue);
-                                 },
-                                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                               Container(
+                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                 decoration: BoxDecoration(
+                                   color: appointment.suspended ? Colors.red : Colors.green,
+                                   borderRadius: BorderRadius.circular(8),
+                                 ),
+                                 child: Text(
+                                   appointment.suspended ? 'Suspended' : 'Unsuspended',
+                                   style: const TextStyle(
+                                     color: Colors.white,
+                                     fontWeight: FontWeight.bold,
+                                     fontSize: 11,
+                                   ),
+                                 ),
                                ),
                              ),
                              DataCell(
@@ -1916,7 +1837,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         mobileNumber: '',
         birthDate: DateTime.now(),
         hospitalId: '',
-        doctorId: '',
+        doctorIds: [],
         status: '',
         diagnosis: '',
         medicalHistory: [],
@@ -1937,7 +1858,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         mobileNumber: '',
         birthDate: DateTime.now(),
         hospitalId: '',
-        doctorId: '',
+        doctorIds: [],
         status: '',
         diagnosis: '',
         medicalHistory: [],
