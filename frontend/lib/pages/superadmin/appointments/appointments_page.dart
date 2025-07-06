@@ -84,30 +84,55 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         _filterById = '';
       }
       
-      // Get past appointments (history)
-      final pastList = await _appointmentProvider.getAppointmentsHistory(
-        token: widget.token,
-        suspendfilter: _suspendFilter,
-        filterByRole: _filterByRole.isEmpty ? null : _filterByRole, 
-        filterById: _filterById.isEmpty ? null : _filterById,       
-      );
-      
-      // Get future appointments (upcoming)
+      List<AppointmentData> pastList = [];
       List<AppointmentData> upcomingList = [];
-      if (_filterByRole.isNotEmpty && _filterById.isNotEmpty) {
-        // Get entity-specific upcoming appointments
-        upcomingList = await _appointmentProvider.getUpcoming(
+      
+      // OPTIMIZED: Use hospital arrays when a specific hospital is selected
+      if (_selectedHospitalId != null && _selectedHospitalId!.isNotEmpty) {
+        // Use the new direct method that queries appointments by hospital arrays
+        pastList = await _appointmentProvider.getDirectHospitalAppointments(
           token: widget.token,
-          entityRole: _filterByRole,
-          entityId: _filterById,
+          hospitalId: _selectedHospitalId!,
+          patientId: _selectedPatientId,
+          doctorId: _selectedDoctorId,
+          timeDirection: 'past',
+          suspendfilter: _suspendFilter,
+        );
+        
+        upcomingList = await _appointmentProvider.getDirectHospitalAppointments(
+          token: widget.token,
+          hospitalId: _selectedHospitalId!,
+          patientId: _selectedPatientId,
+          doctorId: _selectedDoctorId,
+          timeDirection: 'upcoming',
           suspendfilter: _suspendFilter,
         );
       } else {
-        // Get all upcoming appointments
-        upcomingList = await _appointmentProvider.getUpcomingAll(
+        // Fall back to original methods when viewing all hospitals
+        // Get past appointments (history)
+        pastList = await _appointmentProvider.getAppointmentsHistory(
           token: widget.token,
           suspendfilter: _suspendFilter,
+          filterByRole: _filterByRole.isEmpty ? null : _filterByRole, 
+          filterById: _filterById.isEmpty ? null : _filterById,       
         );
+        
+        // Get future appointments (upcoming)
+        if (_filterByRole.isNotEmpty && _filterById.isNotEmpty) {
+          // Get entity-specific upcoming appointments
+          upcomingList = await _appointmentProvider.getUpcoming(
+            token: widget.token,
+            entityRole: _filterByRole,
+            entityId: _filterById,
+            suspendfilter: _suspendFilter,
+          );
+        } else {
+          // Get all upcoming appointments
+          upcomingList = await _appointmentProvider.getUpcomingAll(
+            token: widget.token,
+            suspendfilter: _suspendFilter,
+          );
+        }
       }
       
       // Combine both lists
@@ -163,8 +188,11 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         }).toList();
       }
       
-      // Filter by hospital if selected
-      if (_selectedHospitalId != null && _selectedHospitalId!.isNotEmpty) {
+      // Hospital filtering is now handled server-side when using getDirectHospitalAppointments
+      // Only apply client-side hospital filtering when using the fallback methods
+      if (_selectedHospitalId != null && _selectedHospitalId!.isNotEmpty && 
+          (_filterByRole.isNotEmpty || _filterById.isNotEmpty)) {
+        // This case handles when we used the fallback methods but still have a hospital filter
         // First, find doctors belonging to this hospital
         final hospitalDoctorIds = _doctorList
             .where((doctor) => doctor.hospitalId == _selectedHospitalId)
@@ -192,13 +220,25 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
 
   Future<void> _fetchDoctors() async {
     try {
-      final doctors = await _doctorProvider.getDoctors(
+      // Fetch all doctors
+      final allDoctors = await _doctorProvider.getDoctors(
         token: widget.token,
         filter: 'all',
       );
-      setState(() {
-        _doctorList = doctors;
-      });
+      
+      // OPTIMIZED: Filter by hospital when a specific hospital is selected
+      if (_selectedHospitalId != null && _selectedHospitalId!.isNotEmpty) {
+        // Filter doctors to only include those from the selected hospital
+        final hospitalDoctors = allDoctors.where((doctor) => doctor.hospitalId == _selectedHospitalId).toList();
+        setState(() {
+          _doctorList = hospitalDoctors;
+        });
+      } else {
+        // Show all doctors when no hospital filter is applied
+        setState(() {
+          _doctorList = allDoctors;
+        });
+      }
     } catch (e) {
       print('Error fetching doctors: $e');
     }
@@ -206,13 +246,25 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
   
   Future<void> _fetchPatients() async {
     try {
-      final patients = await _patientProvider.getPatients(
+      // Fetch all patients
+      final allPatients = await _patientProvider.getPatients(
         token: widget.token,
         filter: 'all',
       );
-      setState(() {
-        _patientList = patients;
-      });
+      
+      // OPTIMIZED: Filter by hospital when a specific hospital is selected
+      if (_selectedHospitalId != null && _selectedHospitalId!.isNotEmpty) {
+        // Filter patients to only include those from the selected hospital
+        final hospitalPatients = allPatients.where((patient) => patient.hospitalId == _selectedHospitalId).toList();
+        setState(() {
+          _patientList = hospitalPatients;
+        });
+      } else {
+        // Show all patients when no hospital filter is applied
+        setState(() {
+          _patientList = allPatients;
+        });
+      }
     } catch (e) {
       print('Error fetching patients: $e');
     }
@@ -363,20 +415,19 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                               }).toList(),
                               validator: (val) =>
                                   val == null || val.isEmpty ? 'Select a hospital' : null,
-                              onChanged: (val) {
+                              onChanged: (value) {
                                 setDialogState(() {
-                                  selectedHospitalId = val;
+                                  selectedHospitalId = value;
                                   selectedDoctorId = null;
-                                  selectedPatientId = null; // Clear patient selection when hospital changes
-                                  patientSearchController.clear(); // Clear patient search when hospital changes
-                                  doctorSearchController.clear(); // Clear doctor search when hospital changes
-                                  // Filter doctors by selected hospital
-                                  if (val != null) {
+                                  selectedPatientId = null;
+                                  patientSearchController.clear();
+                                  doctorSearchController.clear();
+                                  if (value != null) {
                                     filteredDoctors = _doctorList
-                                        .where((doctor) => doctor.hospitalId == val)
+                                        .where((doctor) => doctor.hospitalId == value)
                                         .toList();
                                     filteredPatients = _patientList
-                                        .where((patient) => patient.hospitalId == val)
+                                        .where((patient) => patient.hospitalId == value)
                                         .toList();
                                   } else {
                                     filteredDoctors = [];
@@ -1581,7 +1632,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                             _selectedPatientId = null;
                           }
                         });
+                        // OPTIMIZED: Refetch all data when hospital changes to use efficient filtering
                         _fetchAppointments();
+                        _fetchDoctors();
+                        _fetchPatients();
                       },
                     ),
                   ),
@@ -1897,7 +1951,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                         _fromDate = null;
                         _toDate = null;
                       });
+                      // OPTIMIZED: Refetch all data when clearing filters to use efficient methods
                       _fetchAppointments();
+                      _fetchDoctors();
+                      _fetchPatients();
                     },
                   ),
                   const SizedBox(width: 8),
