@@ -440,7 +440,6 @@ class _PatientPageState extends State<PatientPage> with TickerProviderStateMixin
               patientId: widget.patientId ?? '',
               patientData: patientData,
             ),
-      const ModernSupportTab(),
             PatientProfilePage(
               token: widget.token ?? '',
               patientId: widget.patientId ?? '',
@@ -475,8 +474,7 @@ class _PatientPageState extends State<PatientPage> with TickerProviderStateMixin
               Expanded(child: _buildNavItem(0, Icons.home_rounded, 'Home')),
               Expanded(child: _buildNavItem(1, Icons.calendar_today_rounded, 'Appts')),
               Expanded(child: _buildNavItem(2, Icons.medical_services_rounded, 'Reports')),
-              Expanded(child: _buildNavItem(3, Icons.support_agent_rounded, 'Support')),
-              Expanded(child: _buildNavItem(4, Icons.person_rounded, 'Profile')),
+              Expanded(child: _buildNavItem(3, Icons.person_rounded, 'Profile')),
             ],
           ),
         ),
@@ -541,8 +539,6 @@ class _PatientPageState extends State<PatientPage> with TickerProviderStateMixin
       case 2:
         return "Diagnosis & Reports";
       case 3:
-        return "Support Center";
-      case 4:
       default:
         return "My Profile";
     }
@@ -885,11 +881,16 @@ class ModernHomeTab extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildQuickActionCard(
-                  'Book Appointment',
+                  'View Appointments',
                   Icons.calendar_today,
                   _PatientPageState.primaryPink,
                   () {
-                    // Navigate to appointments
+                    // Navigate to appointments tab
+                    if (context.findAncestorStateOfType<_PatientPageState>() != null) {
+                      context.findAncestorStateOfType<_PatientPageState>()!.setState(() {
+                        context.findAncestorStateOfType<_PatientPageState>()!._currentIndex = 1;
+                      });
+                    }
                   },
                 ),
               ),
@@ -900,34 +901,12 @@ class ModernHomeTab extends StatelessWidget {
                   Icons.description,
                   Colors.blue,
                   () {
-                    // Navigate to reports
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickActionCard(
-                  'Contact Doctor',
-                  Icons.phone,
-                  Colors.green,
-                  () {
-                    // Contact doctor
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildQuickActionCard(
-                  'Emergency',
-                  Icons.emergency,
-                  Colors.red,
-                  () {
-                    // Emergency contact
+                    // Navigate to reports tab
+                    if (context.findAncestorStateOfType<_PatientPageState>() != null) {
+                      context.findAncestorStateOfType<_PatientPageState>()!.setState(() {
+                        context.findAncestorStateOfType<_PatientPageState>()!._currentIndex = 2;
+                      });
+                    }
                   },
                 ),
               ),
@@ -1112,305 +1091,7 @@ class ModernHomeTab extends StatelessWidget {
   }
 }
 
-// -----------------------------------------------------------------------------
-// MODERN SUPPORT TAB
-// -----------------------------------------------------------------------------
-class ModernSupportTab extends StatelessWidget {
-  const ModernSupportTab({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Support header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.blue.withOpacity(0.1),
-                  Colors.blue.withOpacity(0.05),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.blue.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.support_agent,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Support Center',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: _PatientPageState.textPrimary,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'We\'re here to help you 24/7',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: _PatientPageState.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          
-          // Support options
-          const Text(
-            'How can we help you?',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: _PatientPageState.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          _buildSupportCard(
-            'Live Chat',
-            'Chat with our support team',
-            Icons.chat,
-            Colors.green,
-            () {
-              // Open live chat
-            },
-          ),
-          const SizedBox(height: 12),
-          
-          _buildSupportCard(
-            'Call Support',
-            'Speak with a support agent',
-            Icons.phone,
-            Colors.blue,
-            () {
-              // Make phone call
-            },
-          ),
-          const SizedBox(height: 12),
-          
-          _buildSupportCard(
-            'Email Support',
-            'Send us an email',
-            Icons.email,
-            Colors.orange,
-            () {
-              // Send email
-            },
-          ),
-          const SizedBox(height: 12),
-          
-          _buildSupportCard(
-            'FAQ',
-            'Find answers to common questions',
-            Icons.help,
-            Colors.purple,
-            () {
-              // Navigate to FAQ
-            },
-          ),
-          const SizedBox(height: 32),
-          
-          // Emergency contact
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.red.shade200,
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.emergency,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Emergency Contact',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: _PatientPageState.textPrimary,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'For medical emergencies, call 911 immediately',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: _PatientPageState.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Emergency call
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Call Emergency Services',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSupportCard(
-    String title,
-    String subtitle,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _PatientPageState.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: _PatientPageState.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _PatientPageState.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  color: _PatientPageState.textSecondary,
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ... existing code (AppointmentsTab, TicketsTab, NotificationsTab, ProfileTab)
 // ... existing SVG icons
