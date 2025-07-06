@@ -130,5 +130,125 @@ npm start
 
 ## Project Structure
 
-(Provide a description of the project structure here.)
+The Acuranics API follows a well-organized, modular architecture with clear separation of concerns. Here's a detailed breakdown of the project structure:
+
+### 📁 Root Files
+- **`index.js`** - Main server entry point that sets up Express app, middleware, and routes
+- **`firebase.js`** - Firebase configuration and initialization
+- **`firebaseConfig.json`** - Firebase service account credentials (not in version control)
+- **`package.json`** - Project dependencies and scripts
+
+### 📁 Controllers/
+Controllers handle HTTP requests and responses, organized by functionality:
+
+#### **Roles Auth Controllers/**
+- **`adminAuthController.js`** - Authentication logic for admin users
+- **`doctorAuthController.js`** - Authentication logic for doctor users  
+- **`patientAuthController.js`** - Authentication logic for patient users
+- **`superAdminAuthController.js`** - Authentication logic for super admin users
+- **`deviceAuthController.js`** - Authentication logic for device users
+
+#### **Objects Controllers/**
+- **`appointmentController.js`** - Appointment management operations
+- **`deviceController.js`** - Device management operations
+- **`hospitalController.js`** - Hospital management operations
+- **`testController.js`** - Medical test management operations
+- **`ticketController.js`** - Support ticket management operations
+
+#### **General Roles Controllers/**
+- **`adminController.js`** - General admin operations and management
+- **`doctorController.js`** - General doctor operations and management
+- **`patientController.js`** - General patient operations and management
+- **`superadminController.js`** - General super admin operations and management
+
+#### **Other Controllers**
+- **`redirectAuthController.js`** - Central authentication controller for user registration and login
+- **`suspendController.js`** - User suspension management
+
+### 📁 Models/
+Data models representing the application's entities using Firebase Firestore:
+
+- **`Admin.js`** - Admin user data model
+- **`Appointment.js`** - Appointment data model
+- **`Device.js`** - Device data model
+- **`Doctor.js`** - Doctor user data model
+- **`Hospital.js`** - Hospital data model
+- **`Patient.js`** - Patient user data model
+- **`SuperAdmin.js`** - Super admin user data model
+- **`Test.js`** - Medical test data model
+- **`Ticket.js`** - Support ticket data model
+
+### 📁 Routes/
+API route definitions organized by entity:
+
+- **`adminRoutes.js`** - Admin-specific API endpoints
+- **`appointmentRoutes.js`** - Appointment management endpoints
+- **`authRoutes.js`** - Authentication endpoints (login, register, password reset)
+- **`deviceRoutes.js`** - Device management endpoints
+- **`doctorRoutes.js`** - Doctor-specific API endpoints
+- **`hospitalRoutes.js`** - Hospital management endpoints
+- **`patientRoutes.js`** - Patient-specific API endpoints
+- **`testRoutes.js`** - Medical test endpoints
+- **`ticketRoutes.js`** - Support ticket endpoints
+
+### 📁 Services/
+Business logic layer containing the core application functionality:
+
+- **`adminService.js`** - Admin business logic and operations
+- **`appointmentService.js`** - Appointment business logic and operations
+- **`authService.js`** - Authentication business logic
+- **`deviceService.js`** - Device business logic and operations
+- **`doctorService.js`** - Doctor business logic and operations
+- **`hospitalService.js`** - Hospital business logic and operations
+- **`patientService.js`** - Patient business logic and operations
+- **`superadminService.js`** - Super admin business logic and operations
+- **`suspendService.js`** - User suspension business logic
+- **`testService.js`** - Medical test business logic and operations
+- **`ticketService.js`** - Support ticket business logic and operations
+
+### 📁 middlewares/
+Custom middleware functions for request processing:
+
+- **`jwtAuth.js`** - JWT token authentication middleware
+- **`roleAuth.js`** - Role-based authorization middleware
+
+### 📁 utils/
+Utility functions and helper modules:
+
+- **`otpGenerator.js`** - One-time password generation utilities
+- **`sendEmail.js`** - Email sending utilities
+- **`sendSMS.js`** - SMS sending utilities
+
+### 🔄 Architecture Flow
+
+1. **Request Flow**: Client → Routes → Middleware → Controllers → Services → Models → Firebase
+2. **Response Flow**: Firebase → Models → Services → Controllers → Routes → Client
+
+### 🛡️ Security Features
+
+- **JWT Authentication**: Token-based authentication for all protected routes
+- **Role-Based Authorization**: Different access levels for different user types
+- **Input Validation**: Comprehensive validation in models and controllers
+- **Password Hashing**: Bcrypt encryption for user passwords
+- **CORS Protection**: Cross-origin resource sharing configuration
+- **Helmet Security**: HTTP headers security middleware
+
+### 👥 User Roles
+
+The system supports multiple user roles with different permissions:
+- **SuperAdmin**: Full system access and management
+- **Admin**: Hospital-level administration
+- **Doctor**: Medical professional access
+- **Patient**: Patient-specific features
+- **Device**: IoT device access
+
+### 🔧 Key Technologies
+
+- **Express.js**: Web framework
+- **Firebase Firestore**: NoSQL database
+- **JWT**: Authentication tokens
+- **Bcrypt**: Password hashing
+- **Nodemailer**: Email functionality
+- **Twilio**: SMS functionality
+- **Speakeasy**: OTP generation
 
