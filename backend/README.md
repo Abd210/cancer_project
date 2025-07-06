@@ -96,7 +96,7 @@ Before you can run this project, you need to have the following installed on you
    - **Enable Firestore**:
      - In the Firebase Console, go to "Firestore Database."
      - Click "Create Database" and choose a location.
-     - Select a security mode (start in test mode for development, but use rules for production).
+     - Select a security mode (you can start in production mode too).
    - **Download Firebase Config**:
      - Go to "Project Settings" > "Service Accounts."
      - Click "Generate new private key" and download the JSON file.
