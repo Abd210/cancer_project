@@ -255,17 +255,49 @@ class AppointmentService {
       throw new Error("appointmentService-getUpcomingAppointmentsByHospital: Missing hospitalId");
     }
 
-    // 1) find doctors in that hospital
-    const doctorsSnap = await db.collection("doctors")
-      .where("hospital", "==", hospitalId)
-      .get();
-    if (doctorsSnap.empty) return [];
+    try {
+      // Use hospital arrays for better performance
+      const HospitalService = require("./hospitalService");
+      const appointmentIds = await HospitalService.getHospitalEntities(hospitalId, "appointments");
+      
+      if (appointmentIds.length === 0) {
+        return [];
+      }
 
-    const doctorIds = doctorsSnap.docs.map(d => d.id);
+      // Fetch appointments and filter for upcoming ones
+      const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+      const appointments = [];
+      
+      for (const appointmentId of appointmentIds) {
+        try {
+          const appointmentDoc = await db.collection("appointments").doc(appointmentId).get();
+          if (appointmentDoc.exists) {
+            const appointmentData = appointmentDoc.data();
+            if (appointmentData.start >= nowTs) {
+              appointments.push({ id: appointmentDoc.id, ...appointmentData });
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching appointment ${appointmentId}:`, error);
+          // Continue with other appointments
+        }
+      }
 
-    // 2) fetch appointments where start ≥ now
-    const nowTs = admin.firestore.Timestamp.fromDate(new Date());
-    return this._fetchByDoctorIds(doctorIds, { op: ">=", ts: nowTs });
+      return appointments.sort((a, b) => a.start - b.start);
+    } catch (error) {
+      console.error("Error fetching upcoming appointments by hospital using arrays, falling back to original method:", error);
+      // Fallback to original method if hospital arrays fail
+      const doctorsSnap = await db.collection("doctors")
+        .where("hospital", "==", hospitalId)
+        .get();
+      if (doctorsSnap.empty) return [];
+
+      const doctorIds = doctorsSnap.docs.map(d => d.id);
+
+      // 2) fetch appointments where start ≥ now
+      const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+      return this._fetchByDoctorIds(doctorIds, { op: ">=", ts: nowTs });
+    }
   }
 
   /**
@@ -277,17 +309,49 @@ class AppointmentService {
       throw new Error("appointmentService-getPastAppointmentsByHospital: Missing hospitalId");
     }
 
-    // 1) find doctors in that hospital
-    const doctorsSnap = await db.collection("doctors")
-      .where("hospital", "==", hospitalId)
-      .get();
-    if (doctorsSnap.empty) return [];
+    try {
+      // Use hospital arrays for better performance
+      const HospitalService = require("./hospitalService");
+      const appointmentIds = await HospitalService.getHospitalEntities(hospitalId, "appointments");
+      
+      if (appointmentIds.length === 0) {
+        return [];
+      }
 
-    const doctorIds = doctorsSnap.docs.map(d => d.id);
+      // Fetch appointments and filter for past ones
+      const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+      const appointments = [];
+      
+      for (const appointmentId of appointmentIds) {
+        try {
+          const appointmentDoc = await db.collection("appointments").doc(appointmentId).get();
+          if (appointmentDoc.exists) {
+            const appointmentData = appointmentDoc.data();
+            if (appointmentData.start < nowTs) {
+              appointments.push({ id: appointmentDoc.id, ...appointmentData });
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching appointment ${appointmentId}:`, error);
+          // Continue with other appointments
+        }
+      }
 
-    // 2) fetch appointments where start < now
-    const nowTs = admin.firestore.Timestamp.fromDate(new Date());
-    return this._fetchByDoctorIds(doctorIds, { op: "<", ts: nowTs });
+      return appointments.sort((a, b) => b.start - a.start); // Sort in descending order for past appointments
+    } catch (error) {
+      console.error("Error fetching past appointments by hospital using arrays, falling back to original method:", error);
+      // Fallback to original method if hospital arrays fail
+      const doctorsSnap = await db.collection("doctors")
+        .where("hospital", "==", hospitalId)
+        .get();
+      if (doctorsSnap.empty) return [];
+
+      const doctorIds = doctorsSnap.docs.map(d => d.id);
+
+      // 2) fetch appointments where start < now
+      const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+      return this._fetchByDoctorIds(doctorIds, { op: "<", ts: nowTs });
+    }
   }
 
   /**
@@ -306,38 +370,89 @@ class AppointmentService {
       throw new Error("appointmentService-getFilteredHospitalAppointments: Missing hospitalId");
     }
 
-    // 1) Get doctors in the hospital
-    const doctorsSnap = await db.collection("doctors")
-      .where("hospital", "==", hospitalId)
-      .get();
-    if (doctorsSnap.empty) return [];
-
-    let doctorIds = doctorsSnap.docs.map(d => d.id);
-
-    // 2) If doctorId filter is provided, filter the doctor list
-    if (doctorId) {
-      if (!doctorIds.includes(doctorId)) {
-        // The specified doctor is not in this hospital
+    try {
+      // Use hospital arrays for better performance
+      const HospitalService = require("./hospitalService");
+      const appointmentIds = await HospitalService.getHospitalEntities(hospitalId, "appointments");
+      
+      if (appointmentIds.length === 0) {
         return [];
       }
-      doctorIds = [doctorId]; // Only search for this specific doctor
+
+      // Fetch and filter appointments
+      const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+      const appointments = [];
+      
+      for (const appointmentId of appointmentIds) {
+        try {
+          const appointmentDoc = await db.collection("appointments").doc(appointmentId).get();
+          if (appointmentDoc.exists) {
+            const appointmentData = appointmentDoc.data();
+            
+            // Apply time filter
+            const isUpcoming = appointmentData.start >= nowTs;
+            if ((timeDirection === "upcoming" && !isUpcoming) || (timeDirection === "past" && isUpcoming)) {
+              continue;
+            }
+            
+            // Apply doctor filter
+            if (doctorId && appointmentData.doctor !== doctorId) {
+              continue;
+            }
+            
+            // Apply patient filter
+            if (patientId && appointmentData.patient !== patientId) {
+              continue;
+            }
+            
+            appointments.push({ id: appointmentDoc.id, ...appointmentData });
+          }
+        } catch (error) {
+          console.error(`Error fetching appointment ${appointmentId}:`, error);
+          // Continue with other appointments
+        }
+      }
+
+      // Sort appointments
+      return timeDirection === "upcoming" 
+        ? appointments.sort((a, b) => a.start - b.start)
+        : appointments.sort((a, b) => b.start - a.start);
+        
+    } catch (error) {
+      console.error("Error fetching filtered appointments by hospital using arrays, falling back to original method:", error);
+      // Fallback to original method if hospital arrays fail
+      const doctorsSnap = await db.collection("doctors")
+        .where("hospital", "==", hospitalId)
+        .get();
+      if (doctorsSnap.empty) return [];
+
+      let doctorIds = doctorsSnap.docs.map(d => d.id);
+
+      // 2) If doctorId filter is provided, filter the doctor list
+      if (doctorId) {
+        if (!doctorIds.includes(doctorId)) {
+          // The specified doctor is not in this hospital
+          return [];
+        }
+        doctorIds = [doctorId]; // Only search for this specific doctor
+      }
+
+      // 3) Determine time filter
+      const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+      const timeFilter = timeDirection === "upcoming" 
+        ? { op: ">=", ts: nowTs }
+        : { op: "<", ts: nowTs };
+
+      // 4) Get appointments for these doctors
+      let appointments = await this._fetchByDoctorIds(doctorIds, timeFilter);
+
+      // 5) If patientId filter is provided, filter by patient
+      if (patientId) {
+        appointments = appointments.filter(appointment => appointment.patient === patientId);
+      }
+
+      return appointments;
     }
-
-    // 3) Determine time filter
-    const nowTs = admin.firestore.Timestamp.fromDate(new Date());
-    const timeFilter = timeDirection === "upcoming" 
-      ? { op: ">=", ts: nowTs }
-      : { op: "<", ts: nowTs };
-
-    // 4) Get appointments for these doctors
-    let appointments = await this._fetchByDoctorIds(doctorIds, timeFilter);
-
-    // 5) If patientId filter is provided, filter by patient
-    if (patientId) {
-      appointments = appointments.filter(appointment => appointment.patient === patientId);
-    }
-
-    return appointments;
   }
 
   /**
@@ -688,6 +803,15 @@ class AppointmentService {
       .collection("appointments")
       .add(appointmentData);
 
+    // Add appointment ID to hospital's appointments array
+    try {
+      const HospitalService = require("./hospitalService");
+      await HospitalService.addEntityToHospital(hospital, newAppointmentRef.id, "appointments");
+    } catch (error) {
+      console.error(`Error adding appointment ${newAppointmentRef.id} to hospital ${hospital}:`, error);
+      // Don't throw error here as the appointment was already created successfully
+    }
+
     return {
       message: "Appointment created successfully",
       id: newAppointmentRef.id,
@@ -738,7 +862,22 @@ class AppointmentService {
       );
     }
 
+    // Get appointment data to access hospital ID
+    const appointmentData = appointmentDoc.data();
+    const hospitalId = appointmentData.hospital;
+
     await appointmentRef.delete();
+
+    // Remove appointment ID from hospital's appointments array
+    if (hospitalId) {
+      try {
+        const HospitalService = require("./hospitalService");
+        await HospitalService.removeEntityFromHospital(hospitalId, appointment_id, "appointments");
+      } catch (error) {
+        console.error(`Error removing appointment ${appointment_id} from hospital ${hospitalId}:`, error);
+        // Don't throw error here as the appointment was already deleted successfully
+      }
+    }
 
     return;
   }

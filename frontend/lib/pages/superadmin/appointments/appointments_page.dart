@@ -249,10 +249,35 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     
     // Filter lists
     List<DoctorData> filteredDoctors = [];
+    List<PatientData> filteredPatients = [];
     
     // Controllers for search fields
     TextEditingController doctorSearchController = TextEditingController();
     TextEditingController patientSearchController = TextEditingController();
+
+    // Helper function to get available patients for a selected doctor
+    List<PatientData> _getAvailablePatientsForDoctor(String doctorId) {
+      final doctor = _doctorList.firstWhere((d) => d.id == doctorId, orElse: () => DoctorData(
+        id: '', persId: '', name: '', email: '', mobileNumber: '', birthDate: DateTime.now(),
+        licenses: [], description: '', hospitalId: '', patients: [], schedule: [], suspended: false,
+      ));
+      
+      return _patientList.where((patient) => 
+        patient.hospitalId == selectedHospitalId && doctor.patients.contains(patient.id)
+      ).toList();
+    }
+
+    // Helper function to get available doctors for a selected patient
+    List<DoctorData> _getAvailableDoctorsForPatient(String patientId) {
+      final patient = _patientList.firstWhere((p) => p.id == patientId, orElse: () => PatientData(
+        id: '', persId: '', name: '', email: '', mobileNumber: '', birthDate: DateTime.now(),
+        hospitalId: '', doctorIds: [], status: '', diagnosis: '', medicalHistory: [], suspended: false,
+      ));
+      
+      return _doctorList.where((doctor) => 
+        doctor.hospitalId == selectedHospitalId && patient.doctorIds.contains(doctor.id)
+      ).toList();
+    }
 
     showDialog(
       context: context,
@@ -344,13 +369,18 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                   selectedDoctorId = null;
                                   selectedPatientId = null; // Clear patient selection when hospital changes
                                   patientSearchController.clear(); // Clear patient search when hospital changes
+                                  doctorSearchController.clear(); // Clear doctor search when hospital changes
                                   // Filter doctors by selected hospital
                                   if (val != null) {
                                     filteredDoctors = _doctorList
                                         .where((doctor) => doctor.hospitalId == val)
                                         .toList();
+                                    filteredPatients = _patientList
+                                        .where((patient) => patient.hospitalId == val)
+                                        .toList();
                                   } else {
                                     filteredDoctors = [];
+                                    filteredPatients = [];
                                   }
                                 });
                               },
@@ -372,9 +402,14 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                         onPressed: () {
                                           doctorSearchController.clear();
                                           setDialogState(() {
-                                            filteredDoctors = _doctorList
-                                              .where((doctor) => doctor.hospitalId == selectedHospitalId)
-                                              .toList();
+                                            // If patient is selected, show only doctors associated with that patient
+                                            if (selectedPatientId != null && selectedPatientId!.isNotEmpty) {
+                                              filteredDoctors = _getAvailableDoctorsForPatient(selectedPatientId!);
+                                            } else {
+                                              filteredDoctors = _doctorList
+                                                .where((doctor) => doctor.hospitalId == selectedHospitalId)
+                                                .toList();
+                                            }
                                           });
                                         },
                                       )
@@ -382,17 +417,24 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 ),
                                 onChanged: (query) {
                                   setDialogState(() {
-                                    if (query.isEmpty) {
-                                      filteredDoctors = _doctorList
+                                    List<DoctorData> baseList;
+                                    // If patient is selected, filter from doctors associated with that patient
+                                    if (selectedPatientId != null && selectedPatientId!.isNotEmpty) {
+                                      baseList = _getAvailableDoctorsForPatient(selectedPatientId!);
+                                    } else {
+                                      baseList = _doctorList
                                         .where((doctor) => doctor.hospitalId == selectedHospitalId)
                                         .toList();
+                                    }
+                                    
+                                    if (query.isEmpty) {
+                                      filteredDoctors = baseList;
                                     } else {
-                                      filteredDoctors = _doctorList
+                                      filteredDoctors = baseList
                                         .where((doctor) => 
-                                          doctor.hospitalId == selectedHospitalId &&
-                                          (doctor.name.toLowerCase().contains(query.toLowerCase()) ||
-                                           doctor.email.toLowerCase().contains(query.toLowerCase()) ||
-                                           doctor.persId.toLowerCase().contains(query.toLowerCase())))
+                                          doctor.name.toLowerCase().contains(query.toLowerCase()) ||
+                                          doctor.email.toLowerCase().contains(query.toLowerCase()) ||
+                                          doctor.persId.toLowerCase().contains(query.toLowerCase()))
                                         .toList();
                                     }
                                   });
@@ -430,10 +472,35 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                             // Doctor dropdown
                             if (selectedHospitalId != null)
                               DropdownButtonFormField<String>(
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Select Doctor',
-                                  prefixIcon: Icon(Icons.person),
-                                  border: OutlineInputBorder(),
+                                  prefixIcon: const Icon(Icons.person),
+                                  border: const OutlineInputBorder(),
+                                  helperText: selectedPatientId != null && selectedPatientId!.isNotEmpty
+                                    ? 'Showing doctors associated with selected patient'
+                                    : 'Select a patient first to see associated doctors',
+                                  helperStyle: TextStyle(
+                                    color: selectedPatientId != null && selectedPatientId!.isNotEmpty
+                                      ? Colors.green.shade600
+                                      : Colors.orange.shade600,
+                                    fontSize: 11,
+                                  ),
+                                  suffixIcon: selectedDoctorId != null && selectedDoctorId!.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, color: Colors.red),
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            selectedDoctorId = null;
+                                            doctorSearchController.clear();
+                                            // Reset patient filtering to show all hospital patients
+                                            filteredPatients = _patientList
+                                              .where((patient) => patient.hospitalId == selectedHospitalId)
+                                              .toList();
+                                          });
+                                        },
+                                        tooltip: 'Clear doctor selection',
+                                      )
+                                    : null,
                                 ),
                                 value: selectedDoctorId,
                                 hint: const Text('Choose a doctor'),
@@ -449,6 +516,20 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 onChanged: (val) {
                                   setDialogState(() {
                                     selectedDoctorId = val;
+                                    // If a doctor is selected, filter patients to only show those associated with this doctor
+                                    if (val != null && val.isNotEmpty) {
+                                      filteredPatients = _getAvailablePatientsForDoctor(val);
+                                      // If currently selected patient is not in the filtered list, clear selection
+                                      if (selectedPatientId != null && 
+                                          !filteredPatients.any((p) => p.id == selectedPatientId)) {
+                                        selectedPatientId = null;
+                                        patientSearchController.clear();
+                                      }
+                                    } else {
+                                      filteredPatients = _patientList
+                                        .where((patient) => patient.hospitalId == selectedHospitalId)
+                                        .toList();
+                                    }
                                   });
                                 },
                               ),
@@ -514,10 +595,44 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                         icon: const Icon(Icons.clear),
                                         onPressed: () {
                                           patientSearchController.clear();
+                                          setDialogState(() {
+                                            // If doctor is selected, show only patients associated with that doctor
+                                            if (selectedDoctorId != null && selectedDoctorId!.isNotEmpty) {
+                                              filteredPatients = _getAvailablePatientsForDoctor(selectedDoctorId!);
+                                            } else {
+                                              filteredPatients = _patientList
+                                                .where((patient) => patient.hospitalId == selectedHospitalId)
+                                                .toList();
+                                            }
+                                          });
                                         },
                                       )
                                     : null,
                                 ),
+                                onChanged: (query) {
+                                  setDialogState(() {
+                                    List<PatientData> baseList;
+                                    // If doctor is selected, filter from patients associated with that doctor
+                                    if (selectedDoctorId != null && selectedDoctorId!.isNotEmpty) {
+                                      baseList = _getAvailablePatientsForDoctor(selectedDoctorId!);
+                                    } else {
+                                      baseList = _patientList
+                                        .where((patient) => patient.hospitalId == selectedHospitalId)
+                                        .toList();
+                                    }
+                                    
+                                    if (query.isEmpty) {
+                                      filteredPatients = baseList;
+                                    } else {
+                                      filteredPatients = baseList
+                                        .where((patient) => 
+                                          patient.name.toLowerCase().contains(query.toLowerCase()) ||
+                                          patient.email.toLowerCase().contains(query.toLowerCase()) ||
+                                          patient.persId.toLowerCase().contains(query.toLowerCase()))
+                                        .toList();
+                                    }
+                                  });
+                                },
                               ),
                               const SizedBox(height: 16),
                             ] else ...[
@@ -551,24 +666,40 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                             // Patient dropdown - only show if hospital is selected
                             if (selectedHospitalId != null)
                               DropdownButtonFormField<String>(
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Select Patient',
-                                  prefixIcon: Icon(Icons.personal_injury),
-                                  border: OutlineInputBorder(),
+                                  prefixIcon: const Icon(Icons.personal_injury),
+                                  border: const OutlineInputBorder(),
+                                  helperText: selectedDoctorId != null && selectedDoctorId!.isNotEmpty
+                                    ? 'Showing patients associated with selected doctor'
+                                    : 'Select a doctor first to see associated patients',
+                                  helperStyle: TextStyle(
+                                    color: selectedDoctorId != null && selectedDoctorId!.isNotEmpty
+                                      ? Colors.green.shade600
+                                      : Colors.orange.shade600,
+                                    fontSize: 11,
+                                  ),
+                                  suffixIcon: selectedPatientId != null && selectedPatientId!.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, color: Colors.red),
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            selectedPatientId = null;
+                                            patientSearchController.clear();
+                                            // Reset doctor filtering to show all hospital doctors
+                                            filteredDoctors = _doctorList
+                                              .where((doctor) => doctor.hospitalId == selectedHospitalId)
+                                              .toList();
+                                          });
+                                        },
+                                        tooltip: 'Clear patient selection',
+                                      )
+                                    : null,
                                 ),
                                 value: selectedPatientId,
                                 hint: const Text('Choose a patient'),
                                 isExpanded: true,
-                                items: _patientList
-                                    .where((patient) => 
-                                      // Filter by selected hospital first
-                                      patient.hospitalId == selectedHospitalId &&
-                                      (patientSearchController.text.isEmpty || 
-                                       patient.name.toLowerCase().contains(patientSearchController.text.toLowerCase()) ||
-                                       patient.email.toLowerCase().contains(patientSearchController.text.toLowerCase()) ||
-                                       patient.persId.toLowerCase().contains(patientSearchController.text.toLowerCase()))
-                                    )
-                                    .map((patient) {
+                                items: filteredPatients.map((patient) {
                                   return DropdownMenuItem<String>(
                                     value: patient.id,
                                     child: Text('${patient.name} (${patient.persId})'),
@@ -579,6 +710,20 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                 onChanged: (val) {
                                   setDialogState(() {
                                     selectedPatientId = val;
+                                    // If a patient is selected, filter doctors to only show those associated with this patient
+                                    if (val != null && val.isNotEmpty) {
+                                      filteredDoctors = _getAvailableDoctorsForPatient(val);
+                                      // If currently selected doctor is not in the filtered list, clear selection
+                                      if (selectedDoctorId != null && 
+                                          !filteredDoctors.any((d) => d.id == selectedDoctorId)) {
+                                        selectedDoctorId = null;
+                                        doctorSearchController.clear();
+                                      }
+                                    } else {
+                                      filteredDoctors = _doctorList
+                                        .where((doctor) => doctor.hospitalId == selectedHospitalId)
+                                        .toList();
+                                    }
                                   });
                                 },
                               ),
@@ -770,6 +915,16 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     
                     if (selectedDoctorId == null || selectedPatientId == null) {
                       _showToast('Please select both doctor and patient');
+                      return;
+                    }
+
+                    // Validate that the selected doctor and patient are associated with each other
+                    final selectedDoctor = _doctorList.firstWhere((d) => d.id == selectedDoctorId);
+                    final selectedPatient = _patientList.firstWhere((p) => p.id == selectedPatientId);
+                    
+                    if (!selectedDoctor.patients.contains(selectedPatientId) || 
+                        !selectedPatient.doctorIds.contains(selectedDoctorId)) {
+                      _showToast('Selected doctor and patient are not associated with each other');
                       return;
                     }
 
@@ -1091,9 +1246,9 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                               value: status,
                               isExpanded: true,
                               items: const [
-                                DropdownMenuItem(value: 'scheduled', child: Text('Scheduled')),
-                                DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                                DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
+                                DropdownMenuItem<String>(value: 'scheduled', child: Text('Scheduled')),
+                                DropdownMenuItem<String>(value: 'completed', child: Text('Completed')),
+                                DropdownMenuItem<String>(value: 'cancelled', child: Text('Cancelled')),
                               ],
                               onChanged: (val) {
                                 if (val != null) {

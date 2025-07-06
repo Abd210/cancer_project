@@ -74,11 +74,19 @@ class PatientService {
    * @param {string} hospitalId - The Firestore ID of the hospital.
    */
   static async findAllPatientsByHospital(hospitalId) {
-    const snapshot = await db
-      .collection("patients")
-      .where("hospital", "==", hospitalId)
-      .get();
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    try {
+      // Use hospital arrays for better performance
+      const HospitalService = require("./hospitalService");
+      return await HospitalService.getHospitalEntitiesWithData(hospitalId, "patients");
+    } catch (error) {
+      console.error("Error fetching patients by hospital using arrays, falling back to original method:", error);
+      // Fallback to original method if hospital arrays fail
+      const snapshot = await db
+        .collection("patients")
+        .where("hospital", "==", hospitalId)
+        .get();
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    }
   }
 
   /**
@@ -264,6 +272,23 @@ class PatientService {
       if (!hospitalDoc.exists) {
         throw new Error("Invalid hospital: Hospital does not exist");
       }
+      
+      // Check if the hospital is actually changing
+      const currentHospital = currentPatientData.hospital;
+      
+      if (currentHospital && currentHospital !== updateFields.hospital) {
+        // Hospital is changing, move patient between hospitals
+        console.log(`Patient ${patientId} is switching from hospital ${currentHospital} to ${updateFields.hospital}`);
+        
+        try {
+          // Move patient from old hospital to new hospital in hospital arrays
+          const HospitalService = require("./hospitalService");
+          await HospitalService.moveEntityBetweenHospitals(currentHospital, updateFields.hospital, patientId, "patients");
+        } catch (error) {
+          console.error("Error moving patient between hospitals:", error);
+          throw new Error(`Failed to move patient between hospitals: ${error.message}`);
+        }
+      }
     }
 
     // if (updateFields.password) {
@@ -437,6 +462,7 @@ class PatientService {
 
     const patientData = patientDoc.data();
     const doctorIds = patientData?.doctors || []; // Safely get doctor IDs array
+    const hospitalId = patientData.hospital; // Get hospital ID to remove from hospital array
 
     // 🔹 Remove patient from all doctors' patients arrays before deletion
     for (const doctorId of doctorIds) {
@@ -465,6 +491,17 @@ class PatientService {
 
     // Commit batch
     await batch.commit();
+
+    // 🔹 Remove patient ID from hospital's patients array
+    if (hospitalId) {
+      try {
+        const HospitalService = require("./hospitalService");
+        await HospitalService.removeEntityFromHospital(hospitalId, patientId, "patients");
+      } catch (error) {
+        console.error(`Error removing patient ${patientId} from hospital ${hospitalId}:`, error);
+        // Don't throw error here as the patient was already deleted successfully
+      }
+    }
 
     return { message: "Patient deleted successfully" };
   }

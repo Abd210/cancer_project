@@ -106,6 +106,17 @@ class AuthService {
       await HospitalService._manageBidirectionalHospitalAdminRelation(hospital, userRef.id, null);
     }
 
+    // Add entity ID to hospital arrays for doctors and patients
+    if (hospital && (role === "doctor" || role === "patient")) {
+      try {
+        const HospitalService = require("./hospitalService");
+        await HospitalService.addEntityToHospital(hospital, userRef.id, role === "doctor" ? "doctors" : "patients");
+      } catch (error) {
+        console.error(`Error adding ${role} ${userRef.id} to hospital ${hospital}:`, error);
+        // Don't throw error here as the user was already created successfully
+      }
+    }
+
     return { message: msg, user: newUser };
   }
 

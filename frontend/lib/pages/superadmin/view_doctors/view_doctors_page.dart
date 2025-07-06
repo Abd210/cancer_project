@@ -1633,8 +1633,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                                 const Text('Changing this doctor\'s hospital will:'),
                                 const SizedBox(height: 10),
                                 const Text('• Remove all current patients from this doctor'),
-                                const Text('• Remove this doctor from all current patients\' doctor lists'),
-                                const Text('• Cancel all the currently scheduledappointments for this doctor'),
+                                const Text('• Cancel all the currently scheduled appointments for this doctor'),
                                 const Text('• Assign new patients from the new hospital (if selected)'),
                                 const SizedBox(height: 10),
                                 Container(

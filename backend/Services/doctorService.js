@@ -110,11 +110,19 @@ class DoctorService {
    * Fetch doctors by hospital ID
    */
   static async findAllDoctorsByHospital(hospitalId) {
-    const snapshot = await db
-      .collection("doctors")
-      .where("hospital", "==", hospitalId)
-      .get();
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    try {
+      // Use hospital arrays for better performance
+      const HospitalService = require("./hospitalService");
+      return await HospitalService.getHospitalEntitiesWithData(hospitalId, "doctors");
+    } catch (error) {
+      console.error("Error fetching doctors by hospital using arrays, falling back to original method:", error);
+      // Fallback to original method if hospital arrays fail
+      const snapshot = await db
+        .collection("doctors")
+        .where("hospital", "==", hospitalId)
+        .get();
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    }
   }
 
   /**
@@ -373,6 +381,11 @@ class DoctorService {
             
             console.log(`Successfully cancelled all upcoming appointments for doctor ${doctorId}`);
           }
+
+          // Move doctor from old hospital to new hospital in hospital arrays
+          const HospitalService = require("./hospitalService");
+          await HospitalService.moveEntityBetweenHospitals(currentHospital, updateFields.hospital, doctorId, "doctors");
+          
         } catch (appointmentError) {
           console.error("Error cancelling appointments:", appointmentError);
           throw new Error(`Failed to cancel appointments when switching hospitals: ${appointmentError.message}`);
@@ -380,46 +393,7 @@ class DoctorService {
       }
     }
 
-    // const currentDoctorData = doctorDoc.data(); // Get current doctor data
-
-    // if (updateFields.patients) {
-    //   let oldPatients = currentDoctorData.patients || [];
-    //   let newPatients = updateFields.patients || oldPatients; // If no update to patients array, keep the old list
-
-    //   if (!Array.isArray(newPatients)) {
-    //     throw new Error("updateDoctor: patients field must be an array");
-    //   }
-
-    //   // Identify removed and added patients
-    //   const removedPatients = oldPatients.filter(
-    //     (patientId) => !newPatients.includes(patientId)
-    //   );
-    //   const addedPatients = newPatients.filter(
-    //     (patientId) => !oldPatients.includes(patientId)
-    //   );
-
-    //   // Update removed patients (set their doctor attribute to an empty string or null)
-    //   await Promise.all(
-    //     removedPatients.map(async (patientId) => {
-    //       await PatientService.updatePatient(
-    //       patientId,
-    //       { doctor: null },
-    //       { role: "superadmin" }
-    //     );
-    //     })
-    //   );
-
-    //   // Update added patients (set their doctor attribute to the new doctor's ID)
-    //   await Promise.all(
-    //     addedPatients.map(async (patientId) => {
-    //       await PatientService.updatePatient(
-    //       patientId,
-    //       { doctor: doctorId },
-    //       { role: "superadmin" }
-    //     );
-    //     })
-    //   );
-    // }
+    
     const currentDoctorData = doctorDoc.data();
     if (updateFields.patients !== undefined) {
       if (!Array.isArray(updateFields.patients)) {
@@ -513,6 +487,7 @@ class DoctorService {
 
     const doctorData = doctorDoc.data();
     const patients = doctorData?.patients || []; // Ensure the patients array exists
+    const hospitalId = doctorData.hospital; // Get hospital ID to remove from hospital array
 
     // 🔹 Remove doctor from all patients' doctors arrays
     const updatePatientDoctorField = async () => {
@@ -549,6 +524,17 @@ class DoctorService {
 
     // Commit batch
     await batch.commit();
+
+    // 🔹 Remove doctor ID from hospital's doctors array
+    if (hospitalId) {
+      try {
+        const HospitalService = require("./hospitalService");
+        await HospitalService.removeEntityFromHospital(hospitalId, doctorId, "doctors");
+      } catch (error) {
+        console.error(`Error removing doctor ${doctorId} from hospital ${hospitalId}:`, error);
+        // Don't throw error here as the doctor was already deleted successfully
+      }
+    }
 
     return { message: "Doctor deleted successfully" };
   }

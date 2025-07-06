@@ -1,5 +1,7 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
+const bcrypt = require("bcrypt");
+const Hospital = require("../Models/Hospital");
 
 class HospitalService {
   /**
@@ -243,69 +245,6 @@ class HospitalService {
     return "Hospital updated successfully.";
   }
 
-  // /**
-  //  * Deletes a hospital and all associated data (patients, doctors, admins, appointments, tests).
-  //  * @param {string} hospitalId - The ID of the hospital to delete.
-  //  * @returns {Promise<Object>} A message indicating the hospital and all associated records were successfully deleted.
-  //  * @throws {Error} If the hospital is not found.
-  //  */
-  // static async deleteHospital(hospitalId) {
-  //   const hospitalRef = db.collection("hospitals").doc(hospitalId);
-  //   const hospitalDoc = await hospitalRef.get();
-
-  //   if (!hospitalDoc.exists) {
-  //     throw new Error("Hospital not found.");
-  //   }
-
-  //   // Start Firestore transaction
-  //   const batch = db.batch();
-
-  //   // 🔹 Collect IDs of Patients and Doctors linked to the hospital
-  //   const collectIds = async (collection) => {
-  //     const snapshot = await db
-  //       .collection(collection)
-  //       .where("hospital", "==", hospitalId)
-  //       .get();
-  //     return snapshot.docs.map((doc) => doc.id);
-  //   };
-
-  //   const patientIds = await collectIds("patients");
-  //   const doctorIds = await collectIds("doctors");
-
-  //   // 🔹 Delete Patients, Doctors, and Admins linked to this hospital
-  //   const deleteLinkedRecords = async (collection) => {
-  //     const snapshot = await db
-  //       .collection(collection)
-  //       .where("hospital", "==", hospitalId)
-  //       .get();
-  //     snapshot.forEach((doc) => batch.delete(doc.ref));
-  //   };
-
-  //   await deleteLinkedRecords("patients");
-  //   await deleteLinkedRecords("doctors");
-  //   await deleteLinkedRecords("admins");
-
-  //   // 🔹 Delete Appointments linked to collected patient & doctor IDs
-  //   const deleteAppointmentsAndTests = async (collection, field) => {
-  //     const snapshot = await db
-  //       .collection(collection)
-  //       .where(field, "in", [...patientIds, ...doctorIds])
-  //       .get();
-  //     snapshot.forEach((doc) => batch.delete(doc.ref));
-  //   };
-
-  //   await deleteAppointmentsAndTests("appointments", "patient");
-  //   await deleteAppointmentsAndTests("appointments", "doctor");
-  //   await deleteAppointmentsAndTests("tests", "patient");
-  //   await deleteAppointmentsAndTests("tests", "doctor");
-
-  //   // 🔹 Delete the hospital itself
-  //   batch.delete(hospitalRef);
-  //   await batch.commit();
-
-  //   return { message: "Hospital and all associated records deleted successfully." };
-  // }
-
   /**
    * Deletes a hospital and all associated data (patients, doctors, admins, appointments, tests).
    * @param {string} hospitalId - The ID of the hospital to delete.
@@ -404,31 +343,6 @@ class HospitalService {
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
 
-  /**
-   * Internal function to check uniqueness of emails and mobile numbers across collections.
-   * @param {string} field - The field to check for uniqueness (e.g., "emails" or "mobileNumbers").
-   * @param {Array<string>} values - The values to check for uniqueness.
-   * @param {string} [hospitalId] - The ID of the current hospital (to exclude from uniqueness check).
-   * @returns {Promise<void>}
-   * @throws {Error} If any of the values are already in use.
-   * @private
-   */
-  // static async _checkUniqueFields(field, values, hospitalId = null) {
-  //   const collections = ["patients", "doctors", "admins", "hospitals"];
-
-  //   for (const collection of collections) {
-  //     const querySnapshot = await db
-  //       .collection(collection)
-  //       .where(field, "array-contains-any", values)
-  //       .get();
-
-  //     querySnapshot.forEach((doc) => {
-  //       if (hospitalId && doc.id === hospitalId) return; // Skip the current hospital
-  //       throw new Error(`One of the ${field} is already in use.`);
-  //     });
-  //   }
-  // }
-
   static async _checkUniqueFields(field, values, hospitalId = null) {
     const collections = ["patients", "doctors", "admins", "superadmins", "hospitals"];
   
@@ -482,6 +396,187 @@ class HospitalService {
     }
   }  
   
+  /**
+   * Add an entity ID to a hospital's array (doctors, patients, or appointments)
+   * @param {string} hospitalId - The hospital ID
+   * @param {string} entityId - The entity ID to add  
+   * @param {string} arrayType - The array type ('doctors', 'patients', or 'appointments')
+   */
+  static async addEntityToHospital(hospitalId, entityId, arrayType) {
+    if (!hospitalId || !entityId || !arrayType) {
+      throw new Error("HospitalService-addEntityToHospital: Missing required parameters");
+    }
+
+    const validArrayTypes = ['doctors', 'patients', 'appointments'];
+    if (!validArrayTypes.includes(arrayType)) {
+      throw new Error(`HospitalService-addEntityToHospital: Invalid array type. Must be one of: ${validArrayTypes.join(', ')}`);
+    }
+
+    try {
+      const hospitalRef = db.collection("hospitals").doc(hospitalId);
+      const hospitalDoc = await hospitalRef.get();
+      
+      if (!hospitalDoc.exists) {
+        throw new Error("HospitalService-addEntityToHospital: Hospital not found");
+      }
+
+      // Use arrayUnion to add the entity ID if it doesn't already exist
+      await hospitalRef.update({
+        [arrayType]: admin.firestore.FieldValue.arrayUnion(entityId),
+        updatedAt: new Date()
+      });
+
+      console.log(`Added ${entityId} to hospital ${hospitalId} ${arrayType} array`);
+    } catch (error) {
+      console.error("Error in addEntityToHospital:", error);
+      throw new Error(`HospitalService-addEntityToHospital: ${error.message}`);
+    }
+  }
+
+  /**
+   * Remove an entity ID from a hospital's array (doctors, patients, or appointments)
+   * @param {string} hospitalId - The hospital ID
+   * @param {string} entityId - The entity ID to remove
+   * @param {string} arrayType - The array type ('doctors', 'patients', or 'appointments')
+   */
+  static async removeEntityFromHospital(hospitalId, entityId, arrayType) {
+    if (!hospitalId || !entityId || !arrayType) {
+      throw new Error("HospitalService-removeEntityFromHospital: Missing required parameters");
+    }
+
+    const validArrayTypes = ['doctors', 'patients', 'appointments'];
+    if (!validArrayTypes.includes(arrayType)) {
+      throw new Error(`HospitalService-removeEntityFromHospital: Invalid array type. Must be one of: ${validArrayTypes.join(', ')}`);
+    }
+
+    try {
+      const hospitalRef = db.collection("hospitals").doc(hospitalId);
+      const hospitalDoc = await hospitalRef.get();
+      
+      if (!hospitalDoc.exists) {
+        throw new Error("HospitalService-removeEntityFromHospital: Hospital not found");
+      }
+
+      // Use arrayRemove to remove the entity ID
+      await hospitalRef.update({
+        [arrayType]: admin.firestore.FieldValue.arrayRemove(entityId),
+        updatedAt: new Date()
+      });
+
+      console.log(`Removed ${entityId} from hospital ${hospitalId} ${arrayType} array`);
+    } catch (error) {
+      console.error("Error in removeEntityFromHospital:", error);
+      throw new Error(`HospitalService-removeEntityFromHospital: ${error.message}`);
+    }
+  }
+
+  /**
+   * Move an entity from one hospital to another
+   * @param {string} oldHospitalId - The current hospital ID
+   * @param {string} newHospitalId - The new hospital ID
+   * @param {string} entityId - The entity ID to move
+   * @param {string} arrayType - The array type ('doctors', 'patients')
+   */
+  static async moveEntityBetweenHospitals(oldHospitalId, newHospitalId, entityId, arrayType) {
+    if (!oldHospitalId || !newHospitalId || !entityId || !arrayType) {
+      throw new Error("HospitalService-moveEntityBetweenHospitals: Missing required parameters");
+    }
+
+    const validArrayTypes = ['doctors', 'patients']; // appointments can't be moved
+    if (!validArrayTypes.includes(arrayType)) {
+      throw new Error(`HospitalService-moveEntityBetweenHospitals: Invalid array type. Must be one of: ${validArrayTypes.join(', ')}`);
+    }
+
+    try {
+      // Remove from old hospital
+      await this.removeEntityFromHospital(oldHospitalId, entityId, arrayType);
+      
+      // Add to new hospital
+      await this.addEntityToHospital(newHospitalId, entityId, arrayType);
+
+      console.log(`Moved ${entityId} from hospital ${oldHospitalId} to ${newHospitalId} in ${arrayType} array`);
+    } catch (error) {
+      console.error("Error in moveEntityBetweenHospitals:", error);
+      throw new Error(`HospitalService-moveEntityBetweenHospitals: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get entities from hospital arrays
+   * @param {string} hospitalId - The hospital ID
+   * @param {string} arrayType - The array type ('doctors', 'patients', or 'appointments')
+   * @returns {Promise<Array>} Array of entity IDs
+   */
+  static async getHospitalEntities(hospitalId, arrayType) {
+    if (!hospitalId || !arrayType) {
+      throw new Error("HospitalService-getHospitalEntities: Missing required parameters");
+    }
+
+    const validArrayTypes = ['doctors', 'patients', 'appointments'];
+    if (!validArrayTypes.includes(arrayType)) {
+      throw new Error(`HospitalService-getHospitalEntities: Invalid array type. Must be one of: ${validArrayTypes.join(', ')}`);
+    }
+
+    try {
+      const hospitalRef = db.collection("hospitals").doc(hospitalId);
+      const hospitalDoc = await hospitalRef.get();
+      
+      if (!hospitalDoc.exists) {
+        throw new Error("HospitalService-getHospitalEntities: Hospital not found");
+      }
+
+      const hospitalData = hospitalDoc.data();
+      return hospitalData[arrayType] || [];
+    } catch (error) {
+      console.error("Error in getHospitalEntities:", error);
+      throw new Error(`HospitalService-getHospitalEntities: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get full entity data for entities in a hospital array
+   * @param {string} hospitalId - The hospital ID
+   * @param {string} arrayType - The array type ('doctors', 'patients', or 'appointments')
+   * @returns {Promise<Array>} Array of entity objects with full data
+   */
+  static async getHospitalEntitiesWithData(hospitalId, arrayType) {
+    if (!hospitalId || !arrayType) {
+      throw new Error("HospitalService-getHospitalEntitiesWithData: Missing required parameters");
+    }
+
+    const validArrayTypes = ['doctors', 'patients', 'appointments'];
+    if (!validArrayTypes.includes(arrayType)) {
+      throw new Error(`HospitalService-getHospitalEntitiesWithData: Invalid array type. Must be one of: ${validArrayTypes.join(', ')}`);
+    }
+
+    try {
+      // Get the entity IDs from the hospital array
+      const entityIds = await this.getHospitalEntities(hospitalId, arrayType);
+      
+      if (entityIds.length === 0) {
+        return [];
+      }
+
+      // Fetch the full data for each entity
+      const entities = [];
+      for (const entityId of entityIds) {
+        try {
+          const entityDoc = await db.collection(arrayType).doc(entityId).get();
+          if (entityDoc.exists) {
+            entities.push({ id: entityDoc.id, ...entityDoc.data() });
+          }
+        } catch (error) {
+          console.error(`Error fetching ${arrayType} ${entityId}:`, error);
+          // Continue with other entities even if one fails
+        }
+      }
+
+      return entities;
+    } catch (error) {
+      console.error("Error in getHospitalEntitiesWithData:", error);
+      throw new Error(`HospitalService-getHospitalEntitiesWithData: ${error.message}`);
+    }
+  }
 }
 
 module.exports = HospitalService;
