@@ -134,6 +134,31 @@ Before you can run this project, you need to have the following installed on you
    flutter doctor --android-licenses
    ```
 
+##### **For Windows Development:**
+
+1. **Enable Windows Desktop Support**:
+   ```cmd
+   flutter config --enable-windows-desktop
+   ```
+
+2. **Install Visual Studio Build Tools**:
+   - Download [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
+   - Run the installer
+   - Select "Desktop development with C++" workload
+   - Install the following components:
+     - MSVC v143 - VS 2022 C++ x64/x86 build tools
+     - Windows 10/11 SDK
+     - CMake tools for Visual Studio
+
+3. **Install Git for Windows**:
+   - Download from [Git for Windows](https://git-scm.com/download/win)
+   - Install with default settings
+   - Ensure "Git from the command line and also from 3rd-party software" is selected
+
+4. **Install Windows Terminal (Optional but Recommended)**:
+   - Download from Microsoft Store or [GitHub](https://github.com/microsoft/terminal)
+   - Provides better terminal experience for development
+
 ##### **For iOS Development (macOS only):**
 
 1. **Install Xcode**:
@@ -175,12 +200,31 @@ Before you can run this project, you need to have the following installed on you
    - Install any missing dependencies
    - Accept licenses where required
 
-3. **Test Installation**:
+3. **Windows-Specific Verification**:
+   ```cmd
+   # Check if Visual Studio Build Tools are installed
+   where cl.exe
+   
+   # Check if Windows SDK is available
+   where sdkmanager.bat
+   
+   # Check if Git is properly installed
+   git --version
+   
+   # Verify Flutter Windows support
+   flutter config --list
+   ```
+
+4. **Test Installation**:
    ```bash
    # Create a test project
    flutter create test_app
    cd test_app
-   flutter run
+   
+   # Test on different platforms
+   flutter run -d windows    # Windows desktop
+   flutter run -d chrome     # Web
+   flutter run -d android    # Android (if configured)
    ```
 
 #### **Step 5: Install IDE and Extensions**
@@ -189,18 +233,78 @@ Before you can run this project, you need to have the following installed on you
 
 1. **Install VS Code**:
    - Download from [Visual Studio Code](https://code.visualstudio.com/)
+   - Install with default settings
+   - Launch VS Code
 
-2. **Install Flutter Extension**:
+2. **Install Essential Extensions**:
    - Open VS Code
    - Go to Extensions (Ctrl+Shift+X)
-   - Search for "Flutter"
-   - Install the official Flutter extension
-   - Install the Dart extension (should be auto-installed)
+   - Install the following extensions:
+     - **Flutter** (by Dart Code) - Official Flutter extension
+     - **Dart** (by Dart Code) - Dart language support
+     - **Flutter Widget Snippets** - Code snippets for Flutter widgets
+     - **Awesome Flutter Snippets** - Additional Flutter snippets
+     - **Pubspec Assist** - Dependency management
+     - **Flutter Tree** - Widget tree visualization
+     - **Error Lens** - Inline error display
+     - **Bracket Pair Colorizer** - Code bracket highlighting
+     - **Auto Rename Tag** - Automatic tag renaming
+     - **GitLens** - Enhanced Git integration
 
-3. **Configure VS Code**:
+3. **Configure VS Code for Windows Development**:
    - Open Command Palette (Ctrl+Shift+P)
    - Type "Flutter: Select Device"
-   - Choose your target device
+   - Choose your target device (Windows, Chrome, Android, etc.)
+   - Set default terminal to Windows Terminal (if installed)
+
+4. **Windows-Specific VS Code Settings**:
+   - Go to File → Preferences → Settings (Ctrl+,)
+   - Configure the following settings:
+     ```json
+     {
+       "terminal.integrated.defaultProfile.windows": "PowerShell",
+       "terminal.integrated.shellArgs.windows": [],
+       "dart.flutterSdkPath": "C:\\flutter",
+       "dart.sdkPath": "C:\\flutter\\bin\\cache\\dart-sdk",
+       "editor.formatOnSave": true,
+       "editor.codeActionsOnSave": {
+         "source.fixAll": true,
+         "source.organizeImports": true
+       },
+       "files.autoSave": "afterDelay",
+       "files.autoSaveDelay": 1000
+     }
+     ```
+
+5. **VS Code Workspace Setup**:
+   - Open the project folder in VS Code
+   - Create a `.vscode/settings.json` file for project-specific settings:
+     ```json
+     {
+       "dart.flutterSdkPath": "C:\\flutter",
+       "dart.sdkPath": "C:\\flutter\\bin\\cache\\dart-sdk",
+       "files.exclude": {
+         "**/.git": true,
+         "**/.svn": true,
+         "**/.hg": true,
+         "**/CVS": true,
+         "**/.DS_Store": true,
+         "**/Thumbs.db": true,
+         "**/build": true,
+         "**/.dart_tool": true
+       }
+     }
+     ```
+
+6. **Useful VS Code Commands for Flutter Development**:
+   - `Ctrl+Shift+P` → "Flutter: Hot Reload" - Hot reload the app
+   - `Ctrl+Shift+P` → "Flutter: Hot Restart" - Hot restart the app
+   - `Ctrl+Shift+P` → "Flutter: Select Device" - Choose target device
+   - `Ctrl+Shift+P` → "Flutter: Get Packages" - Run `flutter pub get`
+   - `Ctrl+Shift+P` → "Flutter: Clean" - Clean the project
+   - `Ctrl+Shift+P` → "Flutter: Run Flutter Doctor" - Check Flutter installation
+   - `F5` - Start debugging
+   - `Ctrl+F5` - Start without debugging
 
 ##### **Android Studio:**
 
@@ -210,6 +314,8 @@ Before you can run this project, you need to have the following installed on you
    - Search for "Flutter"
    - Install the Flutter plugin
    - Restart Android Studio
+
+
 
 #### **Step 6: Install Project Dependencies**
 
@@ -234,10 +340,21 @@ Before you can run this project, you need to have the following installed on you
 - **Flutter not found**: Ensure the PATH is correctly set and you've restarted your terminal
 - **Permission denied**: Run terminal as administrator (Windows) or use `sudo` (macOS/Linux)
 
+##### **Windows-Specific Issues:**
+- **Visual Studio Build Tools not found**: Reinstall Visual Studio Build Tools with C++ workload
+- **Windows SDK missing**: Install Windows 10/11 SDK from Visual Studio Installer
+- **Git not found**: Ensure Git is installed and added to PATH
+- **Windows Terminal issues**: Use Command Prompt or PowerShell as alternative
+- **Antivirus blocking**: Add Flutter and project directories to antivirus exclusions
+- **Long path issues**: Enable long path support in Windows registry or use shorter paths
+- **VS Code Flutter extension not working**: Restart VS Code and verify Flutter SDK path
+- **VS Code terminal issues**: Check terminal profile settings and shell configuration
+
 ##### **Android Issues:**
 - **SDK not found**: Verify ANDROID_HOME is set correctly
 - **Licenses not accepted**: Run `flutter doctor --android-licenses`
 - **Emulator not starting**: Check virtualization is enabled in BIOS
+- **ADB not found**: Ensure platform-tools are in PATH
 
 ##### **iOS Issues (macOS):**
 - **Xcode not found**: Install Xcode from Mac App Store
@@ -246,6 +363,12 @@ Before you can run this project, you need to have the following installed on you
 ##### **Network Issues:**
 - **Pub get fails**: Check internet connection and firewall settings
 - **Slow downloads**: Use a VPN or change network if needed
+- **Corporate firewall**: Configure proxy settings if needed
+
+##### **Build Issues:**
+- **C++ compilation errors**: Ensure Visual Studio Build Tools are properly installed
+- **CMake errors**: Install CMake tools for Visual Studio
+- **Windows SDK errors**: Verify Windows SDK installation
 
 ---
 
