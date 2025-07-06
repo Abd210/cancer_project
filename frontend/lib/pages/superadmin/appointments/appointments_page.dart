@@ -815,6 +815,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                     purpose: purpose,
                     status: 'scheduled', // Default status for new appointments
                     suspended: false, // Default to not suspended
+                    hospitalId: selectedHospitalId!, // Pass the selected hospital ID
                   );
                       
                   await _fetchAppointments();

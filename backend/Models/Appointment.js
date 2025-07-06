@@ -14,6 +14,7 @@ class Appointment {
   constructor({
     patient,
     doctor,
+    hospital, // New required attribute (hospital ID)
     // day,           // New required attribute (e.g. "Monday")
     // appointmentDate,
     // startTime,
@@ -30,6 +31,8 @@ class Appointment {
       );
     if (typeof doctor !== "string")
       throw new Error("Invalid doctor: must be a Firestore document reference");
+    if (typeof hospital !== "string")
+      throw new Error("Invalid hospital: must be a Firestore document reference");
     // if (!(appointmentDate instanceof Date))
     //   throw new Error("Invalid appointmentDate: must be a Date object");
     // if (typeof day !== "string")
@@ -60,7 +63,7 @@ class Appointment {
 
     this.patient = patient;
     this.doctor = doctor;
-    this.doctor = doctor;
+    this.hospital = hospital; // Hospital ID (Firestore document reference)
     // this.day = day;
     // this.startTime = startTime;
     // this.endTime = endTime;

@@ -86,6 +86,13 @@ router.get(
   appointmentController.getFilteredHospitalAppointments
 );
 
+router.get(
+  "/appointment/hospital/direct", // OPTIMIZED: GET /appointment/hospital/direct to fetch appointments directly by hospital field.
+  authenticate,
+  authorize(["admin", "superadmin"]), // Primarily for admins to efficiently fetch their hospital's appointments.
+  appointmentController.getDirectHospitalAppointments
+);
+
 /**
  * Route: POST /appointment/cancel
  * Description: Cancels an appointment for the authenticated user.

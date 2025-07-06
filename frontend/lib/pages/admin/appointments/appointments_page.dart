@@ -70,8 +70,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
   Future<void> _fetchAppointments() async {
     setState(() => _isLoading = true);
     try {
-      // Use the new filtered method that supports both patient and doctor filtering
-      final pastList = await _appointmentProvider.getFilteredHospitalAppointments(
+      // OPTIMIZED: Use the new direct method that queries appointments by hospital field directly
+      final pastList = await _appointmentProvider.getDirectHospitalAppointments(
         token: widget.token,
         hospitalId: widget.hospitalId,
         patientId: _selectedPatientId,
@@ -80,7 +80,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         suspendfilter: _suspendFilter,
       );
       
-      final upcomingList = await _appointmentProvider.getFilteredHospitalAppointments(
+      final upcomingList = await _appointmentProvider.getDirectHospitalAppointments(
           token: widget.token,
         hospitalId: widget.hospitalId,
         patientId: _selectedPatientId,

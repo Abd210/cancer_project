@@ -165,12 +165,13 @@ class AppointmentProvider {
     required String purpose,
     required String status,
     bool suspended = false,
+    String? hospitalId, // Optional - only needed for superadmin
   }) async {
     final url =
         Uri.parse('${ClassUtil.baseUrl}${ClassUtil.appointmentNewRoute}');
     final headers = ClassUtil.baseHeaders(token: token);
 
-    final body = jsonEncode({
+    final bodyData = {
       'patient': patientId,
       'doctor': doctorId,
       'start': start.toIso8601String(),
@@ -178,7 +179,14 @@ class AppointmentProvider {
       'purpose': purpose,
       'status': status,
       'suspended': suspended,
-    });
+    };
+
+    // Add hospital ID if provided (for superadmin)
+    if (hospitalId != null) {
+      bodyData['hospital'] = hospitalId;
+    }
+
+    final body = jsonEncode(bodyData);
 
     try {
       final res = await httpClient.post(url, headers: headers, body: body);
@@ -472,6 +480,50 @@ class AppointmentProvider {
           .toList();
     } catch (e) {
       Logger.log('Error in getFilteredHospitalAppointments: $e');
+      rethrow;
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // DIRECT (hospital)  /appointment/hospital/direct - OPTIMIZED
+  // ------------------------------------------------------------------
+  Future<List<AppointmentData>> getDirectHospitalAppointments({
+    required String token,
+    required String hospitalId,
+    String? patientId,
+    String? doctorId,
+    String timeDirection = 'upcoming', // 'upcoming' or 'past'
+    String suspendfilter = 'all',
+  }) async {
+    final url = Uri.parse(
+        '${ClassUtil.baseUrl}${ClassUtil.appointmentHospitalDirectRoute}');
+    final headers = ClassUtil.baseHeaders(token: token)
+      ..['hospital_id'] = hospitalId
+      ..['time_direction'] = timeDirection
+      ..['filter'] = suspendfilter;
+
+    // Add optional filters
+    if (patientId != null && patientId.isNotEmpty) {
+      headers['patient_id'] = patientId;
+    }
+    if (doctorId != null && doctorId.isNotEmpty) {
+      headers['doctor_id'] = doctorId;
+    }
+
+    try {
+      Logger.log('Fetching direct hospital appointments: $url, hospitalId: $hospitalId, timeDirection: $timeDirection');
+      final res = await httpClient.get(url, headers: headers);
+      if (res.statusCode != 200) {
+        throw Exception(
+          'Direct hospital appointments failed [${res.statusCode}]: ${res.body}',
+        );
+      }
+      Logger.log('Successfully fetched ${(json.decode(res.body) as List).length} direct hospital appointments');
+      return (json.decode(res.body) as List)
+          .map<AppointmentData>((e) => AppointmentData.fromJson(e))
+          .toList();
+    } catch (e) {
+      Logger.log('Error in getDirectHospitalAppointments: $e');
       rethrow;
     }
   }

@@ -341,6 +341,49 @@ class AppointmentService {
   }
 
   /**
+   * OPTIMIZED: Returns appointments for a hospital by directly querying the hospital field.
+   * Much more efficient than the indirect doctor-based approach.
+   * 
+   * @param {string} hospitalId - The hospital ID
+   * @param {string|null} patientId - Optional patient ID filter  
+   * @param {string|null} doctorId - Optional doctor ID filter
+   * @param {string} timeDirection - "upcoming" for future appointments, "past" for historical appointments
+   * @returns {Promise<Array>} Array of filtered appointment objects
+   */
+  static async getDirectHospitalAppointments(hospitalId, patientId = null, doctorId = null, timeDirection = "upcoming") {
+    if (!hospitalId) {
+      throw new Error("appointmentService-getDirectHospitalAppointments: Missing hospitalId");
+    }
+
+    // Build query to fetch appointments directly by hospital field
+    let query = db.collection("appointments").where("hospital", "==", hospitalId);
+
+    // Add time filter
+    const nowTs = admin.firestore.Timestamp.fromDate(new Date());
+    if (timeDirection === "upcoming") {
+      query = query.where("start", ">=", nowTs);
+    } else {
+      query = query.where("start", "<", nowTs);
+    }
+
+    // Add optional doctor filter
+    if (doctorId) {
+      query = query.where("doctor", "==", doctorId);
+    }
+
+    // Execute query
+    const snapshot = await query.get();
+    let appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Apply patient filter in memory (since Firestore compound queries have limitations)
+    if (patientId) {
+      appointments = appointments.filter(appointment => appointment.patient === patientId);
+    }
+
+    return appointments;
+  }
+
+  /**
    * Cancels an appointment by updating its status to 'cancelled'.
    */
   static async cancelAppointment(appointment_id) {
@@ -390,6 +433,7 @@ class AppointmentService {
   static async createAppointment({
     patient,
     doctor,
+    hospital, // New required attribute (hospital ID)
     // appointmentDate,
     // day,         // New required attribute (e.g., "Monday")
     // startTime,
@@ -400,7 +444,7 @@ class AppointmentService {
     status = "scheduled",
     suspended = false,
   }) {
-    // Ensure that doctor and patient exist.
+    // Ensure that doctor, patient, and hospital exist.
     if (
       !(await this.checkEntityExists("doctor", doctor)) ||
       !(await this.checkEntityExists("patient", patient))
@@ -408,6 +452,19 @@ class AppointmentService {
       throw new Error(
         "appointmentService-createAppointment: Doctor or Patient not found"
       );
+    }
+
+    // Validate hospital exists
+    if (!hospital) {
+      const error = new Error("appointmentService-createAppointment: Hospital ID is required");
+      error.status = 400;
+      throw error;
+    }
+    const hospitalDoc = await db.collection("hospitals").doc(hospital).get();
+    if (!hospitalDoc.exists) {
+      const error = new Error("appointmentService-createAppointment: Hospital not found");
+      error.status = 400;
+      throw error;
     }
 
     // // Validate required fields.
@@ -610,6 +667,7 @@ class AppointmentService {
     const appointmentData = {
       patient,
       doctor,
+      hospital, // Hospital ID (Firestore document reference)
       // appointmentDate: admin.firestore.Timestamp.fromDate(
       //   new Date(appointmentDate)
       // ),
@@ -700,6 +758,7 @@ class AppointmentService {
     }
     const currentAppointment = appointmentDoc.data();
     // ░░░ Allowed fields and extra field check ░░░
+    // Note: hospital is NOT included - it's not editable after creation
     const ALLOWED_FIELDS = ["patient", "doctor", "start", "end", "purpose", "status", "suspended"];
     Object.keys(updateFields).forEach((key) => {
       if (updateFields[key] === undefined) {

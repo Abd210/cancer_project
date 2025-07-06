@@ -177,7 +177,14 @@ class AuthService {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ id: user.id, role }, JWT_SECRET, {
+    const tokenPayload = { id: user.id, role };
+    
+    // Include hospital field in token for admin users
+    if (role === "admin" && user.hospital) {
+      tokenPayload.hospital = user.hospital;
+    }
+    
+    const token = jwt.sign(tokenPayload, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
 

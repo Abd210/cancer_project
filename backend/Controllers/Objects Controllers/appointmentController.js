@@ -303,6 +303,57 @@ class AppointmentController {
   }
 
   /**
+   * OPTIMIZED: Retrieves appointments for a hospital by directly querying the hospital field.
+   * Much more efficient than the indirect doctor-based approach.
+   * 
+   * @param {Object} req - The Express request object.
+   * @param {Object} res - The Express response object.
+   * @returns {Object} JSON response with an array of appointments or an error message.
+   */
+  static async getDirectHospitalAppointments(req, res) {
+    try {
+      const { hospital_id, patient_id, doctor_id, time_direction, user, filter } = req.headers;
+      
+      if (!hospital_id) {
+        return res.status(400).json({
+          error:
+            "AppointmentController-getDirectHospitalAppointments: Missing hospital_id in headers",
+        });
+      }
+
+      // Default to upcoming if time_direction not specified
+      const timeDirection = time_direction || "upcoming";
+      
+      // Validate time_direction
+      if (!["upcoming", "past"].includes(timeDirection)) {
+        return res.status(400).json({
+          error:
+            "AppointmentController-getDirectHospitalAppointments: Invalid time_direction. Must be 'upcoming' or 'past'",
+        });
+      }
+
+      // Call the optimized service method to get appointments directly by hospital field
+      const appointments = await AppointmentService.getDirectHospitalAppointments(
+        hospital_id,
+        patient_id || null,
+        doctor_id || null, 
+        timeDirection
+      );
+
+      const filteredResult = await SuspendController.filterData(
+        appointments,
+        user.role,
+        filter
+      );
+
+      return res.status(200).json(filteredResult);
+    } catch (error) {
+      console.error("Error in getDirectHospitalAppointments:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
    * Cancels an appointment if the authenticated user is authorized to do so.
    * Checks for user role and authorization before proceeding with cancellation.
    *
@@ -379,13 +430,39 @@ class AppointmentController {
       //   req.body;
 
       // Expect start and end as full date-time strings, along with other details.
-      const { patient, doctor, start, end, purpose, status, suspended } =
+      const { patient, doctor, hospital, start, end, purpose, status, suspended } =
         req.body;
+      
+      const { user } = req.headers;
 
       if (!patient || !doctor || !start || !end || !purpose) {
         return res.status(400).json({
           error:
             "Missing required fields: patient, doctor, start, end, and purpose are required.",
+        });
+      }
+
+      // Determine hospital ID based on user role
+      let hospitalId;
+      if (user.role === "admin") {
+        // For admin: use the hospital they are associated with
+        hospitalId = user.hospital; // Assuming admin has a hospital field
+        if (!hospitalId) {
+          return res.status(400).json({
+            error: "Admin user must be associated with a hospital",
+          });
+        }
+      } else if (user.role === "superadmin") {
+        // For superadmin: use the hospital from request body
+        hospitalId = hospital;
+        if (!hospitalId) {
+          return res.status(400).json({
+            error: "Hospital ID is required for superadmin appointments",
+          });
+        }
+      } else {
+        return res.status(403).json({
+          error: "Only admin and superadmin can create appointments",
         });
       }
 
@@ -446,6 +523,7 @@ class AppointmentController {
       const appointment = await AppointmentService.createAppointment({
         patient: patient,
         doctor: doctor,
+        hospital: hospitalId, // Hospital ID determined based on user role
         // appointmentDate,
         // day: day,
         // startTime: startTime,
