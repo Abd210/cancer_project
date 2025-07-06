@@ -1656,13 +1656,142 @@ class _PatientsPageState extends State<PatientsPage> {
                       rows: filteredPatients.map((patient) {
                         return DataRow(
                           cells: [
-                            DataCell(Text(patient.name)),
-                            DataCell(Text(patient.persId)),
-                            DataCell(Text(patient.email)),
-                            DataCell(Text(patient.diagnosis)),
-                            DataCell(Text(patient.status)),
-                            DataCell(Text(patient.suspended.toString())),
-                            DataCell(Text(patient.hospitalId)),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 150,
+                                  maxWidth: 200,
+                                ),
+                                child: Text(
+                                  patient.name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  patient.persId,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 180,
+                                  maxWidth: 250,
+                                ),
+                                child: Text(
+                                  patient.email,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 250,
+                                  maxWidth: 350,
+                                ),
+                                child: Text(
+                                  patient.diagnosis,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  patient.status,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 80,
+                                  maxWidth: 100,
+                                ),
+                                child: Text(
+                                  patient.suspended ? 'Yes' : 'No',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    color: patient.suspended ? Colors.red : Colors.green,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  patient.hospitalId,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
                             DataCell(
                               Row(
                                 mainAxisSize: MainAxisSize.min,

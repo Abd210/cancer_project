@@ -448,12 +448,123 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                           );
 
                           return DataRow(cells: [
-                            DataCell(Text(patient.id)),
-                            DataCell(Text(patient.name)),
-                            DataCell(Text(patient.age.toString())),
-                            DataCell(Text(patient.diagnosis)),
-                            DataCell(Text(doc.name)),
-                            DataCell(Text(device.type)),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 100,
+                                  maxWidth: 120,
+                                ),
+                                child: Text(
+                                  patient.id,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 150,
+                                  maxWidth: 200,
+                                ),
+                                child: Text(
+                                  patient.name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 60,
+                                  maxWidth: 80,
+                                ),
+                                child: Text(
+                                  patient.age.toString(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 250,
+                                  maxWidth: 350,
+                                ),
+                                child: Text(
+                                  patient.diagnosis,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 150,
+                                  maxWidth: 200,
+                                ),
+                                child: Text(
+                                  doc.name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  device.type,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
                             DataCell(
                               Row(
                                 children: [

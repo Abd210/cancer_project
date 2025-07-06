@@ -101,39 +101,149 @@ class _TicketsPageState extends State<TicketsPage> {
         final rows = tickets.map((ticket) {
           return DataRow(
             cells: [
-              DataCell(Text(ticket.id)),
-              DataCell(Text(ticket.userId)),
-              DataCell(Text(ticket.role)),
-              DataCell(Text(ticket.issue)),
-              DataCell(Text(ticket.createdAt != null 
-                ? DateFormat('yyyy-MM-dd').format(ticket.createdAt!)
-                : "N/A")),
-              DataCell(Text(ticket.status)),
               DataCell(
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (ticket.status == 'open' || ticket.status == 'in_progress')
-                      IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
-                        onPressed: () {
-                          dataProvider.approveTicket(ticket.id);
-                          Fluttertoast.showToast(msg: 'Ticket closed.');
-                        },
-                      ),
-                    if (ticket.status == 'open')
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () {
-                          dataProvider.rejectTicket(ticket.id);
-                          Fluttertoast.showToast(msg: 'Ticket rejected.');
-                        },
-                      ),
-                    IconButton(
-                      icon: const Icon(Icons.info, color: Colors.blueGrey),
-                      onPressed: () => _showTicketDetails(context, ticket),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  constraints: const BoxConstraints(minWidth: 100, maxWidth: 150),
+                  child: Text(
+                    ticket.id,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.3,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
+                  ),
+                ),
+              ),
+              DataCell(
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  constraints: const BoxConstraints(minWidth: 150, maxWidth: 200),
+                  child: Text(
+                    ticket.userId,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.3,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              DataCell(
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  constraints: const BoxConstraints(minWidth: 100, maxWidth: 120),
+                  child: Text(
+                    ticket.role,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ),
+              DataCell(
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  constraints: const BoxConstraints(minWidth: 250, maxWidth: 400),
+                  child: Text(
+                    ticket.issue,
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ),
+              DataCell(
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  constraints: const BoxConstraints(minWidth: 100, maxWidth: 150),
+                  child: Text(
+                    ticket.createdAt != null 
+                      ? DateFormat('yyyy-MM-dd').format(ticket.createdAt!)
+                      : "N/A",
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ),
+              DataCell(
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  constraints: const BoxConstraints(minWidth: 100, maxWidth: 120),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: ticket.status == 'open' ? Colors.orange : 
+                             ticket.status == 'in_progress' ? Colors.blue : 
+                             ticket.status == 'closed' ? Colors.green : Colors.grey,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      ticket.status,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.3,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              DataCell(
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  constraints: const BoxConstraints(minWidth: 120, maxWidth: 150),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (ticket.status == 'open' || ticket.status == 'in_progress')
+                        IconButton(
+                          icon: const Icon(Icons.check, color: Colors.green),
+                          onPressed: () {
+                            dataProvider.approveTicket(ticket.id);
+                            Fluttertoast.showToast(msg: 'Ticket closed.');
+                          },
+                          tooltip: 'Close Ticket',
+                        ),
+                      if (ticket.status == 'open')
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.red),
+                          onPressed: () {
+                            dataProvider.rejectTicket(ticket.id);
+                            Fluttertoast.showToast(msg: 'Ticket rejected.');
+                          },
+                          tooltip: 'Reject Ticket',
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.info, color: Colors.blueGrey),
+                        onPressed: () => _showTicketDetails(context, ticket),
+                        tooltip: 'View Details',
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

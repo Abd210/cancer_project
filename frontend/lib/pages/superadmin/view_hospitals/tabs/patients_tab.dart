@@ -328,22 +328,106 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
                   ],
                   rows: list
                       .map((p) => DataRow(cells: [
-                            DataCell(Text(p.name)),
-                            DataCell(Text(p.email)),
-                            DataCell(Text(p.status)),
-                            DataCell(Text(p.diagnosis)),
-                            DataCell(Row(children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit,
-                                    color: Colors.blue),
-                                onPressed: () => _showUpsert(p),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 150,
+                                  maxWidth: 200,
+                                ),
+                                child: Text(
+                                  p.name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete,
-                                    color: Colors.red),
-                                onPressed: () => _delete(p.id),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 180,
+                                  maxWidth: 250,
+                                ),
+                                child: Text(
+                                  p.email,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
                               ),
-                            ])),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  p.status,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 250,
+                                  maxWidth: 350,
+                                ),
+                                child: Text(
+                                  p.diagnosis,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit,
+                                          color: Colors.blue),
+                                      onPressed: () => _showUpsert(p),
+                                      tooltip: 'Edit Patient',
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () => _delete(p.id),
+                                      tooltip: 'Delete Patient',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ]))
                       .toList(),
                 ),

@@ -393,21 +393,124 @@ class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
                     DataColumn(label: Text('Actions')),
                   ],
                   rows: _list.map((a) => DataRow(cells: [
-                    DataCell(Text(_getPatientName(a.patientId))),
-                    DataCell(Text(_getDoctorName(a.doctorId))),
-                    DataCell(Text(df.format(a.start))),
-                    DataCell(Text(df.format(a.end))),
-                    DataCell(Text(a.purpose)),
-                    DataCell(Row(children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _showUpsert(a),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        constraints: const BoxConstraints(
+                          minWidth: 150,
+                          maxWidth: 200,
+                        ),
+                        child: Text(
+                          _getPatientName(a.patientId),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _delete(a.id),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        constraints: const BoxConstraints(
+                          minWidth: 150,
+                          maxWidth: 200,
+                        ),
+                        child: Text(
+                          _getDoctorName(a.doctorId),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                    ])),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        constraints: const BoxConstraints(
+                          minWidth: 150,
+                          maxWidth: 180,
+                        ),
+                        child: Text(
+                          df.format(a.start),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        constraints: const BoxConstraints(
+                          minWidth: 150,
+                          maxWidth: 180,
+                        ),
+                        child: Text(
+                          df.format(a.end),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        constraints: const BoxConstraints(
+                          minWidth: 250,
+                          maxWidth: 350,
+                        ),
+                        child: Text(
+                          a.purpose,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _showUpsert(a),
+                              tooltip: 'Edit Appointment',
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _delete(a.id),
+                              tooltip: 'Delete Appointment',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ])).toList(),
                 ),
         ),

@@ -1206,11 +1206,102 @@ class _AdminsPageState extends State<AdminsPage> {
                               .map(
                                 (admin) => DataRow(
                                   cells: [
-                                    DataCell(Text(admin.persId)),
-                                    DataCell(Text(admin.name)),
-                                    DataCell(Text(admin.email)),
-                                    DataCell(Text(admin.mobileNumber)),
-                                    DataCell(Text(_getHospitalName(admin.hospitalId))),
+                                    DataCell(
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 120,
+                                          maxWidth: 150,
+                                        ),
+                                        child: Text(
+                                          admin.persId,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 150,
+                                          maxWidth: 200,
+                                        ),
+                                        child: Text(
+                                          admin.name,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.3,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 180,
+                                          maxWidth: 250,
+                                        ),
+                                        child: Text(
+                                          admin.email,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 120,
+                                          maxWidth: 150,
+                                        ),
+                                        child: Text(
+                                          admin.mobileNumber,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 180,
+                                          maxWidth: 250,
+                                        ),
+                                        child: Text(
+                                          _getHospitalName(admin.hospitalId),
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                     DataCell(
                                       Container(
                                         padding: const EdgeInsets.symmetric(

@@ -150,9 +150,65 @@ class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
                         ],
                         rows: devices.map((device) {
                           return DataRow(cells: [
-                            DataCell(Text(device.id)),
-                            DataCell(Text(device.type)),
-                            DataCell(Text(getPatientName(device.patientId))),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  device.id,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 180,
+                                  maxWidth: 250,
+                                ),
+                                child: Text(
+                                  device.type,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 180,
+                                  maxWidth: 250,
+                                ),
+                                child: Text(
+                                  getPatientName(device.patientId),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
                             // Hospital can only "delete" (unassign) 
                             DataCell(
                               Row(

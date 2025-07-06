@@ -275,27 +275,82 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                           DataColumn(label: Text('Specialization')),
                           DataColumn(label: Text('Actions')),
                         ],
-                        rows: doctors.map((doctor) {
-                          return DataRow(cells: [
-                            DataCell(Text(doctor.id)),
-                            DataCell(Text(doctor.name)),
-                            DataCell(Text(doctor.specialization)),
-                            DataCell(
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.blue),
-                                    onPressed: () => _showEditDoctorDialog(context, doctor),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () => _deleteDoctor(context, doctor.id),
-                                  ),
-                                ],
+                                            rows: doctors.map((doctor) {
+                      return DataRow(cells: [
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                            constraints: const BoxConstraints(
+                              minWidth: 100,
+                              maxWidth: 120,
+                            ),
+                            child: Text(
+                              doctor.id,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 1.3,
                               ),
                             ),
-                          ]);
-                        }).toList(),
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                            constraints: const BoxConstraints(
+                              minWidth: 180,
+                              maxWidth: 250,
+                            ),
+                            child: Text(
+                              doctor.name,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 1.3,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                            constraints: const BoxConstraints(
+                              minWidth: 250,
+                              maxWidth: 350,
+                            ),
+                            child: Text(
+                              doctor.specialization,
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () => _showEditDoctorDialog(context, doctor),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteDoctor(context, doctor.id),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ]);
+                    }).toList(),
                       ),
               ),
             ],

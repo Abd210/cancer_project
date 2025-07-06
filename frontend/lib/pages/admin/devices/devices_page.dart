@@ -374,28 +374,126 @@ class _DevicesPageState extends State<DevicesPage> {
     final rows = filteredDevices.map((device) {
       return DataRow(
         cells: [
-          DataCell(Text(device.id)),
-          DataCell(Text(device.deviceCode)),
           DataCell(
-            device.patientId == null || device.patientId!.isEmpty
-                ? const Text('Not assigned')
-                : Text(device.patientId!),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 100, maxWidth: 150),
+              child: Text(
+                device.id,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.3,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           ),
-          DataCell(Text(device.status)),
-          DataCell(Text(device.suspended ? 'Suspended' : 'Active')),
-          DataCell(Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.blue),
-                onPressed: () => _showEditDeviceDialog(device),
+          DataCell(
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 150, maxWidth: 200),
+              child: Text(
+                device.deviceCode,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.3,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () => _showDeleteDialog(device.id),
+            ),
+          ),
+          DataCell(
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 150, maxWidth: 200),
+              child: Text(
+                device.patientId == null || device.patientId!.isEmpty
+                    ? 'Not assigned'
+                    : device.patientId!,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.3,
+                  color: device.patientId == null || device.patientId!.isEmpty
+                      ? Colors.grey.shade600
+                      : null,
+                  fontStyle: device.patientId == null || device.patientId!.isEmpty
+                      ? FontStyle.italic
+                      : null,
+                ),
               ),
-            ],
-          )),
+            ),
+          ),
+          DataCell(
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 100, maxWidth: 150),
+              child: Text(
+                device.status,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.3,
+                ),
+              ),
+            ),
+          ),
+          DataCell(
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 80, maxWidth: 120),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: device.suspended ? Colors.red : Colors.green,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  device.suspended ? 'Suspended' : 'Active',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    height: 1.3,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          DataCell(
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 100, maxWidth: 120),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () => _showEditDeviceDialog(device),
+                    tooltip: 'Edit Device',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _showDeleteDialog(device.id),
+                    tooltip: 'Delete Device',
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       );
     }).toList();

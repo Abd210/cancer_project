@@ -2123,108 +2123,214 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                        rows: filtered.map((appointment) {
                          return DataRow(
                            cells: [
-                             DataCell(Text(appointment.id, style: const TextStyle(fontSize: 12))),
                              DataCell(
-                               Column(
-                                 mainAxisAlignment: MainAxisAlignment.center,
-                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                 children: [
-                                   Text(_getPatientName(appointment.patientId), style: const TextStyle(fontSize: 12)),
-                                   Text(
-                                     _getPatientEmail(appointment.patientId),
-                                     style: TextStyle(
-                                       fontSize: 11,
-                                       color: Colors.grey.shade600,
-                                     ),
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 100, maxWidth: 150),
+                                 child: Text(
+                                   appointment.id,
+                                   maxLines: 2,
+                                   overflow: TextOverflow.ellipsis,
+                                   softWrap: true,
+                                   style: const TextStyle(
+                                     fontSize: 14,
+                                     height: 1.3,
+                                     fontWeight: FontWeight.w500,
                                    ),
-                                 ],
+                                 ),
                                ),
-                             ),
-                             DataCell(
-                               Column(
-                                 mainAxisAlignment: MainAxisAlignment.center,
-                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                 children: [
-                                   Text(_getDoctorName(appointment.doctorId), style: const TextStyle(fontSize: 12)),
-                                   Text(
-                                     _getDoctorEmail(appointment.doctorId),
-                                     style: TextStyle(
-                                       fontSize: 11,
-                                       color: Colors.grey.shade600,
-                                     ),
-                                   ),
-                                 ],
-                               ),
-                             ),
-                             DataCell(Text(DateFormat('yyyy-MM-dd HH:mm').format(appointment.start), style: const TextStyle(fontSize: 12))),
-                             DataCell(Text(DateFormat('yyyy-MM-dd HH:mm').format(appointment.end), style: const TextStyle(fontSize: 12))),
-                             DataCell(
-                               Text(
-                                 appointment.purpose,
-                                 style: const TextStyle(fontSize: 12),
-                                 overflow: TextOverflow.ellipsis,
-                                 maxLines: 2,
-                               )
                              ),
                              DataCell(
                                Container(
-                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                 decoration: BoxDecoration(
-                                   color: _getStatusColor(appointment.status),
-                                   borderRadius: BorderRadius.circular(8),
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 180, maxWidth: 250),
+                                 child: Column(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text(
+                                       _getPatientName(appointment.patientId),
+                                       maxLines: 2,
+                                       overflow: TextOverflow.ellipsis,
+                                       softWrap: true,
+                                       style: const TextStyle(
+                                         fontSize: 14,
+                                         height: 1.3,
+                                         fontWeight: FontWeight.w500,
+                                       ),
+                                     ),
+                                     Text(
+                                       _getPatientEmail(appointment.patientId),
+                                       maxLines: 2,
+                                       overflow: TextOverflow.ellipsis,
+                                       softWrap: true,
+                                       style: TextStyle(
+                                         fontSize: 12,
+                                         height: 1.3,
+                                         color: Colors.grey.shade600,
+                                       ),
+                                     ),
+                                   ],
                                  ),
+                               ),
+                             ),
+                             DataCell(
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 180, maxWidth: 250),
+                                 child: Column(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text(
+                                       _getDoctorName(appointment.doctorId),
+                                       maxLines: 2,
+                                       overflow: TextOverflow.ellipsis,
+                                       softWrap: true,
+                                       style: const TextStyle(
+                                         fontSize: 14,
+                                         height: 1.3,
+                                         fontWeight: FontWeight.w500,
+                                       ),
+                                     ),
+                                     Text(
+                                       _getDoctorEmail(appointment.doctorId),
+                                       maxLines: 2,
+                                       overflow: TextOverflow.ellipsis,
+                                       softWrap: true,
+                                       style: TextStyle(
+                                         fontSize: 12,
+                                         height: 1.3,
+                                         color: Colors.grey.shade600,
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ),
+                             DataCell(
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 150, maxWidth: 200),
                                  child: Text(
-                                   appointment.status,
+                                   DateFormat('yyyy-MM-dd HH:mm').format(appointment.start),
+                                   maxLines: 2,
+                                   overflow: TextOverflow.ellipsis,
+                                   softWrap: true,
                                    style: const TextStyle(
-                                     color: Colors.white,
-                                     fontWeight: FontWeight.bold,
-                                     fontSize: 11,
+                                     fontSize: 14,
+                                     height: 1.3,
                                    ),
                                  ),
                                ),
                              ),
                              DataCell(
-                               Switch(
-                                 value: appointment.suspended,
-                                 activeColor: const Color(0xFFEC407A),
-                                 onChanged: (newValue) {
-                                   _toggleSuspension(appointment.id, newValue);
-                                 },
-                                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 150, maxWidth: 200),
+                                 child: Text(
+                                   DateFormat('yyyy-MM-dd HH:mm').format(appointment.end),
+                                   maxLines: 2,
+                                   overflow: TextOverflow.ellipsis,
+                                   softWrap: true,
+                                   style: const TextStyle(
+                                     fontSize: 14,
+                                     height: 1.3,
+                                   ),
+                                 ),
                                ),
                              ),
                              DataCell(
-                               Row(
-                                 mainAxisSize: MainAxisSize.min,
-                                 children: [
-                                   IconButton(
-                                     icon: const Icon(Icons.edit, color: Colors.blue, size: 18),
-                                     onPressed: () => _showEditAppointmentDialog(appointment),
-                                     tooltip: 'Edit',
-                                     padding: EdgeInsets.zero,
-                                     constraints: const BoxConstraints(),
-                                     visualDensity: VisualDensity.compact,
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 200, maxWidth: 300),
+                                 child: Text(
+                                   appointment.purpose,
+                                   maxLines: 3,
+                                   overflow: TextOverflow.ellipsis,
+                                   softWrap: true,
+                                   style: const TextStyle(
+                                     fontSize: 14,
+                                     height: 1.3,
                                    ),
-                                   const SizedBox(width: 4),
-                                   if (appointment.status == 'scheduled')
+                                 ),
+                               ),
+                             ),
+                             DataCell(
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 100, maxWidth: 120),
+                                 child: Container(
+                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                   decoration: BoxDecoration(
+                                     color: _getStatusColor(appointment.status),
+                                     borderRadius: BorderRadius.circular(12),
+                                   ),
+                                   child: Text(
+                                     appointment.status,
+                                     maxLines: 1,
+                                     overflow: TextOverflow.ellipsis,
+                                     softWrap: true,
+                                     style: const TextStyle(
+                                       fontSize: 13,
+                                       height: 1.3,
+                                       color: Colors.white,
+                                       fontWeight: FontWeight.w500,
+                                     ),
+                                   ),
+                                 ),
+                               ),
+                             ),
+                             DataCell(
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 80, maxWidth: 100),
+                                 child: Switch(
+                                   value: appointment.suspended,
+                                   activeColor: const Color(0xFFEC407A),
+                                   onChanged: (newValue) {
+                                     _toggleSuspension(appointment.id, newValue);
+                                   },
+                                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                 ),
+                               ),
+                             ),
+                             DataCell(
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                 constraints: const BoxConstraints(minWidth: 120, maxWidth: 150),
+                                 child: Row(
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
                                      IconButton(
-                                       icon: const Icon(Icons.cancel, color: Colors.orange, size: 18),
-                                       onPressed: () => _cancelAppointment(appointment.id),
-                                       tooltip: 'Cancel',
+                                       icon: const Icon(Icons.edit, color: Colors.blue, size: 18),
+                                       onPressed: () => _showEditAppointmentDialog(appointment),
+                                       tooltip: 'Edit',
                                        padding: EdgeInsets.zero,
                                        constraints: const BoxConstraints(),
                                        visualDensity: VisualDensity.compact,
                                      ),
-                                   const SizedBox(width: 4),
-                                   IconButton(
-                                     icon: const Icon(Icons.delete, color: Colors.red, size: 18),
-                                     onPressed: () => _deleteAppointment(appointment.id),
-                                     tooltip: 'Delete',
-                                     padding: EdgeInsets.zero,
-                                     constraints: const BoxConstraints(),
-                                     visualDensity: VisualDensity.compact,
-                                   ),
-                                 ],
+                                     const SizedBox(width: 4),
+                                     if (appointment.status == 'scheduled')
+                                       IconButton(
+                                         icon: const Icon(Icons.cancel, color: Colors.orange, size: 18),
+                                         onPressed: () => _cancelAppointment(appointment.id),
+                                         tooltip: 'Cancel',
+                                         padding: EdgeInsets.zero,
+                                         constraints: const BoxConstraints(),
+                                         visualDensity: VisualDensity.compact,
+                                       ),
+                                     const SizedBox(width: 4),
+                                     IconButton(
+                                       icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                                       onPressed: () => _deleteAppointment(appointment.id),
+                                       tooltip: 'Delete',
+                                       padding: EdgeInsets.zero,
+                                       constraints: const BoxConstraints(),
+                                       visualDensity: VisualDensity.compact,
+                                     ),
+                                   ],
+                                 ),
                                ),
                              ),
                            ],

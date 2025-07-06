@@ -304,19 +304,85 @@ class _HospitalDoctorsTabState extends State<HospitalDoctorsTab> {
                     DataColumn(label: Text('Actions')),
                   ],
                   rows: list.map((d) => DataRow(cells: [
-                    DataCell(Text(d.name)),
-                    DataCell(Text(d.email)),
-                    DataCell(Text(d.description)),
-                    DataCell(Row(children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _showUpsert(d),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        constraints: const BoxConstraints(
+                          minWidth: 150,
+                          maxWidth: 200,
+                        ),
+                        child: Text(
+                          d.name,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _delete(d.id),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        constraints: const BoxConstraints(
+                          minWidth: 180,
+                          maxWidth: 250,
+                        ),
+                        child: Text(
+                          d.email,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                          ),
+                        ),
                       ),
-                    ])),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        constraints: const BoxConstraints(
+                          minWidth: 250,
+                          maxWidth: 350,
+                        ),
+                        child: Text(
+                          d.description,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _showUpsert(d),
+                              tooltip: 'Edit Doctor',
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _delete(d.id),
+                              tooltip: 'Delete Doctor',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ])).toList(),
                 ),
         ),

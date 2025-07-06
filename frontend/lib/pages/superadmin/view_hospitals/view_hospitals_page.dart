@@ -443,28 +443,68 @@ class _HospitalsPageState extends State<HospitalsPage> {
                     ],
                     rows: _list.map((h) => DataRow(cells: [
                       DataCell(
-                        GestureDetector(
-                          onTap: () => setState(() => _selected = h),
-                          child: Text(
-                            h.name,
-                            style: const TextStyle(
-                              decoration: TextDecoration.underline,
-                              color: Colors.blue,
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                          constraints: const BoxConstraints(
+                            minWidth: 250,
+                            maxWidth: 300,
+                          ),
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selected = h),
+                            child: Text(
+                              h.name,
+                              style: const TextStyle(
+                                decoration: TextDecoration.underline,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
                             ),
                           ),
                         ),
                       ),
-                      DataCell(Text(h.address)),
-                      DataCell(Row(children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _showEditHospitalDialog(context, h),
+                      DataCell(
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                          constraints: const BoxConstraints(
+                            minWidth: 350,
+                            maxWidth: 500,
+                          ),
+                          child: Text(
+                            h.address,
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              height: 1.3,
+                            ),
+                          ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteHospital(h.id),
+                      ),
+                      DataCell(
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _showEditHospitalDialog(context, h),
+                                tooltip: 'Edit Hospital',
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteHospital(h.id),
+                                tooltip: 'Delete Hospital',
+                              ),
+                            ],
+                          ),
                         ),
-                      ])),
+                      ),
                     ])).toList(),
                   ),
           ),
