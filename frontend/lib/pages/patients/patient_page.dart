@@ -12,13 +12,12 @@ import 'patient_appointments_page.dart';
 import 'patient_diagnosis_page.dart';
 
 /// ---------------------------------------------------------------------------
-/// SINGLE-FILE PATIENT PAGE
-/// - Pink-themed bottom nav bar
-/// - No side drawer
-/// - 5 tabs: Home, Appointments, Tickets, Notifications, Profile
-/// - Polished UI with consistent spacing, advanced pink cards
-/// - Full form fields (name/email/phone/address/problem/status/gender) for "change data"
-/// - No animation between tabs
+/// MODERN PATIENT PAGE WITH ADVANCED UI
+/// - Modern gradient theme with pink accents
+/// - Clean card designs with shadows and rounded corners
+/// - Advanced bottom navigation with modern styling
+/// - Professional typography and spacing
+/// - Mobile-first responsive design
 /// ---------------------------------------------------------------------------
 class PatientPage extends StatefulWidget {
   final String? doctorId;
@@ -36,11 +35,19 @@ class PatientPage extends StatefulWidget {
   State<PatientPage> createState() => _PatientPageState();
 }
 
-/// We'll store the pages in an IndexedStack, with no special transitions.
-class _PatientPageState extends State<PatientPage> {
-  static const Color pinkColor = Color.fromARGB(255, 218, 73, 143);
+class _PatientPageState extends State<PatientPage> with TickerProviderStateMixin {
+  // Modern color palette
+  static const Color primaryPink = Color(0xFFEC407A);
+  static const Color lightPink = Color(0xFFFFE0E6);
+  static const Color darkPink = Color(0xFFD81B60);
+  static const Color backgroundColor = Color(0xFFF8F9FA);
+  static const Color cardColor = Colors.white;
+  static const Color textPrimary = Color(0xFF212121);
+  static const Color textSecondary = Color(0xFF757575);
 
   int _currentIndex = 0;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   final PatientProvider _patientProvider = PatientProvider();
   late Future<PatientData> _patientDataFuture;
@@ -48,6 +55,19 @@ class _PatientPageState extends State<PatientPage> {
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    _animationController.forward();
+    
     _patientDataFuture = _patientProvider
         .getPatients(
       token: widget.token ?? '',
@@ -62,25 +82,314 @@ class _PatientPageState extends State<PatientPage> {
   }
 
   @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // White top app bar
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 2,
+      backgroundColor: backgroundColor,
+      body: FutureBuilder<PatientData>(
+        future: _patientDataFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _buildLoadingScreen();
+          }
+          if (snapshot.hasError) {
+            return _buildErrorScreen(snapshot.error.toString());
+          }
+          if (!snapshot.hasData) {
+            return _buildErrorScreen('No patient data available');
+          }
+
+          final patientData = snapshot.data!;
+
+          return FadeTransition(
+            opacity: _fadeAnimation,
+            child: CustomScrollView(
+              slivers: [
+                _buildModernAppBar(patientData),
+                SliverFillRemaining(
+                  child: _buildPageContent(patientData),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: _buildModernBottomNav(),
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            primaryPink.withOpacity(0.1),
+            backgroundColor,
+          ],
+        ),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(primaryPink),
+              strokeWidth: 3,
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Loading your health dashboard...',
+              style: TextStyle(
+                fontSize: 16,
+                color: textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(String error) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            primaryPink.withOpacity(0.1),
+            backgroundColor,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red.shade400,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Oops! Something went wrong',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                error,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () => setState(() {
+                  _patientDataFuture = _patientProvider
+                      .getPatients(
+                    token: widget.token ?? '',
+                    patientId: widget.patientId ?? '',
+                  )
+                      .then((list) {
+                    if (list.isEmpty) {
+                      throw Exception("Patient data not found.");
+                    }
+                    return list.first;
+                  });
+                }),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryPink,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Try Again',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernAppBar(PatientData patientData) {
+    return SliverAppBar(
+      expandedHeight: 200,
+      floating: false,
+      pinned: true,
+      backgroundColor: primaryPink,
+      elevation: 0,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                primaryPink,
+                darkPink,
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2,
+                          ),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.3),
+                              Colors.white.withOpacity(0.1),
+                            ],
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Welcome back,',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              patientData.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.notifications_none,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         title: Text(
           _titleForIndex(_currentIndex),
-          style: const TextStyle(color: Colors.black),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
         ),
-        centerTitle: true,
+        ),
+        centerTitle: false,
+      ),
         actions: [
-          // Debug button to force API call
+        IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.search,
+              color: Colors.white,
+              size: 18,
+            ),
+          ),
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const _ModernSearchBottomSheet(),
+            );
+          },
+        ),
           if (widget.doctorId != null && widget.token != null)
             IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.red),
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.refresh,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
               onPressed: () {
                 print("Manually triggering API call");
-                // Fallback approach using a brand new API call
                 final patientProvider = PatientProvider();
                 patientProvider
                     .getPatientsForDoctor(
@@ -91,48 +400,37 @@ class _PatientPageState extends State<PatientPage> {
                   print("Manual API call returned ${patients.length} patients");
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text("Found ${patients.length} patients")),
+                    content: Text("Found ${patients.length} patients"),
+                    backgroundColor: primaryPink,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
                   );
                 }).catchError((error) {
                   print("Manual API call error: $error");
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                         content: Text("Error: $error"),
-                        backgroundColor: Colors.red),
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
                   );
                 });
               },
             ),
-          IconButton(
-            icon: const Icon(Icons.search, color: pinkColor),
-            onPressed: () {
-              // Show a search bottom sheet
-              showModalBottomSheet(
-                context: context,
-                builder: (_) => const _SearchBottomSheet(),
-              );
-            },
-          ),
-        ],
-      ),
-      body: FutureBuilder<PatientData>(
-        future: _patientDataFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: Text('No patient data available'));
-          }
+        const SizedBox(width: 16),
+      ],
+    );
+  }
 
-          final patientData = snapshot.data!;
-
-          // We define the 5 sub-pages AFTER patientData is loaded
+  Widget _buildPageContent(PatientData patientData) {
           final List<Widget> pages = [
-            HomeTab(patientData: patientData),
+      ModernHomeTab(patientData: patientData),
             PatientAppointmentsPage(
               token: widget.token ?? '',
               patientId: widget.patientId ?? '',
@@ -142,7 +440,7 @@ class _PatientPageState extends State<PatientPage> {
               patientId: widget.patientId ?? '',
               patientData: patientData,
             ),
-            const SupportTab(),
+      const ModernSupportTab(),
             PatientProfilePage(
               token: widget.token ?? '',
               patientId: widget.patientId ?? '',
@@ -153,368 +451,966 @@ class _PatientPageState extends State<PatientPage> {
             index: _currentIndex,
             children: pages,
           );
-        },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (idx) => setState(() => _currentIndex = idx),
-        backgroundColor: Colors.white,
-        selectedItemColor: pinkColor,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Appointments',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.medical_services),
-            label: 'Diagnosis',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.support_agent),
-            label: 'Support',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+  }
+
+  Widget _buildModernBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
-      backgroundColor: Colors.white,
+      child: SafeArea(
+        child: Container(
+          height: 80,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(child: _buildNavItem(0, Icons.home_rounded, 'Home')),
+              Expanded(child: _buildNavItem(1, Icons.calendar_today_rounded, 'Appts')),
+              Expanded(child: _buildNavItem(2, Icons.medical_services_rounded, 'Reports')),
+              Expanded(child: _buildNavItem(3, Icons.support_agent_rounded, 'Support')),
+              Expanded(child: _buildNavItem(4, Icons.person_rounded, 'Profile')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    bool isSelected = _currentIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryPink.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isSelected ? primaryPink : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : textSecondary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? primaryPink : textSecondary,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   String _titleForIndex(int index) {
     switch (index) {
       case 0:
-        return "Home";
+        return "Health Dashboard";
       case 1:
-        return "Appointments";
+        return "My Appointments";
       case 2:
-        return "Diagnosis";
+        return "Diagnosis & Reports";
       case 3:
-        return "Support";
+        return "Support Center";
       case 4:
       default:
-        return "Profile";
+        return "My Profile";
     }
   }
 }
 
 // -----------------------------------------------------------------------------
-// SEARCH BOTTOM SHEET
+// MODERN SEARCH BOTTOM SHEET
 // -----------------------------------------------------------------------------
-class _SearchBottomSheet extends StatefulWidget {
-  const _SearchBottomSheet({Key? key}) : super(key: key);
+class _ModernSearchBottomSheet extends StatefulWidget {
+  const _ModernSearchBottomSheet({Key? key}) : super(key: key);
 
   @override
-  State<_SearchBottomSheet> createState() => _SearchBottomSheetState();
+  State<_ModernSearchBottomSheet> createState() => _ModernSearchBottomSheetState();
 }
 
-class _SearchBottomSheetState extends State<_SearchBottomSheet> {
+class _ModernSearchBottomSheetState extends State<_ModernSearchBottomSheet> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.5,
-      maxChildSize: 0.8,
-      minChildSize: 0.3,
-      builder: (ctx, scrollController) {
         return Container(
-          padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
           color: Colors.white,
-          child: ListView(
-            controller: scrollController,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.3,
+        builder: (ctx, scrollController) {
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Title
               const Text(
-                "Search",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  "Search Health Records",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: _PatientPageState.textPrimary,
+                  ),
               ),
               const SizedBox(height: 8),
-              TextField(
+                Text(
+                  "Find appointments, diagnoses, and more",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _PatientPageState.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Search field
+                Container(
+                  decoration: BoxDecoration(
+                    color: _PatientPageState.backgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.grey.shade200,
+                      width: 1,
+                    ),
+                  ),
+                  child: TextField(
                 controller: _searchCtrl,
-                decoration: const InputDecoration(
-                  labelText: "Enter search query",
-                  border: OutlineInputBorder(),
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: "Search your health records...",
+                      hintStyle: TextStyle(
+                        color: _PatientPageState.textSecondary,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: _PatientPageState.primaryPink,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                // Quick search options
+                const Text(
+                  "Quick Search",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: _PatientPageState.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
+                
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _buildQuickSearchChip("Appointments", Icons.calendar_today),
+                    _buildQuickSearchChip("Diagnoses", Icons.medical_services),
+                    _buildQuickSearchChip("Doctors", Icons.person),
+                    _buildQuickSearchChip("Medications", Icons.medication),
+                    _buildQuickSearchChip("Test Results", Icons.analytics),
+                  ],
+                ),
+                
+                const Spacer(),
+                
+                // Action buttons
               Row(
                 children: [
-                  ElevatedButton(
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _PatientPageState.primaryPink,
+                          side: const BorderSide(color: _PatientPageState.primaryPink),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content:
-                                Text("Searching for: ${_searchCtrl.text}")),
+                              content: Text("Searching for: ${_searchCtrl.text}"),
+                              backgroundColor: _PatientPageState.primaryPink,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _PatientPageState.pinkColor,
+                          backgroundColor: _PatientPageState.primaryPink,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          "Search",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
-                    child: const Text("Search"),
-                  ),
-                  const SizedBox(width: 16),
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("Cancel"),
-                  )
-                ],
-              )
+                  ],
+                ),
             ],
           ),
         );
       },
+      ),
+    );
+  }
+
+  Widget _buildQuickSearchChip(String label, IconData icon) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _PatientPageState.lightPink,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            _searchCtrl.text = label;
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: _PatientPageState.primaryPink,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: _PatientPageState.primaryPink,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
 
 // -----------------------------------------------------------------------------
-// HOME TAB
+// MODERN HOME TAB
 // -----------------------------------------------------------------------------
-class HomeTab extends StatelessWidget {
+class ModernHomeTab extends StatelessWidget {
   final PatientData? patientData;
-  const HomeTab({Key? key, this.patientData}) : super(key: key);
+  const ModernHomeTab({Key? key, this.patientData}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Health status card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  _PatientPageState.primaryPink.withOpacity(0.1),
+                  _PatientPageState.lightPink.withOpacity(0.3),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: _PatientPageState.primaryPink.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _PatientPageState.primaryPink,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.favorite,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Welcome to Curanics Clinic!',
+                            'Health Status',
             style: TextStyle(
-              fontSize: 18,
+                              fontSize: 20,
               fontWeight: FontWeight.bold,
+                              color: _PatientPageState.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            patientData?.status ?? 'Active',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: _PatientPageState.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Active',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Quick actions
+          const Text(
+            'Quick Actions',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: _PatientPageState.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+          
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickActionCard(
+                  'Book Appointment',
+                  Icons.calendar_today,
+                  _PatientPageState.primaryPink,
+                  () {
+                    // Navigate to appointments
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildQuickActionCard(
+                  'View Reports',
+                  Icons.description,
+                  Colors.blue,
+                  () {
+                    // Navigate to reports
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickActionCard(
+                  'Contact Doctor',
+                  Icons.phone,
+                  Colors.green,
+                  () {
+                    // Contact doctor
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildQuickActionCard(
+                  'Emergency',
+                  Icons.emergency,
+                  Colors.red,
+                  () {
+                    // Emergency contact
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          
+          // Clinic information
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: _PatientPageState.cardColor,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Welcome to Curanics Clinic!',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _PatientPageState.primaryPink.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.local_hospital,
+                        color: _PatientPageState.primaryPink,
+                        size: 24,
+                      ),
                     ),
+                    const SizedBox(width: 16),
+                  const Text(
+                      'Curanics Health Center',
+                    style: TextStyle(
+                        fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                        color: _PatientPageState.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _buildModernInfoRow(
+                  Icons.access_time,
+                  'Operating Hours',
+                  'Monday - Friday: 9:00 AM - 5:00 PM',
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow('Clinic Hours', 'Monday - Friday: 9 AM - 5 PM'),
-                  const SizedBox(height: 8),
-                  _buildInfoRow('Contact',
-                      'Phone: 555-123-4567 | Email: info@curanics.com'),
-                  const SizedBox(height: 8),
-                  _buildInfoRow('Address', '123 Clinic St, Health City'),
+                _buildModernInfoRow(
+                  Icons.phone,
+                  'Contact',
+                  '+1 (555) 123-4567',
+                ),
+                const SizedBox(height: 16),
+                _buildModernInfoRow(
+                  Icons.email,
+                  'Email',
+                  'info@curanics.com',
+                ),
+                const SizedBox(height: 16),
+                _buildModernInfoRow(
+                  Icons.location_on,
+                  'Address',
+                  '123 Health Street, Medical District, City 12345',
+                ),
                 ],
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
+  Widget _buildQuickActionCard(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _PatientPageState.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _PatientPageState.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernInfoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: _PatientPageState.primaryPink.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: _PatientPageState.primaryPink,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '$label: ',
+                label,
             style: const TextStyle(
-              fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _PatientPageState.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _PatientPageState.textSecondary,
+                ),
+          ),
+        ],
+      ),
+        ),
+      ],
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// MODERN SUPPORT TAB
+// -----------------------------------------------------------------------------
+class ModernSupportTab extends StatelessWidget {
+  const ModernSupportTab({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Support header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.blue.withOpacity(0.1),
+                  Colors.blue.withOpacity(0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.blue.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.support_agent,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Support Center',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: _PatientPageState.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'We\'re here to help you 24/7',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: _PatientPageState.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          Expanded(
-            child: Text(value),
+          const SizedBox(height: 24),
+          
+          // Support options
+          const Text(
+            'How can we help you?',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: _PatientPageState.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          _buildSupportCard(
+            'Live Chat',
+            'Chat with our support team',
+            Icons.chat,
+            Colors.green,
+            () {
+              // Open live chat
+            },
+          ),
+          const SizedBox(height: 12),
+          
+          _buildSupportCard(
+            'Call Support',
+            'Speak with a support agent',
+            Icons.phone,
+            Colors.blue,
+            () {
+              // Make phone call
+            },
+          ),
+          const SizedBox(height: 12),
+          
+          _buildSupportCard(
+            'Email Support',
+            'Send us an email',
+            Icons.email,
+            Colors.orange,
+            () {
+              // Send email
+            },
+          ),
+          const SizedBox(height: 12),
+          
+          _buildSupportCard(
+            'FAQ',
+            'Find answers to common questions',
+            Icons.help,
+            Colors.purple,
+            () {
+              // Navigate to FAQ
+            },
+          ),
+          const SizedBox(height: 32),
+          
+          // Emergency contact
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.red.shade200,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.emergency,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Emergency Contact',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: _PatientPageState.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'For medical emergencies, call 911 immediately',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: _PatientPageState.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Emergency call
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Call Emergency Services',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
-}
 
-// -----------------------------------------------------------------------------
-// SUPPORT TAB
-// -----------------------------------------------------------------------------
-class SupportTab extends StatelessWidget {
-  const SupportTab({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text("Support Tab"),
+  Widget _buildSupportCard(
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _PatientPageState.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: _PatientPageState.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _PatientPageState.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: _PatientPageState.textSecondary,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
 
-// -----------------------------------------------------------------------------
-// TAB 1: APPOINTMENTS
-// -----------------------------------------------------------------------------
-class AppointmentsTab extends StatelessWidget {
-  const AppointmentsTab({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text("Appointments Tab"),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// TAB 2: TICKETS
-// -----------------------------------------------------------------------------
-class TicketsTab extends StatelessWidget {
-  const TicketsTab({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text("Tickets Tab"),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// TAB 3: NOTIFICATIONS
-// -----------------------------------------------------------------------------
-class NotificationsTab extends StatelessWidget {
-  const NotificationsTab({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text("Notifications Tab"),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// TAB 4: PROFILE
-//    Replaces old side drawer: "Settings," "Logout," plus any advanced info
-// -----------------------------------------------------------------------------
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text("Profile Tab"),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// BOTTOM NAV ICONS
-// -----------------------------------------------------------------------------
-const homeActiveSvg = '''
-<svg width="24" height="24" fill="#DA498F" xmlns="http://www.w3.org/2000/svg">
-<path d="M2 12L12 3l10 9h-3v8H5v-8H2Z"/></svg>
-''';
-const homeInactiveSvg = '''
-<svg width="24" height="24" fill="#ccc" xmlns="http://www.w3.org/2000/svg">
-<path d="M2 12L12 3l10 9h-3v8H5v-8H2Z"/></svg>
-''';
-
-const calendarActiveSvg = '''
-<svg width="24" height="24" fill="#DA498F" xmlns="http://www.w3.org/2000/svg">
-<path d="M7 2a1 1 0 0 1 2 0v1h6V2a1
-1 0 1 1 2 0v1h2a2 2 0 0 1
-2 2v13a2 2 0 0 1-2 2H5a2 2 0
-0 1-2-2V5a2 2 0 0 1
-2-2h2V2ZM5 9v11h14V9H5Z"/>
-''';
-const calendarInactiveSvg = '''
-<svg width="24" height="24" fill="#ccc" xmlns="http://www.w3.org/2000/svg">
-<path d="M7 2a1 1 0 0 1 2
-0v1h6V2a1 1 0 1 1 2 0v1h2a2
-2 0 0 1 2 2v13a2 2 0 0 1-2
-2H5a2 2 0 0 1-2-2V5a2
-2 0 0 1 2-2h2V2ZM5
-9v11h14V9H5Z"/>
-''';
-
-const ticketActiveSvg = '''
-<svg width="24" height="24" fill="#DA498F" xmlns="http://www.w3.org/2000/svg">
-<path d="M2 11v2c1.657 0 3
-1.343 3 3v4c0 1.657 1.343 3
-3 3h8c1.657 0 3-1.343
-3-3v-4c0-1.657 1.343-3
-3-3v-2c-1.657 0-3-1.343
-3-3V5c0-1.657-1.343-3-3-3H8C6.343
-2 5 3.343 5 5v4c0 1.657-1.343 3-3 3Z"/>
-''';
-const ticketInactiveSvg = '''
-<svg width="24" height="24" fill="#ccc" xmlns="http://www.w3.org/2000/svg">
-<path d="M2 11v2c1.657
-0 3 1.343 3 3v4c0 1.657 1.343
-3 3 3h8c1.657 0 3-1.343
-3-3v-4c0-1.657 1.343-3 3-3v-2c-1.657
-0-3-1.343-3-3V5c0-1.657-1.343-3-3-3H8C6.343
-2 5 3.343 5 5v4c0 1.657-1.343 3-3 3Z"/>
-''';
-
-const bellActiveSvg = '''
-<svg width="24" height="24" fill="#DA498F" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 22c1.657 0
-3-1.343 3-3H9c0 1.657 1.343
-3 3 3zm6.707-5.707c-.393-.391-.707-1.303-.707-2.293V10c0-3.314-1.93-5.899-5-6.659V3a1
-1 0 1 0-2 0v.341C7.93 4.101 6
-6.686 6 10v4c0 .99-.314 1.902-.707
-2.293A.996.996 0 0 0 5
-17c0 .552.448 1 1
-1h12c.552 0 1-.448
-1-1 0-.265-.105-.52-.293-.707z"/>
-</svg>
-''';
-const bellInactiveSvg = '''
-<svg width="24" height="24" fill="#ccc" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 22c1.657 0
-3-1.343 3-3H9c0
-1.657 1.343 3 3 3zm6.707-5.707c-.393-.391-.707-1.303-.707-2.293V10c0-3.314-1.93-5.899-5-6.659V3a1
-1 0 1 0-2 0v.341C7.93
-4.101 6 6.686 6
-10v4c0 .99-.314 1.902-.707
-2.293A.996.996 0 0 0
-5 17c0 .552.448
-1 1 1h12c.552 0 1-.448
-1-1 0-.265-.105-.52-.293-.707z"/>
-''';
-
-const userActiveSvg = '''
-<svg width="24" height="24" fill="#DA498F" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 2C9.79
-2 8 3.79 8 6s1.79 4 4 4
-4-1.79 4-4-1.79-4-4-4zM4
-20c0-3.866 3.134-7 7-7h2c3.866
-0 7 3.134 7 7v1H4v-1z"/>
-</svg>
-''';
-const userInactiveSvg = '''
-<svg width="24" height="24" fill="#ccc" xmlns="http://www.w3.org/2000/svg">
-<path d="M12
-2C9.79 2 8 3.79 8
-6s1.79 4 4 4 4-1.79
-4-4-1.79-4-4-4zM4
-20c0-3.866 3.134-7 7-7h2c3.866
-0 7 3.134 7 7v1H4v-1z"/>
-''';
+// ... existing code (AppointmentsTab, TicketsTab, NotificationsTab, ProfileTab)
+// ... existing SVG icons
