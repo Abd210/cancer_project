@@ -772,8 +772,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       _showToast('Please select both doctor and patient');
                       return;
                     }
-                    
-                Navigator.pop(ctx);
 
                     // Construct DateTime objects from date and time
                     final startDateTime = DateTime(
@@ -791,6 +789,20 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                   selectedEndTime.hour,
                   selectedEndTime.minute,
                 );
+
+                    // Validate that start time is in the future
+                    if (startDateTime.isBefore(DateTime.now())) {
+                      _showToast('Start time must be in the future');
+                      return;
+                    }
+                    
+                    // Validate that end time is after start time
+                    if (endDateTime.isBefore(startDateTime) || endDateTime.isAtSameMomentAs(startDateTime)) {
+                      _showToast('End time must be after start time');
+                      return;
+                    }
+                    
+                Navigator.pop(ctx);
 
                 setState(() => _isLoading = true);
                 try {
@@ -1135,6 +1147,36 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
             onPressed: () async {
                   if (formKey.currentState!.validate()) {
               formKey.currentState!.save();
+
+                    // Check dates and validate they are in the future
+                    final newStartDateTime = DateTime(
+                selectedStartDate.year,
+                selectedStartDate.month,
+                selectedStartDate.day,
+                selectedStartTime.hour,
+                selectedStartTime.minute,
+              );
+                    
+                    final newEndDateTime = DateTime(
+                selectedEndDate.year,
+                selectedEndDate.month,
+                selectedEndDate.day,
+                selectedEndTime.hour,
+                selectedEndTime.minute,
+              );
+
+                    // Validate that start time is in the future
+                    if (newStartDateTime.isBefore(DateTime.now())) {
+                      _showToast('Start time must be in the future');
+                      return;
+                    }
+                    
+                    // Validate that end time is after start time
+                    if (newEndDateTime.isBefore(newStartDateTime) || newEndDateTime.isAtSameMomentAs(newStartDateTime)) {
+                      _showToast('End time must be after start time');
+                      return;
+                    }
+
               Navigator.pop(ctx);
 
                     // Check what actually changed
@@ -1155,23 +1197,6 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       updatedFields['suspended'] = suspended;
                     }
                     
-                    // Check dates
-                    final newStartDateTime = DateTime(
-                selectedStartDate.year,
-                selectedStartDate.month,
-                selectedStartDate.day,
-                selectedStartTime.hour,
-                selectedStartTime.minute,
-              );
-                    
-                    final newEndDateTime = DateTime(
-                selectedEndDate.year,
-                selectedEndDate.month,
-                selectedEndDate.day,
-                selectedEndTime.hour,
-                selectedEndTime.minute,
-              );
-
                     if (newStartDateTime != appointment.start) {
                       updatedFields['start'] = newStartDateTime.toIso8601String();
                     }

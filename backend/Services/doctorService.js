@@ -2,6 +2,7 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 const bcrypt = require("bcrypt");
 const PatientService = require("./patientService");
+const AppointmentService = require("./appointmentService");
 
 class DoctorService {
   /**
@@ -182,6 +183,25 @@ class DoctorService {
   }
 
   /**
+   * Get upcoming appointments for a specific doctor
+   */
+  static async getUpcomingAppointmentsForDoctor(doctorId) {
+    const snapshot = await db
+      .collection("appointments")
+      .where("doctor", "==", doctorId)
+      .where("start", ">=", new Date())
+      .where("status", "==", "scheduled")
+      .orderBy("start")
+      .get();
+
+    if (snapshot.empty) {
+      return [];
+    }
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  }
+
+  /**
    * Update doctor data
    */
   static async updateDoctor(doctorId, updateFields, user) {
@@ -327,6 +347,36 @@ class DoctorService {
         .get();
       if (!hospitalDoc.exists) {
         throw new Error("Invalid hospital: Hospital does not exist");
+      }
+      
+      // Check if the hospital is actually changing
+      const currentDoctorData = doctorDoc.data();
+      const currentHospital = currentDoctorData.hospital;
+      
+      if (currentHospital && currentHospital !== updateFields.hospital) {
+        // Hospital is changing, cancel all upcoming appointments from previous hospital
+        console.log(`Doctor ${doctorId} is switching from hospital ${currentHospital} to ${updateFields.hospital}`);
+        
+        try {
+          // Get all upcoming appointments for this doctor
+          const upcomingAppointments = await this.getUpcomingAppointmentsForDoctor(doctorId);
+          
+          // Cancel all upcoming appointments
+          if (upcomingAppointments.length > 0) {
+            console.log(`Cancelling ${upcomingAppointments.length} upcoming appointments for doctor ${doctorId}`);
+            
+            await Promise.all(
+              upcomingAppointments.map(async (appointment) => {
+                await AppointmentService.cancelAppointment(appointment.id);
+              })
+            );
+            
+            console.log(`Successfully cancelled all upcoming appointments for doctor ${doctorId}`);
+          }
+        } catch (appointmentError) {
+          console.error("Error cancelling appointments:", appointmentError);
+          throw new Error(`Failed to cancel appointments when switching hospitals: ${appointmentError.message}`);
+        }
       }
     }
 

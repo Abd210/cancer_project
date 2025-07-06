@@ -144,7 +144,7 @@ router.post(
 router.delete(
   "/appointment/delete",
   authenticate, // Middleware to authenticate the user
-  authorize("superadmin"), // Middleware to allow only superadmins
+  authorize(["superadmin", "admin"]), // Middleware to allow only superadmins
   appointmentController.deleteAppointment // Controller function
 );
 
