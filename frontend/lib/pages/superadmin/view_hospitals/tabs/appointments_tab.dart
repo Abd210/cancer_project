@@ -8,6 +8,8 @@ import 'package:frontend/providers/doctor_provider.dart';
 import 'package:frontend/models/patient_data.dart';
 import 'package:frontend/models/doctor_data.dart';
 import 'package:intl/intl.dart';
+import '../../../../shared/components/responsive_data_table.dart'
+    show BetterPaginatedDataTable;
 
 class HospitalAppointmentsTab extends StatefulWidget {
   final String token;
@@ -149,78 +151,165 @@ class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(existing == null ? 'Add Appointment' : 'Edit Appointment'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              _txt('Patient ID',       initial: patientId, save: (v) => patientId = v),
-              _txt('Doctor ID',        initial: doctorId,  save: (v) => doctorId = v),
-              _txt('Start (ISO-8601)', initial: startIso,  save: (v) => startIso = v),
-              _txt('End (ISO-8601)',   initial: endIso,    save: (v) => endIso = v),
-              _txt('Purpose',          initial: purpose,  save: (v) => purpose = v),
-              _txt('Status',           initial: status,   save: (v) => status = v),
-              Row(children: [
-                const Text('Suspended?'),
-                Checkbox(
-                  value: suspended,
-                  onChanged: (v) => setState(() => suspended = v ?? false),
-                ),
-              ]),
-            ]),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(existing == null ? Icons.event_available : Icons.edit, color: const Color(0xFFEC407A)),
+              const SizedBox(width: 10),
+              Text(existing == null ? 'Add Appointment' : 'Edit Appointment', 
+                   style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
-              formKey.currentState!.save();
-              Navigator.pop(context);
+          content: Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  TextFormField(
+                    initialValue: patientId,
+                    decoration: const InputDecoration(
+                      labelText: 'Patient ID',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Patient ID' : null,
+                    onSaved: (v) => patientId = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: doctorId,
+                    decoration: const InputDecoration(
+                      labelText: 'Doctor ID',
+                      prefixIcon: Icon(Icons.local_hospital),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Doctor ID' : null,
+                    onSaved: (v) => doctorId = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: startIso,
+                    decoration: const InputDecoration(
+                      labelText: 'Start Date/Time (ISO-8601)',
+                      prefixIcon: Icon(Icons.access_time),
+                      border: OutlineInputBorder(),
+                      hintText: 'e.g., 2024-01-15T09:00:00Z',
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Start Date/Time' : null,
+                    onSaved: (v) => startIso = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: endIso,
+                    decoration: const InputDecoration(
+                      labelText: 'End Date/Time (ISO-8601)',
+                      prefixIcon: Icon(Icons.schedule),
+                      border: OutlineInputBorder(),
+                      hintText: 'e.g., 2024-01-15T10:00:00Z',
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter End Date/Time' : null,
+                    onSaved: (v) => endIso = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: purpose,
+                    decoration: const InputDecoration(
+                      labelText: 'Purpose',
+                      prefixIcon: Icon(Icons.description),
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Purpose' : null,
+                    onSaved: (v) => purpose = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: status,
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                      prefixIcon: Icon(Icons.info),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Status' : null,
+                    onSaved: (v) => status = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(children: [
+                    const Text('Suspended?'),
+                    const SizedBox(width: 10),
+                    Checkbox(
+                      value: suspended,
+                      onChanged: (v) => setDialogState(() => suspended = v ?? false),
+                      activeColor: const Color(0xFFEC407A),
+                    ),
+                  ]),
+                ]),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.check),
+              label: Text(existing == null ? 'Add Appointment' : 'Save Appointment'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                formKey.currentState!.save();
+                Navigator.pop(context);
 
-              setState(() => _loading = true);
-              try {
-                if (existing == null) {
-                  // FIX: parse ISO→DateTime for createAppointment
-                  await _provider.createAppointment(
-                    token: widget.token,
-                    patientId: patientId,
-                    doctorId: doctorId,
-                    start: DateTime.parse(startIso),
-                    end: DateTime.parse(endIso),
-                    purpose: purpose,
-                    status: status,
-                    suspended: suspended,
-                  );
-                  Fluttertoast.showToast(msg: 'Appointment created.');
-                } else {
-                  await _provider.updateAppointment(
-                    token: widget.token,
-                    appointmentId: existing.id,
-                    updatedFields: {
-                      'patient': patientId,
-                      'doctor': doctorId,
-                      'start': startIso,
-                      'end': endIso,
-                      'purpose': purpose,
-                      'status': status,
-                      'suspended': suspended,
-                    },
-                  );
-                  Fluttertoast.showToast(msg: 'Appointment updated.');
+                setState(() => _loading = true);
+                try {
+                  if (existing == null) {
+                    // FIX: parse ISO→DateTime for createAppointment
+                    await _provider.createAppointment(
+                      token: widget.token,
+                      patientId: patientId,
+                      doctorId: doctorId,
+                      start: DateTime.parse(startIso),
+                      end: DateTime.parse(endIso),
+                      purpose: purpose,
+                      status: status,
+                      suspended: suspended,
+                    );
+                    Fluttertoast.showToast(msg: 'Appointment created.');
+                  } else {
+                    await _provider.updateAppointment(
+                      token: widget.token,
+                      appointmentId: existing.id,
+                      updatedFields: {
+                        'patient': patientId,
+                        'doctor': doctorId,
+                        'start': startIso,
+                        'end': endIso,
+                        'purpose': purpose,
+                        'status': status,
+                        'suspended': suspended,
+                      },
+                    );
+                    Fluttertoast.showToast(msg: 'Appointment updated.');
+                  }
+                  await _fetch();
+                  await _fetchPatients();
+                  await _fetchDoctors();
+                } catch (e) {
+                  Fluttertoast.showToast(msg: 'Save failed: $e');
+                } finally {
+                  if (mounted) setState(() => _loading = false);
                 }
-                await _fetch();
-                await _fetchPatients();
-                await _fetchDoctors();
-              } catch (e) {
-                Fluttertoast.showToast(msg: 'Save failed: $e');
-              } finally {
-                if (mounted) setState(() => _loading = false);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -268,6 +357,10 @@ class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
               onPressed: () => _showUpsert(),
               icon: const Icon(Icons.add),
               label: const Text('Add'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
             ),
             const SizedBox(width: 8),
             ElevatedButton.icon(
@@ -278,57 +371,49 @@ class _HospitalAppointmentsTabState extends State<HospitalAppointmentsTab> {
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Refresh'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
             ),
           ]),
         ),
         Expanded(
           child: _list.isEmpty
               ? const Center(child: Text('No upcoming appointments.'))
-              : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('Patient')),
-                      DataColumn(label: Text('Doctor')),
-                      DataColumn(label: Text('Start')),
-                      DataColumn(label: Text('End')),
-                      DataColumn(label: Text('Purpose')),
-                      DataColumn(label: Text('Actions')),
-                    ],
-                    rows: _list.map((a) => DataRow(cells: [
-                      DataCell(Text(_getPatientName(a.patientId))),
-                      DataCell(Text(_getDoctorName(a.doctorId))),
-                      DataCell(Text(df.format(a.start))),
-                      DataCell(Text(df.format(a.end))),
-                      DataCell(Text(a.purpose)),
-                      DataCell(Row(children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _showUpsert(a),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _delete(a.id),
-                        ),
-                      ])),
-                    ])).toList(),
-                  ),
+              : BetterPaginatedDataTable(
+                  themeColor: const Color(0xFFEC407A),
+                  rowsPerPage: 10,
+                  columns: const [
+                    DataColumn(label: Text('Patient')),
+                    DataColumn(label: Text('Doctor')),
+                    DataColumn(label: Text('Start')),
+                    DataColumn(label: Text('End')),
+                    DataColumn(label: Text('Purpose')),
+                    DataColumn(label: Text('Actions')),
+                  ],
+                  rows: _list.map((a) => DataRow(cells: [
+                    DataCell(Text(_getPatientName(a.patientId))),
+                    DataCell(Text(_getDoctorName(a.doctorId))),
+                    DataCell(Text(df.format(a.start))),
+                    DataCell(Text(df.format(a.end))),
+                    DataCell(Text(a.purpose)),
+                    DataCell(Row(children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () => _showUpsert(a),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _delete(a.id),
+                      ),
+                    ])),
+                  ])).toList(),
                 ),
         ),
       ],
     );
   }
 
-  Widget _txt(String label,
-      {String initial = '',
-      bool obscure = false,
-      required void Function(String) save}) {
-    return TextFormField(
-      initialValue: initial,
-      obscureText: obscure,
-      decoration: InputDecoration(labelText: label),
-      validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter $label' : null,
-      onSaved: (v) => save(v!.trim()),
-    );
-  }
+
 }

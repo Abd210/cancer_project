@@ -5,6 +5,8 @@ import '../../../providers/data_provider.dart';
 import '../../../models/device.dart';
 import '../../../models/patient.dart';
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/components/responsive_data_table.dart'
+    show BetterPaginatedDataTable;
 import 'package:fluttertoast/fluttertoast.dart';
 
 class HospitalDevicesPage extends StatefulWidget {
@@ -135,36 +137,38 @@ class _HospitalDevicesPageState extends State<HospitalDevicesPage> {
 
               // Show the filtered devices in a DataTable
               Expanded(
-                child: SingleChildScrollView(
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('ID')),
-                      DataColumn(label: Text('Type')),
-                      DataColumn(label: Text('Assigned To')),
-                      DataColumn(label: Text('Actions')), // only "Delete" here
-                    ],
-                    rows: devices.map((device) {
-                      return DataRow(cells: [
-                        DataCell(Text(device.id)),
-                        DataCell(Text(device.type)),
-                        DataCell(Text(getPatientName(device.patientId))),
-                        // Hospital can only "delete" (unassign) 
-                        DataCell(
-                          Row(
-                            children: [
-                              // We remove the "edit" button: no IconButton(Icons.edit)
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () =>
-                                    _deleteDeviceForHospital(context, device),
+                child: devices.isEmpty
+                    ? const Center(child: Text('No devices found.'))
+                    : BetterPaginatedDataTable(
+                        themeColor: const Color(0xFFEC407A),
+                        rowsPerPage: 10,
+                        columns: const [
+                          DataColumn(label: Text('ID')),
+                          DataColumn(label: Text('Type')),
+                          DataColumn(label: Text('Assigned To')),
+                          DataColumn(label: Text('Actions')), // only "Delete" here
+                        ],
+                        rows: devices.map((device) {
+                          return DataRow(cells: [
+                            DataCell(Text(device.id)),
+                            DataCell(Text(device.type)),
+                            DataCell(Text(getPatientName(device.patientId))),
+                            // Hospital can only "delete" (unassign) 
+                            DataCell(
+                              Row(
+                                children: [
+                                  // We remove the "edit" button: no IconButton(Icons.edit)
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () =>
+                                        _deleteDeviceForHospital(context, device),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      ]);
-                    }).toList(),
-                  ),
-                ),
+                            ),
+                          ]);
+                        }).toList(),
+                      ),
               ),
             ],
           ),

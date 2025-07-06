@@ -49,25 +49,73 @@ class _HospitalsPageState extends State<HospitalsPage> {
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
-        title: const Text('Add Hospital', style: TextStyle(color: Color(0xFFEC407A))),
-        titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFEC407A), width: 1),
+        title: Row(
+          children: [
+            Icon(Icons.local_hospital, color: const Color(0xFFEC407A)),
+            const SizedBox(width: 10),
+            const Text('Add Hospital', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
         ),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _txt('Name', (v) => name = v),
-                _txt('Address', (v) => addr = v),
-                _txt('Mobiles (comma‑sep)', (v) => mobiles = v, required: false),
-                _txt('Emails (comma‑sep)', (v) => emails = v, required: false),
-                _txt('Admin ID (optional)', (v) => adminId = v, required: false),
-              ],
+        content: Container(
+          width: MediaQuery.of(ctx).size.width * 0.8,
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Hospital Name',
+                      prefixIcon: Icon(Icons.business),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (val) => val == null || val.isEmpty ? 'Enter hospital name' : null,
+                    onSaved: (val) => name = val!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Address',
+                      prefixIcon: Icon(Icons.location_on),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (val) => val == null || val.isEmpty ? 'Enter address' : null,
+                    onSaved: (val) => addr = val!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Mobile Numbers (comma-separated)',
+                      prefixIcon: Icon(Icons.phone),
+                      border: OutlineInputBorder(),
+                      hintText: 'e.g., +1234567890, +0987654321',
+                    ),
+                    onSaved: (val) => mobiles = val?.trim() ?? '',
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Email Addresses (comma-separated)',
+                      prefixIcon: Icon(Icons.email),
+                      border: OutlineInputBorder(),
+                      hintText: 'e.g., info@hospital.com, admin@hospital.com',
+                    ),
+                    onSaved: (val) => emails = val?.trim() ?? '',
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Admin ID (optional)',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                      hintText: 'Leave empty if no admin assigned',
+                    ),
+                    onSaved: (val) => adminId = val?.trim() ?? '',
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -130,37 +178,95 @@ class _HospitalsPageState extends State<HospitalsPage> {
 
     showDialog(
       context: ctx,
-      builder: (_) => AlertDialog(
-        title: const Text('Edit Hospital', style: TextStyle(color: Color(0xFFEC407A))),
-        titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFEC407A), width: 1),
-        ),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _txt('Name', (v) => name = v, initial: name),
-                _txt('Address', (v) => addr = v, initial: addr),
-                _txt('Mobiles', (v) => mobiles = v, initial: mobiles, required: false),
-                _txt('Emails', (v) => emails = v, initial: emails, required: false),
-                _txt('Admin ID (optional)', (v) => adminId = v, initial: adminId, required: false),
-                Row(children: [
-                  const Text('Suspended?'),
-                  Checkbox(
-                    value: suspended,
-                    onChanged: (v) => setState(() => suspended = v!),
-                    activeColor: const Color(0xFFEC407A),
-                  ),
-                ]),
-              ],
+      builder: (_) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.edit, color: const Color(0xFFEC407A)),
+              const SizedBox(width: 10),
+              const Text('Edit Hospital', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Container(
+            width: MediaQuery.of(ctx).size.width * 0.8,
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      initialValue: name,
+                      decoration: const InputDecoration(
+                        labelText: 'Hospital Name',
+                        prefixIcon: Icon(Icons.business),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (val) => val == null || val.isEmpty ? 'Enter hospital name' : null,
+                      onSaved: (val) => name = val!.trim(),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      initialValue: addr,
+                      decoration: const InputDecoration(
+                        labelText: 'Address',
+                        prefixIcon: Icon(Icons.location_on),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (val) => val == null || val.isEmpty ? 'Enter address' : null,
+                      onSaved: (val) => addr = val!.trim(),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      initialValue: mobiles,
+                      decoration: const InputDecoration(
+                        labelText: 'Mobile Numbers (comma-separated)',
+                        prefixIcon: Icon(Icons.phone),
+                        border: OutlineInputBorder(),
+                        hintText: 'e.g., +1234567890, +0987654321',
+                      ),
+                      onSaved: (val) => mobiles = val?.trim() ?? '',
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      initialValue: emails,
+                      decoration: const InputDecoration(
+                        labelText: 'Email Addresses (comma-separated)',
+                        prefixIcon: Icon(Icons.email),
+                        border: OutlineInputBorder(),
+                        hintText: 'e.g., info@hospital.com, admin@hospital.com',
+                      ),
+                      onSaved: (val) => emails = val?.trim() ?? '',
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      initialValue: adminId,
+                      decoration: const InputDecoration(
+                        labelText: 'Admin ID (optional)',
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                        hintText: 'Leave empty if no admin assigned',
+                      ),
+                      onSaved: (val) => adminId = val?.trim() ?? '',
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Text('Suspended?'),
+                        const SizedBox(width: 10),
+                        Checkbox(
+                          value: suspended,
+                          onChanged: (v) => setDialogState(() => suspended = v!),
+                          activeColor: const Color(0xFFEC407A),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -210,7 +316,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   void _deleteHospital(String id) {
@@ -367,33 +473,5 @@ class _HospitalsPageState extends State<HospitalsPage> {
     );
   }
 
-  Widget _txt(
-    String label,
-    void Function(String) save, {
-    String initial = '',
-    bool required = true,
-  }) {
-    return TextFormField(
-      initialValue: initial,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: const Color(0xFFEC407A).withOpacity(0.7)),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Color(0xFFEC407A), width: 2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: const Color(0xFFEC407A).withOpacity(0.5)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        floatingLabelStyle: const TextStyle(color: Color(0xFFEC407A)),
-      ),
-      cursorColor: const Color(0xFFEC407A),
-      validator: required
-          ? (v) => v == null || v.trim().isEmpty ? 'Enter $label' : null
-          : null,
-      onSaved: (v) => save(v!.trim()),
-    );
-  }
+
 }
