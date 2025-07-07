@@ -215,6 +215,45 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
     );
   }
 
+  Widget _buildCardSection({required String title, required Widget child}) {
+    return Card(
+      elevation: 4,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -246,93 +285,69 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with name and profile image
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.blue.shade100,
-                child: const Icon(Icons.person, size: 60, color: Colors.blue),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _doctorData!.name,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: _doctorData!.suspended
-                            ? Colors.red.shade100
-                            : Colors.green.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _doctorData!.suspended ? 'Suspended' : 'Active',
-                        style: TextStyle(
-                          color: _doctorData!.suspended
-                              ? Colors.red
-                              : Colors.green,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+          // Header with name and profile image inside card
+          Card(
+            elevation: 4,
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: const Color(0xFFEC407A).withOpacity(0.1),
+                    child: const Icon(Icons.person, size: 60, color: Color(0xFFEC407A)),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.local_hospital,
-                            size: 20, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        InkWell(
-                          onTap: _viewHospitalDetails,
+                        Text(
+                          _doctorData!.name,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEC407A),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _doctorData!.suspended ? Colors.red.shade100 : Colors.green.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                           child: Text(
-                            _hospitalName ?? 'Unknown Hospital',
-                            style: const TextStyle(
-                              decoration: TextDecoration.underline,
-                              color: Colors.blue,
+                            _doctorData!.suspended ? 'Suspended' : 'Active',
+                            style: TextStyle(
+                              color: _doctorData!.suspended ? Colors.red : Colors.green,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Icon(Icons.local_hospital, size: 20, color: Color(0xFFEC407A)),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: _viewHospitalDetails,
+                              child: Text(
+                                _hospitalName ?? 'Unknown Hospital',
+                                style: const TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  color: Color(0xFFEC407A),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
-          // Personal Information Section
-          _buildSectionHeader('Personal Information'),
-          const SizedBox(height: 16),
-          Card(
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  _buildInfoRow('ID', _doctorData!.persId),
-                  const Divider(),
-                  _buildInfoRow('Email', _doctorData!.email),
-                  const Divider(),
-                  _buildInfoRow('Mobile Number', _doctorData!.mobileNumber),
-                  const Divider(),
-                  _buildInfoRow(
-                      'Birth Date', _formatDate(_doctorData!.birthDate)),
+                  ),
                 ],
               ),
             ),
@@ -340,159 +355,124 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
 
           const SizedBox(height: 32),
 
-          // Professional Information Section
-          _buildSectionHeader('Professional Information'),
-          const SizedBox(height: 16),
-          Card(
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoRow('Licenses', ''),
-                  const SizedBox(height: 8),
-                  ..._doctorData!.licenses
-                      .map((license) => Padding(
-                            padding:
-                                const EdgeInsets.only(left: 16.0, bottom: 4.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.check_circle,
-                                    size: 16, color: Colors.green),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(license)),
-                              ],
+          _buildCardSection(
+            title: 'Personal Information',
+            child: Column(
+              children: [
+                _buildInfoRow('ID', _doctorData!.persId),
+                const Divider(),
+                _buildInfoRow('Email', _doctorData!.email),
+                const Divider(),
+                _buildInfoRow('Mobile Number', _doctorData!.mobileNumber),
+                const Divider(),
+                _buildInfoRow('Birth Date', _formatDate(_doctorData!.birthDate)),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          _buildCardSection(
+            title: 'Professional Information',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow('Licenses', ''),
+                const SizedBox(height: 8),
+                ..._doctorData!.licenses.map((license) => Padding(
+                      padding: const EdgeInsets.only(left: 16.0, bottom: 4.0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(license)),
+                        ],
+                      ),
+                    )),
+                const Divider(),
+                _buildInfoRow('Description', _doctorData!.description),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          _buildCardSection(
+            title: 'Working Schedule',
+            child: _doctorData!.schedule.isEmpty
+                ? const Center(child: Text('No schedule defined'))
+                : Table(
+                    columnWidths: const {
+                      0: FlexColumnWidth(2),
+                      1: FlexColumnWidth(1.5),
+                      2: FlexColumnWidth(1.5),
+                    },
+                    border: TableBorder.all(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                      style: BorderStyle.solid,
+                    ),
+                    children: [
+                      TableRow(
+                        decoration: const BoxDecoration(color: AppTheme.primaryColor),
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              'Day',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          ))
-                      .toList(),
-                  const Divider(),
-                  _buildInfoRow('Description', _doctorData!.description),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Schedule Section
-          _buildSectionHeader('Working Schedule'),
-          const SizedBox(height: 16),
-          Card(
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  _doctorData!.schedule.isEmpty
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Text('No schedule defined'),
                           ),
-                        )
-                      : Table(
-                          columnWidths: const {
-                            0: FlexColumnWidth(2),
-                            1: FlexColumnWidth(1.5),
-                            2: FlexColumnWidth(1.5),
-                          },
-                          border: TableBorder.all(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                            style: BorderStyle.solid,
-                          ),
-                          children: [
-                            const TableRow(
-                              decoration: BoxDecoration(color: Colors.blue),
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Day',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Start Time',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'End Time',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              'Start Time',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                            ..._doctorData!.schedule
-                                .map((schedule) => TableRow(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Text(schedule['day'] ?? ''),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Text(schedule['start'] ?? ''),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Text(schedule['end'] ?? ''),
-                                        ),
-                                      ],
-                                    ))
-                                .toList(),
-                          ],
-                        ),
-                ],
-              ),
-            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              'End Time',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      ..._doctorData!.schedule
+                          .map((schedule) => TableRow(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(schedule['day'] ?? ''),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(schedule['start'] ?? ''),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(schedule['end'] ?? ''),
+                                  ),
+                                ],
+                              ))
+                          .toList(),
+                    ],
+                  ),
           ),
 
           const SizedBox(height: 32),
         ],
       ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 24,
-          decoration: BoxDecoration(
-            color: Colors.blue,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
     );
   }
 
@@ -506,16 +486,16 @@ class _DoctorPersonalDataPageState extends State<DoctorPersonalDataPage> {
             width: 150,
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+                color: AppTheme.primaryColor,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
           ),
         ],

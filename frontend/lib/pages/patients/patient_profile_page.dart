@@ -261,56 +261,6 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
                 },
               ),
             ),
-            const SizedBox(height: 20),
-
-            // Account Actions
-            _buildModernCard(
-              'Account Settings',
-              Icons.settings,
-              Colors.orange,
-              child: Column(
-                children: [
-                  _buildActionButton(
-                    'Edit Profile',
-                    Icons.edit,
-                    primaryPink,
-                    () {
-                      // Navigate to edit profile
-                      _showEditProfileDialog();
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildActionButton(
-                    'Change Password',
-                    Icons.lock,
-                    Colors.blue,
-                    () {
-                      // Navigate to change password
-                      _showChangePasswordDialog();
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildActionButton(
-                    'Privacy Settings',
-                    Icons.privacy_tip,
-                    Colors.green,
-                    () {
-                      // Navigate to privacy settings
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildActionButton(
-                    'Sign Out',
-                    Icons.logout,
-                    Colors.red,
-                    () {
-                      // Sign out logic
-                      _showSignOutDialog();
-                    },
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 40),
           ],
         ),
@@ -718,39 +668,7 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
     );
   }
 
-  void _showEditProfileDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Edit Profile'),
-        content: const Text('Profile editing functionality coming soon!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 
-  void _showChangePasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Change Password'),
-        content: const Text('Password change functionality coming soon!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showSignOutDialog() {
     showDialog(
