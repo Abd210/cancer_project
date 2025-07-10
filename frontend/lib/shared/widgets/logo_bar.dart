@@ -6,7 +6,8 @@ class LogoLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color.fromARGB(255, 255, 252, 254),
+      color: Colors.transparent,
+      //      color: const Color.fromARGB(255, 255, 252, 254),
       height: 50, // Keep the total row height at 50
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
