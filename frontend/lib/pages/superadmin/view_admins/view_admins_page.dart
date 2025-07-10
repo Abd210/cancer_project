@@ -632,6 +632,10 @@ class _AdminsPageState extends State<AdminsPage> {
                   }
                   // Note: _fetchAdmins() already manages _isLoading state
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEC407A),
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('Create Admin'),
               ),
             ],

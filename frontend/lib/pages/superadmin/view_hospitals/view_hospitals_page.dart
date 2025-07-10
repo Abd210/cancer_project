@@ -379,11 +379,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hospitals'),
-        backgroundColor: const Color(0xFFEC407A), // Pink theme color
-        foregroundColor: Colors.white, // White text
-      ),
+      
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(children: [
