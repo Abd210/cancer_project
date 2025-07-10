@@ -13,6 +13,10 @@ A Platform for the study and detection of breast cancer
 - Patients and Doctors have to be registered by admins or the superadmin in order to have access to the platform.
 - Patients can schedule appointments, cancel or re-schedule appointments through the platform.
 - Doctors can also schedule appointments with their patients, cancel or re-schedule them.
+- Doctors can set their own schedules, and the newly created appointments are first checked against them to make sure they're working during that time and that it doesnt overlap with other appointments.
+- Patients are assigned to one hospital and one doctor from that hospital.
+- Doctors are assigned to one hospital only.
+- Doctors and Patients can view their personal data but cannot change it, only admins/superadmins can.
 - Specialized devices for studying tumors are worn by patients. These devices transmit raw data to a remote server where it will be processed, afterwards it can be retrieved by doctors or patients and displayed in auto-generated graphics and statistics.
 
 ## Updates Log
