@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/providers/device_provider.dart';
 import 'package:frontend/models/device_data.dart';
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/components/page_header.dart';
 import '../../../shared/components/responsive_data_table.dart' show BetterPaginatedDataTable;
 
 class DevicesPage extends StatefulWidget {
@@ -17,6 +18,7 @@ class _DevicesPageState extends State<DevicesPage> {
   final DeviceProvider _deviceProvider = DeviceProvider();
   List<DeviceData> _deviceList = [];
   bool _isLoading = false;
+  bool _apiUnavailable = false;
   String _searchQuery = '';
   String _filter = 'all'; // 'all', 'suspended', 'unsuspended'
 
@@ -28,6 +30,7 @@ class _DevicesPageState extends State<DevicesPage> {
 
   Future<void> _fetchDevices() async {
     setState(() => _isLoading = true);
+    _apiUnavailable = false;
     try {
       final list = await _deviceProvider.getDevices(
         token: widget.token,
@@ -44,9 +47,9 @@ class _DevicesPageState extends State<DevicesPage> {
     } catch (e) {
       print('Error fetching devices: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load devices: $e')),
-        );
+        setState(() {
+          _apiUnavailable = true;
+        });
       }
     } finally {
       setState(() => _isLoading = false);
@@ -499,11 +502,14 @@ class _DevicesPageState extends State<DevicesPage> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Devices')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            const PageHeader(icon: Icons.devices, title: 'Devices Management'),
+            SizedBox(height: 24),
             // Filter and search row
             Row(
               children: [
@@ -546,11 +552,18 @@ class _DevicesPageState extends State<DevicesPage> {
               ],
             ),
             const SizedBox(height: 20),
-            // Table
+            // Table or placeholder
             Expanded(
-              child: rows.isEmpty
-                  ? const Center(child: Text('No devices found'))
-                  : BetterPaginatedDataTable(
+              child: _apiUnavailable
+                  ? const Center(
+                      child: Text(
+                        'To be implemented by Rares',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  : rows.isEmpty
+                      ? const Center(child: Text('No devices found'))
+                      : BetterPaginatedDataTable(
                       themeColor: const Color(0xFFEC407A), // Pinkish color
                       rowsPerPage: 10, // Show 10 rows per page
                       columns: const [

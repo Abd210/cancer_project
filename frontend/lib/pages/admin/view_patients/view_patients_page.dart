@@ -11,6 +11,8 @@ import 'package:frontend/providers/hospital_provider.dart';
 import 'package:frontend/providers/doctor_provider.dart';
 
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/components/components.dart';
+import '../../../shared/components/page_header.dart';
 import '../../../shared/components/responsive_data_table.dart'
     show BetterPaginatedDataTable;
 
@@ -1324,10 +1326,13 @@ class _PatientsPageState extends State<PatientsPage> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            const PageHeader(icon: Icons.group, title: 'Patients Management'),
+            SizedBox(height: 24),
             Row(
               children: [
                 Container(

@@ -4,6 +4,8 @@ import 'package:frontend/providers/hospital_provider.dart';
 import 'package:frontend/models/hospital_data.dart';
 import 'package:frontend/pages/superadmin/view_hospitals/tabs/view_data_hospital.dart';
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/components/components.dart';
+import '../../../shared/components/page_header.dart';
 import '../../../shared/components/responsive_data_table.dart'
     show BetterPaginatedDataTable;
 
@@ -379,10 +381,13 @@ class _HospitalsPageState extends State<HospitalsPage> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(children: [
+          const PageHeader(icon: Icons.local_hospital, title: 'Hospitals Management'),
+          SizedBox(height: 24),
           Row(children: [
             Container(
               width: 150,
