@@ -7,6 +7,7 @@ import '../superadmin/superAdmin_page.dart';
 import '../admin/admin_page.dart';
 import '../doctor/doctor_page.dart';
 import '../hospital/hospital_page.dart';
+import '../patients/patient_platform_page.dart';
 
 class LogIn extends StatefulWidget {
   const LogIn({super.key});
@@ -72,8 +73,7 @@ class _LogInState extends State<LogIn> {
           destination = DoctorPage(doctorId: resp.userId, token: resp.token);
           break;
         case 'patient':
-          // Use a known valid doctor ID directly for testing
-          destination = PatientPage(
+          destination = PatientPlatformPage(
             token: resp.token,
             patientId: resp.userId,
           );

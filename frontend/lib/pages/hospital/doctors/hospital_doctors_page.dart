@@ -5,6 +5,8 @@ import '../../../providers/data_provider.dart';
 import '../../../models/doctor.dart';
 import '../../../models/hospital.dart';
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/components/responsive_data_table.dart'
+    show BetterPaginatedDataTable;
 import 'package:fluttertoast/fluttertoast.dart';
 
 class HospitalDoctorsPage extends StatefulWidget {
@@ -28,28 +30,57 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Doctor'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Doctor Name'),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
-                  onSaved: (value) => name = value!,
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Specialization'),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter specialization' : null,
-                  onSaved: (value) => specialization = value!,
-                ),
-              ],
+        title: Row(
+          children: [
+            Icon(Icons.person_add, color: const Color(0xFFEC407A)),
+            const SizedBox(width: 10),
+            const Text('Add Doctor', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Doctor Name',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
+                    onSaved: (value) => name = value!,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Specialization',
+                      prefixIcon: Icon(Icons.local_hospital),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Enter specialization' : null,
+                    onSaved: (value) => specialization = value!,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.check),
+            label: const Text('Add Doctor'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEC407A),
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               if (formKey.currentState!.validate()) {
                 formKey.currentState!.save();
@@ -64,7 +95,6 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                 Fluttertoast.showToast(msg: 'Doctor added successfully.');
               }
             },
-            child: const Text('Add'),
           ),
         ],
       ),
@@ -79,30 +109,59 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Doctor'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  initialValue: doctor.name,
-                  decoration: const InputDecoration(labelText: 'Doctor Name'),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
-                  onSaved: (value) => name = value!,
-                ),
-                TextFormField(
-                  initialValue: doctor.specialization,
-                  decoration: const InputDecoration(labelText: 'Specialization'),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter specialization' : null,
-                  onSaved: (value) => specialization = value!,
-                ),
-              ],
+        title: Row(
+          children: [
+            Icon(Icons.edit, color: const Color(0xFFEC407A)),
+            const SizedBox(width: 10),
+            const Text('Edit Doctor', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    initialValue: doctor.name,
+                    decoration: const InputDecoration(
+                      labelText: 'Doctor Name',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
+                    onSaved: (value) => name = value!,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: doctor.specialization,
+                    decoration: const InputDecoration(
+                      labelText: 'Specialization',
+                      prefixIcon: Icon(Icons.local_hospital),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Enter specialization' : null,
+                    onSaved: (value) => specialization = value!,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.check),
+            label: const Text('Save Doctor'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEC407A),
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               if (formKey.currentState!.validate()) {
                 formKey.currentState!.save();
@@ -117,7 +176,6 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                 Fluttertoast.showToast(msg: 'Doctor updated successfully.');
               }
             },
-            child: const Text('Save'),
           ),
         ],
       ),
@@ -196,25 +254,87 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                     onPressed: () => _showAddDoctorDialog(context, hospital),
                     icon: const Icon(Icons.add),
                     label: const Text('Add Doctor'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEC407A),
+                      foregroundColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
               // Doctors DataTable
               Expanded(
-                child: SingleChildScrollView(
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('ID')),
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('Specialization')),
-                      DataColumn(label: Text('Actions')),
-                    ],
-                    rows: doctors.map((doctor) {
+                child: doctors.isEmpty
+                    ? const Center(child: Text('No doctors found.'))
+                    : BetterPaginatedDataTable(
+                        themeColor: const Color(0xFFEC407A),
+                        rowsPerPage: 10,
+                        columns: const [
+                          DataColumn(label: Text('ID')),
+                          DataColumn(label: Text('Name')),
+                          DataColumn(label: Text('Specialization')),
+                          DataColumn(label: Text('Actions')),
+                        ],
+                                            rows: doctors.map((doctor) {
                       return DataRow(cells: [
-                        DataCell(Text(doctor.id)),
-                        DataCell(Text(doctor.name)),
-                        DataCell(Text(doctor.specialization)),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                            constraints: const BoxConstraints(
+                              minWidth: 100,
+                              maxWidth: 120,
+                            ),
+                            child: Text(
+                              doctor.id,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                            constraints: const BoxConstraints(
+                              minWidth: 180,
+                              maxWidth: 250,
+                            ),
+                            child: Text(
+                              doctor.name,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 1.3,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                            constraints: const BoxConstraints(
+                              minWidth: 250,
+                              maxWidth: 350,
+                            ),
+                            child: Text(
+                              doctor.specialization,
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ),
                         DataCell(
                           Row(
                             children: [
@@ -231,8 +351,7 @@ class _HospitalDoctorsPageState extends State<HospitalDoctorsPage> {
                         ),
                       ]);
                     }).toList(),
-                  ),
-                ),
+                      ),
               ),
             ],
           ),

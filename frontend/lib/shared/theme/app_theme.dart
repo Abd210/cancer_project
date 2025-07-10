@@ -29,6 +29,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
@@ -84,10 +85,18 @@ class AppTheme {
       ),
 
       tabBarTheme: const TabBarTheme(
-        labelColor: primaryColor,
-        unselectedLabelColor: Colors.grey,
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white70,
+        labelStyle: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.normal,
+          fontSize: 16,
+        ),
         indicator: UnderlineTabIndicator(
-          borderSide: BorderSide(color: primaryColor, width: 3),
+          borderSide: BorderSide(color: Colors.white, width: 3),
         ),
       ),
     );

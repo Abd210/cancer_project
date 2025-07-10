@@ -5,6 +5,7 @@ import 'package:frontend/providers/admin_provider.dart';
 import 'package:frontend/models/hospital_data.dart';
 import 'package:frontend/models/admin_data.dart';
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/theme/app_theme.dart';
 
 class AdminHospitalPage extends StatefulWidget {
   final String token;
@@ -82,7 +83,7 @@ class _AdminHospitalPageState extends State<AdminHospitalPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Hospital'),
+        title: const Text('Hospital Overview'),
         backgroundColor: const Color(0xFFEC407A),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
@@ -91,13 +92,13 @@ class _AdminHospitalPageState extends State<AdminHospitalPage> {
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFFEC407A).withOpacity(0.1),
-              Colors.white,
-            ],
+          image: DecorationImage(
+            image: const AssetImage(AppTheme.backgroundImage),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.8),
+              BlendMode.dstATop,
+            ),
           ),
         ),
         child: _error != null

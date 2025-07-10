@@ -1762,14 +1762,162 @@ class _DoctorsPageState extends State<DoctorsPage> {
                             rows: filteredDoctors.map((doc) {
                               return DataRow(
                                 cells: [
-                                  DataCell(Text(doc.name)),
-                                  DataCell(Text(doc.persId)),
-                                  DataCell(Text(doc.email)),
-                                  DataCell(Text(doc.mobileNumber)),
-                                  DataCell(Text(doc.birthDate.toIso8601String().split('T')[0])),
-                                  DataCell(Text(doc.suspended.toString())),
-                                  DataCell(Text('${doc.patients.length}')),
-                                  DataCell(Text(doc.licenses.join(", "))),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 150,
+                                        maxWidth: 200,
+                                      ),
+                                      child: Text(
+                                        doc.name,
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 120,
+                                        maxWidth: 150,
+                                      ),
+                                      child: Text(
+                                        doc.persId,
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 180,
+                                        maxWidth: 250,
+                                      ),
+                                      child: Text(
+                                        doc.email,
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 120,
+                                        maxWidth: 150,
+                                      ),
+                                      child: Text(
+                                        doc.mobileNumber,
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 110,
+                                        maxWidth: 130,
+                                      ),
+                                      child: Text(
+                                        doc.birthDate.toIso8601String().split('T')[0],
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 80,
+                                        maxWidth: 100,
+                                      ),
+                                      child: Text(
+                                        doc.suspended ? 'Yes' : 'No',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                          color: doc.suspended ? Colors.red : Colors.green,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 60,
+                                        maxWidth: 80,
+                                      ),
+                                      child: Text(
+                                        '${doc.patients.length}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 180,
+                                        maxWidth: 250,
+                                      ),
+                                      child: Text(
+                                        doc.licenses.join(", "),
+                                        maxLines: 4,
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                   DataCell(
                                     Row(
                                       mainAxisSize: MainAxisSize.min,

@@ -355,7 +355,7 @@ class _PatientsPageState extends State<PatientsPage> {
 
                     const SizedBox(height: 16),
 
-                    // Doctor Assignment section - automatically assigned to admin's hospital
+                    // Doctor Assignment section - automatically assigned to admin's hospital (Optional)
                     if (filteredDoctors.isNotEmpty)
                       Container(
                         margin: const EdgeInsets.only(top: 16),
@@ -368,12 +368,41 @@ class _PatientsPageState extends State<PatientsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Doctor Assignment',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFFEC407A),
-                                )),
+                            Row(
+                              children: [
+                                Text('Doctor Assignment',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFFEC407A),
+                                    )),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Optional',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'You can assign doctors to this patient now or later.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
                             const SizedBox(height: 16),
 
                             // Doctor search field
@@ -446,7 +475,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                       Icon(Icons.person, color: Colors.grey.shade600),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Select Doctors',
+                                        'Select Doctors (Optional)',
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: Colors.grey.shade700,
@@ -530,18 +559,38 @@ class _PatientsPageState extends State<PatientsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Doctor Assignment',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFFEC407A),
-                                )),
+                            Row(
+                              children: [
+                                Text('Doctor Assignment',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFFEC407A),
+                                    )),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Optional',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                             const SizedBox(height: 16),
                             const Center(
                               child: Text(
-                                'No doctors available for your hospital. Please add doctors to this hospital first.',
+                                'No doctors available for your hospital. You can still create the patient and assign doctors later.',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.red),
+                                style: TextStyle(color: Colors.grey),
                               ),
                             ),
                           ],
@@ -568,11 +617,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
 
-                  // Ensure at least one doctor is selected
-                  if (selectedDoctorIds.isEmpty) {
-                    Fluttertoast.showToast(msg: 'Please select at least one doctor');
-                    return;
-                  }
+                  // Doctor assignment is optional - no validation needed
 
                   Navigator.pop(ctx);
 
@@ -1405,43 +1450,174 @@ class _PatientsPageState extends State<PatientsPage> {
                       rows: filteredPatients.map((patient) {
                         return DataRow(
                           cells: [
-                            DataCell(Text(patient.name)),
-                            DataCell(Text(patient.persId)),
-                            DataCell(Text(patient.email)),
-                            DataCell(Text(patient.diagnosis)),
-                            DataCell(Text(patient.status)),
-                            DataCell(Text(patient.suspended.toString())),
                             DataCell(
-                              patient.doctorIds.isEmpty
-                                  ? const Text('No doctors assigned')
-                                  : Tooltip(
-                                      message: patient.doctorIds.map((id) {
-                                        final doctor = _doctorList.firstWhere(
-                                          (d) => d.id == id,
-                                          orElse: () => DoctorData(
-                                            id: id,
-                                            persId: 'Unknown',
-                                            name: 'Unknown Doctor',
-                                            email: '',
-                                            mobileNumber: '',
-                                            birthDate: DateTime.now(),
-                                            hospitalId: '',
-                                            licenses: [],
-                                            description: '',
-                                            suspended: false,
-                                            patients: [],
-                                            schedule: [],
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 150,
+                                  maxWidth: 200,
+                                ),
+                                child: Text(
+                                  patient.name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  patient.persId,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 180,
+                                  maxWidth: 250,
+                                ),
+                                child: Text(
+                                  patient.email,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 250,
+                                  maxWidth: 350,
+                                ),
+                                child: Text(
+                                  patient.diagnosis,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  patient.status,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 80,
+                                  maxWidth: 100,
+                                ),
+                                child: Text(
+                                  patient.suspended ? 'Yes' : 'No',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    color: patient.suspended ? Colors.red : Colors.green,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 180,
+                                ),
+                                child: patient.doctorIds.isEmpty
+                                    ? const Text(
+                                        'No doctors assigned',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          height: 1.3,
+                                          color: Colors.grey,
+                                        ),
+                                      )
+                                    : Tooltip(
+                                        message: patient.doctorIds.map((id) {
+                                          final doctor = _doctorList.firstWhere(
+                                            (d) => d.id == id,
+                                            orElse: () => DoctorData(
+                                              id: id,
+                                              persId: 'Unknown',
+                                              name: 'Unknown Doctor',
+                                              email: '',
+                                              mobileNumber: '',
+                                              birthDate: DateTime.now(),
+                                              hospitalId: '',
+                                              licenses: [],
+                                              description: '',
+                                              suspended: false,
+                                              patients: [],
+                                              schedule: [],
+                                            ),
+                                          );
+                                          return doctor.name;
+                                        }).join(', '),
+                                        child: Text(
+                                          '${patient.doctorIds.length} doctor${patient.doctorIds.length == 1 ? '' : 's'}',
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.3,
+                                            decoration: TextDecoration.underline,
+                                            fontWeight: FontWeight.w500,
                                           ),
-                                        );
-                                        return doctor.name;
-                                      }).join(', '),
-                                      child: Text(
-                                        '${patient.doctorIds.length} doctor${patient.doctorIds.length == 1 ? '' : 's'}',
-                                        style: const TextStyle(
-                                          decoration: TextDecoration.underline,
                                         ),
                                       ),
-                                    ),
+                              ),
                             ),
                             DataCell(
                               Row(

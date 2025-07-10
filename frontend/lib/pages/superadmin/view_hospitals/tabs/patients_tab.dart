@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/models/patient_data.dart';
 import 'package:frontend/providers/patient_provider.dart';
+import '../../../../shared/components/responsive_data_table.dart'
+    show BetterPaginatedDataTable;
 import 'package:frontend/providers/doctor_provider.dart';
 
 class HospitalPatientsTab extends StatefulWidget {
@@ -59,81 +61,180 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(existing == null ? 'Add Patient' : 'Edit Patient'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              _txt('Personal ID', initial: persId, save: (v) => persId = v),
-              _txt('Name', initial: name, save: (v) => name = v),
-              _txt('Email', initial: email, save: (v) => email = v),
-              _txt('Mobile', initial: mobile, save: (v) => mobile = v),
-              if (existing == null)
-                _txt('Password', obscure: true, save: (v) => password = v),
-              _txt('Status', initial: status, save: (v) => status = v),
-              _txt('Diagnosis', initial: diagnosis, save: (v) => diagnosis = v),
-              Row(children: [
-                const Text('Suspended?'),
-                Checkbox(
-                  value: suspended,
-                  onChanged: (v) => setState(() => suspended = v ?? false),
-                ),
-              ]),
-            ]),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(existing == null ? Icons.person_add : Icons.edit, color: const Color(0xFFEC407A)),
+              const SizedBox(width: 10),
+              Text(existing == null ? 'Add Patient' : 'Edit Patient', 
+                   style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
-              formKey.currentState!.save();
-              Navigator.pop(context);
+          content: Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  TextFormField(
+                    initialValue: persId,
+                    decoration: const InputDecoration(
+                      labelText: 'Personal ID',
+                      prefixIcon: Icon(Icons.badge),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Personal ID' : null,
+                    onSaved: (v) => persId = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: name,
+                    decoration: const InputDecoration(
+                      labelText: 'Name',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Name' : null,
+                    onSaved: (v) => name = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: email,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Email' : null,
+                    onSaved: (v) => email = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: mobile,
+                    decoration: const InputDecoration(
+                      labelText: 'Mobile',
+                      prefixIcon: Icon(Icons.phone),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Mobile' : null,
+                    onSaved: (v) => mobile = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  if (existing == null)
+                    Column(
+                      children: [
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Password',
+                            prefixIcon: Icon(Icons.lock),
+                            border: OutlineInputBorder(),
+                          ),
+                          obscureText: true,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Password' : null,
+                          onSaved: (v) => password = v!.trim(),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  TextFormField(
+                    initialValue: status,
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                      prefixIcon: Icon(Icons.info),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Status' : null,
+                    onSaved: (v) => status = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: diagnosis,
+                    decoration: const InputDecoration(
+                      labelText: 'Diagnosis',
+                      prefixIcon: Icon(Icons.medical_services),
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter Diagnosis' : null,
+                    onSaved: (v) => diagnosis = v!.trim(),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(children: [
+                    const Text('Suspended?'),
+                    const SizedBox(width: 10),
+                    Checkbox(
+                      value: suspended,
+                      onChanged: (v) => setDialogState(() => suspended = v ?? false),
+                      activeColor: const Color(0xFFEC407A),
+                    ),
+                  ]),
+                ]),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.check),
+              label: Text(existing == null ? 'Add Patient' : 'Save Patient'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                formKey.currentState!.save();
+                Navigator.pop(context);
 
-              setState(() => _loading = true);
-              try {
-                if (existing == null) {
-                  await _provider.createPatient(
-                    token: widget.token,
-                    persId: persId,
-                    name: name,
-                    password: password.isEmpty ? '123' : password,
-                    mobileNumber: mobile,
-                    email: email,
-                    status: status,
-                    diagnosis: diagnosis,
-                    birthDate: DateTime.now().toIso8601String(),
-                    medicalHistory: [],
-                    hospitalId: widget.hospitalId,
-                    doctorIds: [_fetchDefaultDoctor(widget.hospitalId)],
-                    suspended: suspended,
-                  );
-                  Fluttertoast.showToast(msg: 'Patient added.');
-                } else {
-                  await _provider.updatePatient(
-                    token: widget.token,
-                    patientId: existing.id,
-                    updatedFields: {
-                      'name': name,
-                      'mobileNumber': mobile,
-                      'email': email,
-                      'status': status,
-                      'diagnosis': diagnosis,
-                      'suspended': suspended,
-                    },
-                  );
-                  Fluttertoast.showToast(msg: 'Patient updated.');
+                setState(() => _loading = true);
+                try {
+                  if (existing == null) {
+                    await _provider.createPatient(
+                      token: widget.token,
+                      persId: persId,
+                      name: name,
+                      password: password.isEmpty ? '123' : password,
+                      mobileNumber: mobile,
+                      email: email,
+                      status: status,
+                      diagnosis: diagnosis,
+                      birthDate: DateTime.now().toIso8601String(),
+                      medicalHistory: [],
+                      hospitalId: widget.hospitalId,
+                      doctorIds: [_fetchDefaultDoctor(widget.hospitalId)],
+                      suspended: suspended,
+                    );
+                    Fluttertoast.showToast(msg: 'Patient added.');
+                  } else {
+                    await _provider.updatePatient(
+                      token: widget.token,
+                      patientId: existing.id,
+                      updatedFields: {
+                        'name': name,
+                        'mobileNumber': mobile,
+                        'email': email,
+                        'status': status,
+                        'diagnosis': diagnosis,
+                        'suspended': suspended,
+                      },
+                    );
+                    Fluttertoast.showToast(msg: 'Patient updated.');
+                  }
+                  await _fetch();
+                } catch (e) {
+                  Fluttertoast.showToast(msg: 'Save failed: $e');
+                } finally {
+                  if (mounted) setState(() => _loading = false);
                 }
-                await _fetch();
-              } catch (e) {
-                Fluttertoast.showToast(msg: 'Save failed: $e');
-              } finally {
-                if (mounted) setState(() => _loading = false);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -195,67 +296,147 @@ class _HospitalPatientsTabState extends State<HospitalPatientsTab> {
               onPressed: () => _showUpsert(),
               icon: const Icon(Icons.add),
               label: const Text('Add'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
             ),
             const SizedBox(width: 8),
             ElevatedButton.icon(
               onPressed: _fetch,
               icon: const Icon(Icons.refresh),
               label: const Text('Refresh'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
             ),
           ]),
         ),
         Expanded(
           child: list.isEmpty
               ? const Center(child: Text('No patients found.'))
-              : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('Email')),
-                      DataColumn(label: Text('Status')),
-                      DataColumn(label: Text('Diagnosis')),
-                      DataColumn(label: Text('Actions')),
-                    ],
-                    rows: list
-                        .map((p) => DataRow(cells: [
-                              DataCell(Text(p.name)),
-                              DataCell(Text(p.email)),
-                              DataCell(Text(p.status)),
-                              DataCell(Text(p.diagnosis)),
-                              DataCell(Row(children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.blue),
-                                  onPressed: () => _showUpsert(p),
+              : BetterPaginatedDataTable(
+                  themeColor: const Color(0xFFEC407A),
+                  rowsPerPage: 10,
+                  columns: const [
+                    DataColumn(label: Text('Name')),
+                    DataColumn(label: Text('Email')),
+                    DataColumn(label: Text('Status')),
+                    DataColumn(label: Text('Diagnosis')),
+                    DataColumn(label: Text('Actions')),
+                  ],
+                  rows: list
+                      .map((p) => DataRow(cells: [
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 150,
+                                  maxWidth: 200,
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  onPressed: () => _delete(p.id),
+                                child: Text(
+                                  p.name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ])),
-                            ]))
-                        .toList(),
-                  ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 180,
+                                  maxWidth: 250,
+                                ),
+                                child: Text(
+                                  p.email,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  p.status,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 250,
+                                  maxWidth: 350,
+                                ),
+                                child: Text(
+                                  p.diagnosis,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit,
+                                          color: Colors.blue),
+                                      onPressed: () => _showUpsert(p),
+                                      tooltip: 'Edit Patient',
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () => _delete(p.id),
+                                      tooltip: 'Delete Patient',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ]))
+                      .toList(),
                 ),
         ),
       ],
     );
   }
 
-  Widget _txt(String label,
-      {String initial = '',
-      bool obscure = false,
-      required void Function(String) save}) {
-    return TextFormField(
-      initialValue: initial,
-      obscureText: obscure,
-      decoration: InputDecoration(labelText: label),
-      validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter $label' : null,
-      onSaved: (v) => save(v!.trim()),
-    );
-  }
+
 
   String _fetchDefaultDoctor(String hospitalId) {
     // This is a synchronous method that returns a hardcoded ID

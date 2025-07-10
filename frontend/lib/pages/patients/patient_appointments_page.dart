@@ -212,11 +212,8 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                             ? IconButton(
                                 icon:
                                     const Icon(Icons.cancel, color: Colors.red),
-                                onPressed: () {
-                                  // TODO: Implement cancel appointment functionality
-                                  _showToast(
-                                      'Cancel appointment functionality not implemented yet');
-                                },
+                                tooltip: 'Cancel Appointment',
+                                onPressed: () => _confirmCancel(appointment),
                               )
                             : null,
                       ),
@@ -228,13 +225,51 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
     );
   }
 
+  void _confirmCancel(AppointmentData appointment) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Cancel Appointment'),
+        content: Text(
+          'Are you sure you want to cancel your appointment with ${appointment.doctorName} on ${DateFormat('MMM dd, yyyy HH:mm').format(appointment.start)}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Keep'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(context); // close dialog
+              await _cancelAppointment(appointment.id);
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _cancelAppointment(String appointmentId) async {
+    setState(() => _isLoading = true);
+    try {
+      await _appointmentProvider.cancelAppointment(
+        token: widget.token,
+        appointmentId: appointmentId,
+      );
+      _showToast('Appointment cancelled');
+      await _fetchAppointments();
+    } catch (e) {
+      _showToast('Failed to cancel appointment: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Appointments'),
-      ),
-      body: Column(
+    return Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -331,7 +366,6 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                           ),
           ),
         ],
-      ),
     );
   }
 }

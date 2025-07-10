@@ -6,6 +6,8 @@ import '../../../models/patient.dart';
 import '../../../models/doctor.dart';
 import '../../../models/device.dart';
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/components/responsive_data_table.dart'
+    show BetterPaginatedDataTable;
 import 'package:fluttertoast/fluttertoast.dart';
 
 class HospitalPatientsPage extends StatefulWidget {
@@ -32,60 +34,104 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Patient'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Patient Name'),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
-                  onSaved: (value) => name = value!,
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Age'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Enter age';
-                    if (int.tryParse(value) == null) return 'Enter valid age';
-                    return null;
-                  },
-                  onSaved: (value) => age = int.parse(value!),
-                  keyboardType: TextInputType.number,
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Diagnosis'),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter diagnosis' : null,
-                  onSaved: (value) => diagnosis = value!,
-                ),
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Assign Doctor'),
-                  items: hospitalDoctors.map((Doctor doctor) {
-                    return DropdownMenuItem<String>(
-                      value: doctor.id,
-                      child: Text(doctor.name),
-                    );
-                  }).toList(),
-                  validator: (value) => value == null ? 'Select a doctor' : null,
-                  onChanged: (value) => doctorId = value,
-                ),
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Assign Device'),
-                  items: unassignedDevices.map((Device device) {
-                    return DropdownMenuItem<String>(
-                      value: device.id,
-                      child: Text(device.type),
-                    );
-                  }).toList(),
-                  validator: (value) => value == null ? 'Select a device' : null,
-                  onChanged: (value) => deviceId = value,
-                ),
-              ],
+        title: Row(
+          children: [
+            Icon(Icons.person_add, color: const Color(0xFFEC407A)),
+            const SizedBox(width: 10),
+            const Text('Add Patient', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Patient Name',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
+                    onSaved: (value) => name = value!,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Age',
+                      prefixIcon: Icon(Icons.cake),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Enter age';
+                      if (int.tryParse(value) == null) return 'Enter valid age';
+                      return null;
+                    },
+                    onSaved: (value) => age = int.parse(value!),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Diagnosis',
+                      prefixIcon: Icon(Icons.medical_services),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Enter diagnosis' : null,
+                    onSaved: (value) => diagnosis = value!,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Assign Doctor',
+                      prefixIcon: Icon(Icons.local_hospital),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: hospitalDoctors.map((Doctor doctor) {
+                      return DropdownMenuItem<String>(
+                        value: doctor.id,
+                        child: Text(doctor.name),
+                      );
+                    }).toList(),
+                    validator: (value) => value == null ? 'Select a doctor' : null,
+                    onChanged: (value) => doctorId = value,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Assign Device',
+                      prefixIcon: Icon(Icons.devices),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: unassignedDevices.map((Device device) {
+                      return DropdownMenuItem<String>(
+                        value: device.id,
+                        child: Text(device.type),
+                      );
+                    }).toList(),
+                    validator: (value) => value == null ? 'Select a device' : null,
+                    onChanged: (value) => deviceId = value,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.check),
+            label: const Text('Add Patient'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEC407A),
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               if (formKey.currentState!.validate() && doctorId != null && deviceId != null) {
                 formKey.currentState!.save();
@@ -110,7 +156,6 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                 Fluttertoast.showToast(msg: 'Patient added successfully.');
               }
             },
-            child: const Text('Add'),
           ),
         ],
       ),
@@ -133,65 +178,109 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Patient'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  initialValue: name,
-                  decoration: const InputDecoration(labelText: 'Patient Name'),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
-                  onSaved: (value) => name = value!,
-                ),
-                TextFormField(
-                  initialValue: age.toString(),
-                  decoration: const InputDecoration(labelText: 'Age'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Enter age';
-                    if (int.tryParse(value) == null) return 'Enter a valid age';
-                    return null;
-                  },
-                  onSaved: (value) => age = int.parse(value!),
-                  keyboardType: TextInputType.number,
-                ),
-                TextFormField(
-                  initialValue: diagnosis,
-                  decoration: const InputDecoration(labelText: 'Diagnosis'),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter diagnosis' : null,
-                  onSaved: (value) => diagnosis = value!,
-                ),
-                DropdownButtonFormField<String>(
-                  value: doctorId,
-                  decoration: const InputDecoration(labelText: 'Assign Doctor'),
-                  items: hospitalDoctors.map((Doctor doctor) {
-                    return DropdownMenuItem<String>(
-                      value: doctor.id,
-                      child: Text(doctor.name),
-                    );
-                  }).toList(),
-                  validator: (value) => value == null ? 'Select a doctor' : null,
-                  onChanged: (value) => doctorId = value,
-                ),
-                DropdownButtonFormField<String>(
-                  value: deviceId,
-                  decoration: const InputDecoration(labelText: 'Assign Device'),
-                  items: availableDevices.map((Device device) {
-                    return DropdownMenuItem<String>(
-                      value: device.id,
-                      child: Text(device.type),
-                    );
-                  }).toList(),
-                  validator: (value) => value == null ? 'Select a device' : null,
-                  onChanged: (value) => deviceId = value,
-                ),
-              ],
+        title: Row(
+          children: [
+            Icon(Icons.edit, color: const Color(0xFFEC407A)),
+            const SizedBox(width: 10),
+            const Text('Edit Patient', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    initialValue: name,
+                    decoration: const InputDecoration(
+                      labelText: 'Patient Name',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Enter name' : null,
+                    onSaved: (value) => name = value!,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: age.toString(),
+                    decoration: const InputDecoration(
+                      labelText: 'Age',
+                      prefixIcon: Icon(Icons.cake),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Enter age';
+                      if (int.tryParse(value) == null) return 'Enter a valid age';
+                      return null;
+                    },
+                    onSaved: (value) => age = int.parse(value!),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: diagnosis,
+                    decoration: const InputDecoration(
+                      labelText: 'Diagnosis',
+                      prefixIcon: Icon(Icons.medical_services),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Enter diagnosis' : null,
+                    onSaved: (value) => diagnosis = value!,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: doctorId,
+                    decoration: const InputDecoration(
+                      labelText: 'Assign Doctor',
+                      prefixIcon: Icon(Icons.local_hospital),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: hospitalDoctors.map((Doctor doctor) {
+                      return DropdownMenuItem<String>(
+                        value: doctor.id,
+                        child: Text(doctor.name),
+                      );
+                    }).toList(),
+                    validator: (value) => value == null ? 'Select a doctor' : null,
+                    onChanged: (value) => doctorId = value,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: deviceId,
+                    decoration: const InputDecoration(
+                      labelText: 'Assign Device',
+                      prefixIcon: Icon(Icons.devices),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: availableDevices.map((Device device) {
+                      return DropdownMenuItem<String>(
+                        value: device.id,
+                        child: Text(device.type),
+                      );
+                    }).toList(),
+                    validator: (value) => value == null ? 'Select a device' : null,
+                    onChanged: (value) => deviceId = value,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.check),
+            label: const Text('Save Patient'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEC407A),
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               if (formKey.currentState!.validate() && doctorId != null && deviceId != null) {
                 formKey.currentState!.save();
@@ -217,7 +306,6 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                 Fluttertoast.showToast(msg: 'Patient updated successfully.');
               }
             },
-            child: const Text('Save'),
           ),
         ],
       ),
@@ -325,63 +413,180 @@ class _HospitalPatientsPageState extends State<HospitalPatientsPage> {
                     onPressed: () => _showAddPatientDialog(context, hospitalDoctors, unassignedDevices),
                     icon: const Icon(Icons.add),
                     label: const Text('Add Patient'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEC407A),
+                      foregroundColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
               // Patients DataTable
               Expanded(
-                child: SingleChildScrollView(
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('ID')),
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('Age')),
-                      DataColumn(label: Text('Diagnosis')),
-                      DataColumn(label: Text('Doctor')),
-                      DataColumn(label: Text('Device')),
-                      DataColumn(label: Text('Actions')),
-                    ],
-                    rows: hospitalPatients.map((patient) {
-                      final doc = hospitalDoctors.firstWhere(
-                        (d) => d.id == patient.doctorId,
-                        orElse: () => Doctor(id: '', name: 'Unknown', specialization: '', hospitalId: ''),
-                      );
-                      final device = dataProvider.devices.firstWhere(
-                        (dev) => dev.id == patient.deviceId,
-                        orElse: () => Device(id: 'unknown', type: 'Unassigned', patientId: ''),
-                      );
+                child: hospitalPatients.isEmpty
+                    ? const Center(child: Text('No patients found.'))
+                    : BetterPaginatedDataTable(
+                        themeColor: const Color(0xFFEC407A),
+                        rowsPerPage: 10,
+                        columns: const [
+                          DataColumn(label: Text('ID')),
+                          DataColumn(label: Text('Name')),
+                          DataColumn(label: Text('Age')),
+                          DataColumn(label: Text('Diagnosis')),
+                          DataColumn(label: Text('Doctor')),
+                          DataColumn(label: Text('Device')),
+                          DataColumn(label: Text('Actions')),
+                        ],
+                        rows: hospitalPatients.map((patient) {
+                          final doc = hospitalDoctors.firstWhere(
+                            (d) => d.id == patient.doctorId,
+                            orElse: () => Doctor(id: '', name: 'Unknown', specialization: '', hospitalId: ''),
+                          );
+                          final device = dataProvider.devices.firstWhere(
+                            (dev) => dev.id == patient.deviceId,
+                            orElse: () => Device(id: 'unknown', type: 'Unassigned', patientId: ''),
+                          );
 
-                      return DataRow(cells: [
-                        DataCell(Text(patient.id)),
-                        DataCell(Text(patient.name)),
-                        DataCell(Text(patient.age.toString())),
-                        DataCell(Text(patient.diagnosis)),
-                        DataCell(Text(doc.name)),
-                        DataCell(Text(device.type)),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () => _showEditPatientDialog(
-                                  context,
-                                  patient,
-                                  hospitalDoctors,
-                                  [...unassignedDevices, ...hospitalDevices],
+                          return DataRow(cells: [
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 100,
+                                  maxWidth: 120,
+                                ),
+                                child: Text(
+                                  patient.id,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deletePatient(context, patient.id),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 150,
+                                  maxWidth: 200,
+                                ),
+                                child: Text(
+                                  patient.name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ]);
-                    }).toList(),
-                  ),
-                ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 60,
+                                  maxWidth: 80,
+                                ),
+                                child: Text(
+                                  patient.age.toString(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 250,
+                                  maxWidth: 350,
+                                ),
+                                child: Text(
+                                  patient.diagnosis,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 150,
+                                  maxWidth: 200,
+                                ),
+                                child: Text(
+                                  doc.name,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                constraints: const BoxConstraints(
+                                  minWidth: 120,
+                                  maxWidth: 150,
+                                ),
+                                child: Text(
+                                  device.type,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: Colors.blue),
+                                    onPressed: () => _showEditPatientDialog(
+                                      context,
+                                      patient,
+                                      hospitalDoctors,
+                                      [...unassignedDevices, ...hospitalDevices],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => _deletePatient(context, patient.id),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ]);
+                        }).toList(),
+                      ),
               ),
             ],
           ),

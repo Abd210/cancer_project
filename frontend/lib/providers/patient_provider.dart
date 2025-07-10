@@ -118,7 +118,7 @@ class PatientProvider {
     required String birthDate,
     required List<String> medicalHistory,
     required String hospitalId,
-    required List<String> doctorIds,
+    List<String> doctorIds = const [],
     required bool suspended,
   }) async {
     final url = Uri.parse('${ClassUtil.baseUrl}${ClassUtil.registerRoute}');
