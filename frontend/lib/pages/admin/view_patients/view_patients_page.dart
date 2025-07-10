@@ -1326,6 +1326,7 @@ class _PatientsPageState extends State<PatientsPage> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

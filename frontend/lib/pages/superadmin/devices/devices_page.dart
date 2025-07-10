@@ -500,6 +500,7 @@ class _DevicesPageState extends State<DevicesPage> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Devices')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

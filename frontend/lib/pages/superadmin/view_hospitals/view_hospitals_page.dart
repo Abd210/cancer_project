@@ -381,6 +381,7 @@ class _HospitalsPageState extends State<HospitalsPage> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       
       body: Padding(
         padding: const EdgeInsets.all(16),

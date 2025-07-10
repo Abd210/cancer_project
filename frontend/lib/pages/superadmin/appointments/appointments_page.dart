@@ -1997,6 +1997,7 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
