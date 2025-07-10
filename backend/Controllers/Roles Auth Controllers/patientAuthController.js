@@ -38,7 +38,7 @@ class PatientAuthController {
         doctors, // Changed from doctor to doctors array
       } = req.body;
 
-      // Check for required fields for Patient
+      // Check for required fields for Patient (doctors is optional)
       if (
         !persId ||
         !name ||
@@ -49,8 +49,7 @@ class PatientAuthController {
         !diagnosis ||
         !birthDate ||
         !medicalHistory ||
-        !hospital ||
-        !doctors
+        !hospital
       ) {
         return res.status(400).json({
           error: `Missing required fields: ${!persId ? "pers. id, " : ""}${
@@ -59,16 +58,16 @@ class PatientAuthController {
             !mobileNumber ? "mobile number, " : ""
           }${!email ? "email, " : ""}${!status ? "status, " : ""}${
             !diagnosis ? "diagnosis, " : ""
-          }${!doctors ? "doctors array" : ""}${!birthDate ? "date of birth, " : ""}${
+          }${!birthDate ? "date of birth, " : ""}${
             !medicalHistory ? "medical history, " : ""
           }${!hospital ? "hospital id" : ""}`.slice(0, -2),
         });
       }
 
-      // Validate doctors array
-      if (!Array.isArray(doctors) || doctors.length === 0) {
+      // Validate doctors array (optional - can be empty)
+      if (doctors && (!Array.isArray(doctors))) {
         return res.status(400).json({
-          error: "doctors must be a non-empty array of doctor IDs",
+          error: "doctors must be an array of doctor IDs",
         });
       }
 
@@ -95,18 +94,20 @@ class PatientAuthController {
         return res.status(500).json({ error: "Failed to retrieve patient ID after registration" });
       }
 
-      // Update all assigned doctors' `patients` arrays
-      const batch = db.batch();
-      
-      for (const doctorId of doctors) {
-        const doctorRef = db.collection("doctors").doc(doctorId);
-        batch.update(doctorRef, {
-          patients: admin.firestore.FieldValue.arrayUnion(patientId),
-        });
-      }
+      // Update all assigned doctors' `patients` arrays (only if doctors are provided)
+      if (doctors && Array.isArray(doctors) && doctors.length > 0) {
+        const batch = db.batch();
+        
+        for (const doctorId of doctors) {
+          const doctorRef = db.collection("doctors").doc(doctorId);
+          batch.update(doctorRef, {
+            patients: admin.firestore.FieldValue.arrayUnion(patientId),
+          });
+        }
 
-      // Commit the batch update
-      await batch.commit();
+        // Commit the batch update
+        await batch.commit();
+      }
 
       // Return the result of the registration
       res.status(201).json(result);

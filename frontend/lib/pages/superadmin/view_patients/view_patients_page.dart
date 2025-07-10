@@ -520,7 +520,7 @@ class _PatientsPageState extends State<PatientsPage> {
                       ),
                     ),
 
-                    // Add Doctor Selection section if hospital is selected
+                    // Add Doctor Selection section if hospital is selected (Optional)
                     if (selectedHospitalId != null &&
                         filteredDoctors.isNotEmpty)
                       Container(
@@ -534,12 +534,41 @@ class _PatientsPageState extends State<PatientsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Doctor Assignment',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFFEC407A),
-                                )),
+                            Row(
+                              children: [
+                                Text('Doctor Assignment',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFFEC407A),
+                                    )),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Optional',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'You can assign doctors to this patient now or later.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
                             const SizedBox(height: 16),
 
                             // Doctor search field
@@ -679,18 +708,38 @@ class _PatientsPageState extends State<PatientsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Doctor Assignment',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFFEC407A),
-                                )),
+                            Row(
+                              children: [
+                                Text('Doctor Assignment',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFFEC407A),
+                                    )),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Optional',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                             const SizedBox(height: 16),
                             const Center(
                               child: Text(
-                                'No doctors available for the selected hospital. Please add doctors to this hospital first.',
+                                'No doctors available for the selected hospital. You can still create the patient and assign doctors later.',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.red),
+                                style: TextStyle(color: Colors.grey),
                               ),
                             ),
                           ],
@@ -724,11 +773,7 @@ class _PatientsPageState extends State<PatientsPage> {
                     return;
                   }
 
-                  // Ensure at least one doctor is selected
-                  if (selectedDoctorIds.isEmpty) {
-                    Fluttertoast.showToast(msg: 'Please select at least one doctor');
-                    return;
-                  }
+                  // Doctor assignment is optional - no validation needed
 
                   Navigator.pop(ctx);
 
