@@ -169,7 +169,7 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           decoration: BoxDecoration(
-            color: widget.themeColor.withOpacity(0.1),
+            color: widget.themeColor.withOpacity(0.50), // darker footer
             borderRadius: BorderRadius.circular(8),
           ),
           child: LayoutBuilder(
@@ -184,10 +184,10 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                       padding: const EdgeInsets.only(left: 16.0),
                       child: Row(
                         children: [
-                          Text(
+                          const Text(
                             'Rows per page: ',
                             style: TextStyle(
-                              color: widget.themeColor.withOpacity(0.8),
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -200,8 +200,8 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                             child: DropdownButton<int>(
                               value: _rowsPerPage,
                               underline: const SizedBox(),
-                              icon: Icon(Icons.arrow_drop_down, color: widget.themeColor),
-                              style: TextStyle(color: widget.themeColor.withOpacity(0.8)),
+                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                               items: widget.availableRowsPerPage
                                   .map((int value) => DropdownMenuItem<int>(
                                         value: value,
@@ -232,7 +232,7 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                           onPressed: _currentPage > 0
                               ? () => setState(() => _currentPage = 0)
                               : null,
-                          color: widget.themeColor,
+                          color: Colors.white,
                           disabledColor: Colors.grey,
                         ),
                         IconButton(
@@ -240,14 +240,14 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                           onPressed: _currentPage > 0
                               ? () => setState(() => _currentPage--)
                               : null,
-                          color: widget.themeColor,
+                          color: Colors.white,
                           disabledColor: Colors.grey,
                         ),
                         const SizedBox(width: 16),
                         Text(
                           'Page ${_currentPage + 1} of $totalPages',
-                          style: TextStyle(
-                            color: widget.themeColor.withOpacity(0.8),
+                          style: const TextStyle(
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -257,7 +257,7 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                           onPressed: _currentPage < totalPages - 1
                               ? () => setState(() => _currentPage++)
                               : null,
-                          color: widget.themeColor,
+                          color: Colors.white,
                           disabledColor: Colors.grey,
                         ),
                         IconButton(
@@ -265,7 +265,7 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                           onPressed: _currentPage < totalPages - 1
                               ? () => setState(() => _currentPage = totalPages - 1)
                               : null,
-                          color: widget.themeColor,
+                          color: Colors.white,
                           disabledColor: Colors.grey,
                         ),
                         const SizedBox(width: 16),
@@ -283,10 +283,10 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             'Rows per page: ',
                             style: TextStyle(
-                              color: widget.themeColor.withOpacity(0.8),
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -299,8 +299,8 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                             child: DropdownButton<int>(
                               value: _rowsPerPage,
                               underline: const SizedBox(),
-                              icon: Icon(Icons.arrow_drop_down, color: widget.themeColor),
-                              style: TextStyle(color: widget.themeColor.withOpacity(0.8)),
+                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                               items: widget.availableRowsPerPage
                                   .map((int value) => DropdownMenuItem<int>(
                                         value: value,
@@ -330,7 +330,7 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                           onPressed: _currentPage > 0
                               ? () => setState(() => _currentPage = 0)
                               : null,
-                          color: widget.themeColor,
+                          color: Colors.white,
                           disabledColor: Colors.grey,
                         ),
                         IconButton(
@@ -338,15 +338,15 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                           onPressed: _currentPage > 0
                               ? () => setState(() => _currentPage--)
                               : null,
-                          color: widget.themeColor,
+                          color: Colors.white,
                           disabledColor: Colors.grey,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Text(
                             'Page ${_currentPage + 1} of $totalPages',
-                            style: TextStyle(
-                              color: widget.themeColor.withOpacity(0.8),
+                            style: const TextStyle(
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -356,7 +356,7 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                           onPressed: _currentPage < totalPages - 1
                               ? () => setState(() => _currentPage++)
                               : null,
-                          color: widget.themeColor,
+                          color: Colors.white,
                           disabledColor: Colors.grey,
                         ),
                         IconButton(
@@ -364,7 +364,7 @@ class _BetterPaginatedDataTableState extends State<BetterPaginatedDataTable> {
                           onPressed: _currentPage < totalPages - 1
                               ? () => setState(() => _currentPage = totalPages - 1)
                               : null,
-                          color: widget.themeColor,
+                          color: Colors.white,
                           disabledColor: Colors.grey,
                         ),
                       ],
