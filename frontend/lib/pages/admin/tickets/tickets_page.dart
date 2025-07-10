@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/data_provider.dart';
 import '../../../models/ticket.dart';
 import '../../../shared/components/components.dart';
+import '../../../shared/components/page_header.dart';
 import '../../../shared/components/responsive_data_table.dart' show BetterPaginatedDataTable;
 
 class TicketsPage extends StatefulWidget {
@@ -254,6 +255,8 @@ class _TicketsPageState extends State<TicketsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              const PageHeader(icon: Icons.rocket, title: 'Tickets Management'),
+              SizedBox(height: 24),
               // Our search + pending row
               SearchAndPendingRow(
                 searchLabel: 'Search Tickets',

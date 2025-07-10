@@ -13,6 +13,7 @@ import 'package:frontend/models/admin_data.dart';
 
 import '../../../shared/components/loading_indicator.dart';
 import '../../../shared/components/components.dart';
+import '../../../shared/components/page_header.dart';
 import '../../../shared/components/responsive_data_table.dart'
     show BetterPaginatedDataTable;
 
@@ -1634,6 +1635,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            const PageHeader(icon: Icons.person, title: 'Doctors Management'),
+            SizedBox(height: 24),
             Row(
               children: [
                 Container(

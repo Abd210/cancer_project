@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frontend/providers/device_provider.dart';
 import 'package:frontend/models/device_data.dart';
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/components/page_header.dart';
 import '../../../shared/components/responsive_data_table.dart' show BetterPaginatedDataTable;
 
 class DevicesPage extends StatefulWidget {
@@ -504,6 +505,8 @@ class _DevicesPageState extends State<DevicesPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            const PageHeader(icon: Icons.devices, title: 'Devices Management'),
+            SizedBox(height: 24),
             // Filter and search row
             Row(
               children: [

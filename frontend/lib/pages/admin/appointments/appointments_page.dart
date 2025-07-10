@@ -13,6 +13,7 @@ import 'package:frontend/models/patient_data.dart';
 import 'package:frontend/models/hospital_data.dart';
 
 import '../../../shared/components/loading_indicator.dart';
+import '../../../shared/components/page_header.dart';
 import '../../../shared/components/responsive_data_table.dart'
     show BetterPaginatedDataTable;
 
@@ -1742,6 +1743,8 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const PageHeader(icon: Icons.event, title: 'Appointments Management'),
+            SizedBox(height: 24),
             // Compact header and search row
             Row(
               children: [
