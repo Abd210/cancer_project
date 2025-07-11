@@ -1189,6 +1189,8 @@ class AppointmentService {
         "scheduled",
         "cancelled",
         "completed",
+        "pending",
+        "declined",
       ];
       if (!STATUSES.includes(updateFields.status)) {
         throw new Error(

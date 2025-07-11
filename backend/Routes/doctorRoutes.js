@@ -31,7 +31,7 @@ router.get(
 router.get(
   "/doctor/data",
   authenticate,
-  authorize(["doctor", "admin", "superadmin"]),
+  authorize(["patient", "doctor", "admin", "superadmin"]),
   doctorController.getDoctorData
 );
 

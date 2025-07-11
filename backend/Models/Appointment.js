@@ -2,7 +2,7 @@ const { db } = require("../firebase"); // Import shared Firebase instance
 
 const appointmentsCollection = db.collection("appointments");
 
-const STATUSES = ["scheduled", "cancelled", "completed"];
+const STATUSES = ["scheduled", "cancelled", "completed", "pending", "declined"];
 
 // Helper: Convert "HH:mm" to minutes since midnight.
 function timeToMinutes(timeStr) {

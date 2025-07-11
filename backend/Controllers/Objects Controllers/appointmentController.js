@@ -445,11 +445,35 @@ class AppointmentController {
       // Determine hospital ID based on user role
       let hospitalId;
       if (user.role === "admin") {
-        // For admin: use the hospital they are associated with
-        hospitalId = user.hospital; // Assuming admin has a hospital field
+        // Admin: use their hospital
+        hospitalId = user.hospital;
         if (!hospitalId) {
           return res.status(400).json({
-            error: "Admin user must be associated with a hospital",
+            error: "User must be associated with a hospital",
+          });
+        }
+      } else if (user.role === "patient") {
+        // Patient: use their hospital (must exist)
+        hospitalId = user.hospital;
+        if (!hospitalId) {
+          // Fetch patient document to obtain hospital reference
+          const PatientService = require("../../Services/patientService");
+          try {
+            const patientDoc = await PatientService.getPatientData(user.id);
+            hospitalId = patientDoc.hospital || null;
+          } catch (e) {
+            // ignore
+          }
+          if (!hospitalId) {
+            return res.status(400).json({
+              error: "User must be associated with a hospital",
+            });
+          }
+        }
+        // Ensure the patient field in body matches the authenticated user
+        if (patient !== user.id) {
+          return res.status(403).json({
+            error: "Patients can only book appointments for themselves",
           });
         }
       } else if (user.role === "superadmin") {
@@ -462,7 +486,7 @@ class AppointmentController {
         }
       } else {
         return res.status(403).json({
-          error: "Only admin and superadmin can create appointments",
+          error: "Role not permitted to create appointments",
         });
       }
 
@@ -504,8 +528,9 @@ class AppointmentController {
       //   }
       // }
 
-      // Validate the status value if provided
-      if (status && !["scheduled", "cancelled", "completed"].includes(status)) {
+      // Validate the status value if provided (extend list)
+      const ALLOWED_STATUSES = ["scheduled", "cancelled", "completed", "pending", "declined"];
+      if (status && !ALLOWED_STATUSES.includes(status)) {
         return res
           .status(400)
           .json({ error: "AppointmentController-Create: Invalid status" });
@@ -519,6 +544,9 @@ class AppointmentController {
       //   });
       // }
 
+      // Determine final status: patient creations default to pending
+      const finalStatus = user.role === "patient" ? "pending" : status || "scheduled";
+
       // Call the AppointmentService to create the appointment
       const appointment = await AppointmentService.createAppointment({
         patient: patient,
@@ -531,7 +559,7 @@ class AppointmentController {
         start: start,
         end: end,
         purpose: purpose,
-        status: status || "scheduled",
+        status: finalStatus,
         suspended: suspended || false,
       });
 

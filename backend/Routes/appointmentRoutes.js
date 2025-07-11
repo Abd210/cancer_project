@@ -144,7 +144,7 @@ router.post(
 router.post(
   "/appointment/new",
   authenticate,
-  authorize(["doctor", "admin", "superadmin"]),
+  authorize(["patient", "doctor", "admin", "superadmin"]),
   appointmentController.createAppointment
 );
 
@@ -158,7 +158,7 @@ router.delete(
 router.put(
   "/appointment/update",
   authenticate, // Middleware to authenticate the user
-  authorize(["admin", "superadmin"]), // Middleware to allow only superadmins
+  authorize(["patient","admin", "superadmin"]), // Middleware to allow only superadmins
   appointmentController.updateAppointmentData // Controller function
 );
 

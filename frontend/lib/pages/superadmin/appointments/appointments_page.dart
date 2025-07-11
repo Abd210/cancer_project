@@ -1586,6 +1586,25 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
     }
   }
 
+  // Approve or decline pending appointment
+  void _updateStatus(String appointmentId, String newStatus) async {
+    if (appointmentId.isEmpty) return;
+    setState(() => _isLoading = true);
+    try {
+      await _appointmentProvider.updateAppointment(
+        token: widget.token,
+        appointmentId: appointmentId,
+        updatedFields: {'status': newStatus},
+      );
+      await _fetchAppointments();
+      _showToast('Appointment ${newStatus == 'scheduled' ? 'approved' : 'declined'} successfully');
+    } catch (e) {
+      _showToast('Failed to update status: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   // Build the filter panel - making it more compact
   Widget _buildFilterPanel() {
     return AnimatedContainer(
@@ -1742,22 +1761,12 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                       ),
                       value: _selectedStatus,
                       items: const [
-                        DropdownMenuItem<String>(
-                          value: 'all',
-                          child: Text('All'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'scheduled',
-                          child: Text('Scheduled'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'completed',
-                          child: Text('Completed'),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: 'cancelled',
-                          child: Text('Cancelled'),
-                        ),
+                        DropdownMenuItem<String>(value: 'all', child: Text('All')),
+                        DropdownMenuItem<String>(value: 'scheduled', child: Text('Scheduled')),
+                        DropdownMenuItem<String>(value: 'pending', child: Text('Pending')),
+                        DropdownMenuItem<String>(value: 'declined', child: Text('Declined')),
+                        DropdownMenuItem<String>(value: 'completed', child: Text('Completed')),
+                        DropdownMenuItem<String>(value: 'cancelled', child: Text('Cancelled')),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -2324,6 +2333,25 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                                          constraints: const BoxConstraints(),
                                          visualDensity: VisualDensity.compact,
                                        ),
+                                     if (appointment.status == 'pending') ...[
+                                       IconButton(
+                                         icon: const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                                         onPressed: () => _updateStatus(appointment.id, 'scheduled'),
+                                         tooltip: 'Approve',
+                                         padding: EdgeInsets.zero,
+                                         constraints: const BoxConstraints(),
+                                         visualDensity: VisualDensity.compact,
+                                       ),
+                                       const SizedBox(width: 4),
+                                       IconButton(
+                                         icon: const Icon(Icons.close, color: Colors.red, size: 18),
+                                         onPressed: () => _updateStatus(appointment.id, 'declined'),
+                                         tooltip: 'Decline',
+                                         padding: EdgeInsets.zero,
+                                         constraints: const BoxConstraints(),
+                                         visualDensity: VisualDensity.compact,
+                                       ),
+                                     ],
                                      const SizedBox(width: 4),
                                      IconButton(
                                        icon: const Icon(Icons.delete, color: Colors.red, size: 18),
@@ -2355,6 +2383,10 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
         return Colors.blue;
       case 'completed':
         return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'declined':
+        return Colors.grey;
       case 'cancelled':
         return Colors.red;
       default:

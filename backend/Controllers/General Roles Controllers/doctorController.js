@@ -93,8 +93,27 @@ class DoctorController {
             });
           }
         }
+      } else if (user.role === "patient") {
+        // Patients can retrieve doctors (optionally by hospital)
+        if (!doctorid) {
+          // If no specific doctor requested, return list (optionally filtered by hospital)
+          let doctors;
+          if (hospitalid) {
+            doctors = await DoctorService.findAllDoctorsByHospital(hospitalid);
+          } else {
+            doctors = await DoctorService.findAllDoctors();
+          }
+
+          const filtered_data = await SuspendController.filterData(
+            doctors,
+            user.role,
+            filter || 'all',
+          );
+          return res.status(200).json(filtered_data);
+        }
+        // Else fall through to fetch single doctor by ID below
       } else {
-        // If the role is neither 'doctor' nor 'superadmin', deny access
+        // Other roles not permitted
         return res.status(403).json({
           error: "DoctorController- Get Doctor Data: Access denied", // Access denied error
         });
