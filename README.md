@@ -39,3 +39,9 @@ A Platform for the study and detection of breast cancer
 - Fixed bugs and improved some functions in services
 
 ### 27/02/2025
+
+## Documentation
+
+- Architecture overview: `docs/ARCHITECTURE.md`
+- Team presentation split (3 presenters): `docs/PRESENTATION_SPLIT.md`
+- Presenter notes and talking points: `docs/PRESENTER_NOTES.md`
